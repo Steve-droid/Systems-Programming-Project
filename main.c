@@ -6,7 +6,17 @@
 #include <errno.h>
 
 
-int main() {
-    test_vector();
+int main(int argc, char *argv[]) {
+
+    FILE *as_file = NULL;
+    FILE *am_file = NULL;
+
+    if (argc != 2) {
+        errx(1, "Usage: %s <file_name>", argv[0]);
+    }
+
+
+
+
     return 0;
 }

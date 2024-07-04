@@ -92,7 +92,7 @@ void macro_destructor(macro *macro) {
 
     free(macro->name);
     vector_destroy(macro->lines);
-    free(macro);
+    free((void *)macro);
 }
 
 /**

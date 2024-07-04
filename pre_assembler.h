@@ -20,6 +20,16 @@ typedef enum macro_state {
     illegal_definition, illegeal_end_macro, call, illegal_call
 }macro_state;
 
+void compute_as_file_name(char *src_file_name, char *as_file_name);
+
+void compute_am_file_name(char *src_file_name, char *am_file_name);
+
+void pre_assemble(char *src_file_name, const char *output_file_path);
+
+FILE *create_am_file(char *am_file_name);
+
+FILE *create_as_file(char *as_file_name);
+
 
 
 #endif
