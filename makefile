@@ -1,20 +1,22 @@
-CC=gcc
-CFLAGS=-Wall -Wextra -g
-LDFLAGS=
-INCLUDES=-I.
-SRCS=main.c vector.c
-OBJS=$(SRCS:.c=.o)
-TARGET=vector
+CC = gcc
+CFLAGS = -Wall -Wextra -pedantic -g
 
-.PHONY: all clean
+all: pre
 
-all: $(TARGET)
+pre: main.o util.o pre_assembler.o macro.o
+	$(CC) $(CFLAGS) -o pre main.o util.o pre_assembler.o macro.o
 
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(TARGET) $(OBJS) $(LDFLAGS)
+main.o: main.c util.h pre_assembler.h macro.h
+	$(CC) $(CFLAGS) -c main.c
 
-%.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+util.o: util.c util.h
+	$(CC) $(CFLAGS) -c util.c
+
+pre_assembler.o: pre_assembler.c pre_assembler.h util.h
+	$(CC) $(CFLAGS) -c pre_assembler.c
+
+macro.o: macro.c macro.h util.h
+	$(CC) $(CFLAGS) -c macro.c
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f *.o pre
