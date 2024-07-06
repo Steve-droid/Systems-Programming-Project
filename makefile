@@ -1,20 +1,21 @@
-CC=gcc
-CFLAGS=-Wall -Wextra -g
-LDFLAGS=
-INCLUDES=-I.
-SRCS=main.c vector.c
-OBJS=$(SRCS:.c=.o)
-TARGET=vector
+# Makefile
+
+CC = gcc
+CFLAGS = -g -Wall -std=c99
+TARGET = test
+
+SRC = main.c pre_assembler.c file_util.c macro.c
+OBJ = $(SRC:.c=.o)
 
 .PHONY: all clean
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(TARGET) $(OBJS) $(LDFLAGS)
+$(TARGET): $(OBJ)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJ)
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJ) $(TARGET)

@@ -7,29 +7,29 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "vector.h"
+#include "file_util.h"
+
 
 #define as_extention ".as"
 #define am_extention ".am"
-#define MAX_MACRO_NAME_LENGTH 31
 #define MAX_MACRO_AMOUNT 100
-#define MAX_LINE_LENGTH 81
-
-typedef enum macro_state {
-    definition, empty_line, line_other, macro_redefinition_error,
-    illegal_definition, illegeal_end_macro, call, illegal_call
-}macro_state;
-
-typedef macro *macro_pointer;
+#define MAX_LINE_LENGTH 80
+#define INITIAL_MACRO_CAPACITY 3
+#define INITIAL_MACRO_TABLE_CAPACITY 3
+#define MIN_MACRO_AMOUNT 3
+#define MIN_LINE_AMOUNT 3
 
 typedef struct macro {
-    vector *lines;      /* Vector of strings- the lines that the macro expands to */
+    char **lines;      /* Vector of strings- the lines that the macro expands to */
     char *name;         /* The name of the macro */
     int line_count;     /* Number of lines in the macro */
+    int line_capacity;
 }macro;
 
 typedef struct macro_table {
-    vector *table;      /* Vector of macro pointers */
-    int size;           /* Number of macros in the table */
+    macro **macros;      /* Vector of macro pointers */
+    int macro_count;           /* Number of macros in the table */
+    int capacity;
 }macro_table;
 
 /**
@@ -38,14 +38,24 @@ typedef struct macro_table {
  * @param name The name of the macro
  * @return macro*
  */
-macro *macro_constructor(char *name);
+status create_macro(char *macro_name, macro **new_macro);
+
+
+status insert_line_to_macro(macro *mac, char *line);
+
+/**
+ * @brief Destroy a macro object
+ *
+ * @param macro The macro to destroy
+ */
+void macro_destructor(macro *macro);
 
 /**
  * @brief Create a new macro table object
  *
  * @return macro_table*
  */
-macro_table *macro_table_constructor();
+macro_table *create_macro_table();
 
 /**
  * @brief Insert a macro into the macro table
@@ -53,7 +63,7 @@ macro_table *macro_table_constructor();
  * @param table The macro table to insert the macro into
  * @param macro The macro to insert
  */
-void insert_macro(macro_table *table, macro *macro);
+status insert_macro_to_table(macro_table *table, macro *mac);
 
 /**
  * @brief Get a macro from the macro table
@@ -62,7 +72,7 @@ void insert_macro(macro_table *table, macro *macro);
  * @param name The name of the macro to get
  * @return macro*
  */
-macro *get_macro(macro_table *table, char *name);
+macro *find_macro_in_table(macro_table *table, char *name);
 
 
 /**
@@ -72,12 +82,6 @@ macro *get_macro(macro_table *table, char *name);
  */
 macro_table *get_macro_table();
 
-/**
- * @brief Destroy a macro object
- *
- * @param macro The macro to destroy
- */
-void macro_destructor(macro *macro);
 
 /**
  * @brief Destroy a macro table object

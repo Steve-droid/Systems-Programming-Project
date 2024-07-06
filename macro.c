@@ -5,18 +5,36 @@
  * @param name The name of the macro
  * @return macro*
  */
-macro *macro_constructor(char *macro_name) {
+status create_macro(char *macro_name, macro **new_macro) {
+    *new_macro = (macro *)malloc(sizeof(macro));
+    if (*new_macro == NULL) return STATUS_ERROR_MEMORY_ALLOCATION;
+    (*new_macro)->name = strdup(macro_name);
+    (*new_macro)->lines = NULL;
+    (*new_macro)->line_capacity = 0;
+    (*new_macro)->line_count = 0;
 
-    macro *new_macro = (macro *)malloc(sizeof(macro));
-    if (new_macro == NULL) {
-        err(errno, "Failed to allocate memory for macro");
+    return STATUS_OK;
+}
+
+status insert_line_to_macro(macro *mac, char *line) {
+
+    if (mac->lines == NULL) {
+        mac->lines = (char **)malloc(sizeof(char *) * INITIAL_MACRO_CAPACITY);
+        if (mac->lines == NULL) return STATUS_ERROR_MEMORY_ALLOCATION;
+        mac->line_capacity = INITIAL_MACRO_CAPACITY;
     }
 
-    new_macro->lines = vector_create((void *(*)(const void *))strdup, free);
-    new_macro->name = strdup(macro_name);
-    new_macro->line_count = 0;
+    if (mac->line_count == mac->line_capacity) {
+        mac->line_capacity = mac->line_count + 1;
+        mac->lines = (char **)realloc(mac->lines, mac->line_capacity * sizeof(char *));
+        if (mac->lines == NULL) {
+            return STATUS_ERROR_MEMORY_ALLOCATION;
+        }
+    }
 
-    return new_macro;
+    mac->lines[mac->line_count] = strdup(line);
+    mac->line_count++;
+    return STATUS_OK;
 }
 
 /**
@@ -24,17 +42,18 @@ macro *macro_constructor(char *macro_name) {
  *
  * @return macro_table*
  */
-macro_table *macro_table_constructor() {
+macro_table *create_macro_table() {
 
-    macro_table *table = (macro_table *)malloc(sizeof(macro_table));
-    if (table == NULL) {
+    macro_table *m_table = (macro_table *)malloc(sizeof(macro_table));
+    if (m_table == NULL) {
         err(errno, "Failed to allocate memory for macro table");
     }
 
-    table->table = vector_create((void *(*)(const void *))macro_constructor, (void (*)(void *))macro_destructor);
-    table->size = 0;
+    m_table->macros = NULL;
+    m_table->macro_count = 0;
+    m_table->capacity = 0;
 
-    return table;
+    return m_table;
 }
 
 /**
@@ -43,10 +62,24 @@ macro_table *macro_table_constructor() {
  * @param table The macro table to insert the macro into
  * @param macro The macro to insert
  */
-void insert_macro(macro_table *table, macro *macro) {
+status insert_macro_to_table(macro_table *table, macro *macr) {
 
-    vector_insert(table->table, macro);
-    table->size++;
+    if (table->macros == NULL) {
+        table->macros = (macro **)malloc(sizeof(macro *) * INITIAL_MACRO_TABLE_CAPACITY);
+        if (table->macros == NULL) return STATUS_ERROR_MEMORY_ALLOCATION;
+        table->capacity = INITIAL_MACRO_TABLE_CAPACITY;
+    }
+
+
+    if (table->macro_count == table->capacity) {
+        table->capacity = table->macro_count + 1;
+        table->macros = (macro **)realloc(table->macros, table->capacity * sizeof(macro *));
+        if (table->macros == NULL) return STATUS_ERROR_MEMORY_ALLOCATION;
+    }
+
+    table->macros[table->macro_count] = macr;
+    table->macro_count++;
+    return STATUS_OK;
 }
 
 /**
@@ -54,17 +87,17 @@ void insert_macro(macro_table *table, macro *macro) {
  *
  * @param table The macro table to get the macro from
  * @param name The name of the macro to get
- * @return macro*
+ * @return macro* If macro with matching name is found
+ * @return NULL if not found
  */
-macro *get_macro(macro_table *table, char *name) {
+macro *find_macro_in_table(macro_table *table, char *name) {
+    if (table == NULL) return NULL;
 
-    for (int i = 0; i < table->size; i++) {
-        macro *current = (macro *)vector_get(table->table, i);
-        if (strcmp(current->name, name) == 0) {
-            return current;
-        }
-    }
+    int index;
 
+    for (index = 0;index < table->macro_count;index++)
+        if (strcmp(table->macros[index]->name, name) == 0)
+            return table->macros[index];
     return NULL;
 }
 
@@ -79,7 +112,6 @@ macro_table *get_macro_table() {
     if (table == NULL) {
         table = create_macro_table();
     }
-
     return table;
 }
 
@@ -88,11 +120,13 @@ macro_table *get_macro_table() {
  *
  * @param macro The macro to destroy
  */
-void macro_destructor(macro *macro) {
+void macro_destructor(macro *mac) {
+    int index;
 
-    free(macro->name);
-    vector_destroy(macro->lines);
-    free(macro);
+    for (index = 0;index < mac->line_count;index++) free(mac->lines[index]);
+    free(mac->lines);
+    free(mac->name);
+    free(mac);
 }
 
 /**
@@ -102,11 +136,9 @@ void macro_destructor(macro *macro) {
  */
 void macro_table_destructor(macro_table *table) {
 
-    for (int i = 0; i < table->size; i++) {
-        macro *current = (macro *)vector_get(table->table, i);
-        destroy_macro(current);
+    for (int i = 0; i < table->macro_count; i++) {
+        macro_destructor(table->macros[i]);
     }
-
-    vector_destroy(table->table);
+    free(table->macros);
     free(table);
 }

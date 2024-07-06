@@ -8,18 +8,17 @@
 #include <stdbool.h>
 #include "macro.h"
 #include "vector.h"
+#include "file_util.h"
 
 #define as_extention ".as"
 #define am_extention ".am"
-#define MAX_MACRO_NAME_LENGTH 31
+#define MAX_MACRO_NAME_LENGTH 73
 #define MAX_MACRO_AMOUNT 100
-#define MAX_LINE_LENGTH 81
+#define MAX_LINE_LENGTH 80
+#define BUFFER_SIZE 1024
 
-typedef enum macro_state {
-    definition, empty_line, line_other, macro_redefinition_error,
-    illegal_definition, illegeal_end_macro, call, illegal_call
-}macro_state;
 
+status pre_assemble(char *filename);
 
 
 #endif

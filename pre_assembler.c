@@ -1,18 +1,120 @@
+
 #include "pre_assembler.h"
+#define DEFINE_SEQUENCE_LEN 5
 
-
-void pre_assemble(char *src_file_name, const char *output_file_path) {
-
-    char line_buffer[MAX_LINE_LENGTH];      /* For reading macro lines */
-    unsigned int output_file_name_length;   /* Length of the output file name */
-    unsigned int as_file_name_length = strlen(src_file_name);       /* Length of the .as file name */
-    unsigned int am_file_name_length = strlen(src_file_name);      /* Length of the .am file name */
-    char *as_file_name = strcat(strncpy(malloc(as_file_name_length + 1), src_file_name, as_file_name_length), as_extention); /* The .as file name */
-    char *am_file_name = strcat(strncpy(malloc(am_file_name_length + 1), src_file_name, am_file_name_length), am_extention); /* The .am file name */
-
-
-
-
-
+static bool is_macro_definition(char *line) {
+    return (strncmp(line, "macr ", DEFINE_SEQUENCE_LEN) == 0);
 }
 
+static bool is_macro_call(char *line, macro_table *table) {
+    char macro_name[MAX_MACRO_NAME_LENGTH] = { '\0' };
+
+    /*
+    * We use 'sscanf' to read input from a specific string
+    * 'sscanf' will read the first word from 'line' into 'macro_name'
+    */
+    sscanf(line, "%s", macro_name);
+    return (find_macro_in_table(table, macro_name) != NULL);
+}
+
+static status add_macro_to_table(char *macro_name, FILE *as_file, macro_table *table) {
+    macro *new_macro;
+    char line[BUFSIZ];
+    status result = create_macro(macro_name, &new_macro);
+
+    if (result != STATUS_OK) return result;
+
+    while (fgets(line, sizeof(line), as_file)) {
+        if (strncmp(line, "endmacr", 7) == 0) break;
+        result = insert_line_to_macro(new_macro, line);
+        if (result != STATUS_OK) return result;
+    }
+
+    printf("Adding macro: %s\n", macro_name);
+    return insert_macro_to_table(table, new_macro);
+}
+
+static status expand_macro(char *macro_name, FILE *am_file, macro_table *table) {
+    int i;
+    macro *m = find_macro_in_table(table, macro_name);
+    if (m == NULL) return STATUS_ERROR_MACRO_NOT_FOUND;
+    for (i = 0;i < m->line_count;i++) fprintf(am_file, "%s", m->lines[i]);
+    return STATUS_OK;
+}
+
+status pre_assemble(char *filename) {
+    char *as_filename = create_file_name(filename, ".as");
+    char *am_filename = create_file_name(filename, ".am");
+    FILE *as_file = NULL, *am_file = NULL;
+    char line[BUFSIZ] = { '\0' };
+    char first_word[MAX_LINE_LENGTH] = { '\0' };
+    char macro_name[MAX_LINE_LENGTH] = { '\0' };
+    macro_table *table = NULL;
+    macro *macroname_found_flag = NULL;
+
+
+    if (as_filename == NULL || am_filename == NULL) return STATUS_ERROR;
+
+    if (remove_whitespace(as_filename) != STATUS_OK) {
+        free(as_filename);
+        free(am_filename);
+        return STATUS_ERROR;
+    }
+
+    as_file = fopen(as_filename, "r");
+    if (as_file == NULL) {
+        fprintf(stderr, "Error opening file %s\n", as_filename);
+        free(as_filename);
+        free(am_filename);
+        return STATUS_ERROR_OPEN_SRC;
+    }
+
+    am_file = fopen(am_filename, "w");
+    if (am_file == NULL) {
+        fprintf(stderr, "Error opening file %s\n", am_filename);
+        fclose(as_file);
+        free(as_filename);
+        free(am_filename);
+        return STATUS_ERROR_OPEN_DEST;
+    }
+
+    table = create_macro_table();
+
+    /* Primary parsing loop */
+    while (fgets(line, sizeof(line), as_file)) {
+        line[strcspn(line, "\n")] = '\0'; /* Null terminate line */
+        sscanf(line, "%s", first_word); /* Extract first word in the line */
+
+        if (is_macro_call(line, table)) {
+            printf("Expanding macro: %s\n", first_word);
+            expand_macro(first_word, am_file, table);
+        }
+        else if (is_macro_definition(line)) {
+            sscanf(line, "macr %s", macro_name); /* Extract 2nd word wich is the macro name */
+
+            /* Check if definition is valid */
+            macroname_found_flag = find_macro_in_table(table, macro_name);
+            if (macroname_found_flag != NULL) {
+                fclose(as_file);
+                fclose(am_file);
+                free(as_filename);
+                free(am_filename);
+                return STATUS_ERROR_MACRO_REDEFINITION;
+            }
+
+            /* Is a valid definition of a new macro */
+            add_macro_to_table(macro_name, as_file, table);
+        }
+        /* Neither a macro call or definition */
+        else fprintf(am_file, "%s\n", line); /* Write the line to the .am file */
+    }
+
+    fclose(as_file);
+    fclose(am_file);
+    free(as_filename);
+    free(am_filename);
+    macro_table_destructor(table);
+
+    return STATUS_OK;
+
+}
