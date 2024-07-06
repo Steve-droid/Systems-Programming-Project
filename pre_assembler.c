@@ -3,7 +3,7 @@
 #define DEFINE_SEQUENCE_LEN 5
 
 static bool is_macro_definition(char *line) {
-    return strncmp(line, "macr ", DEFINE_SEQUENCE_LEN);
+    return (strncmp(line, "macr ", DEFINE_SEQUENCE_LEN) == 0);
 }
 
 static bool is_macro_call(char *line, macro_table *table) {
@@ -50,6 +50,8 @@ status pre_assemble(char *filename) {
     char first_word[MAX_LINE_LENGTH] = { '\0' };
     char macro_name[MAX_LINE_LENGTH] = { '\0' };
     macro_table *table = NULL;
+    macro *macroname_found_flag = NULL;
+
 
     if (as_filename == NULL || am_filename == NULL) return STATUS_ERROR;
 
@@ -91,7 +93,8 @@ status pre_assemble(char *filename) {
             sscanf(line, "macr %s", macro_name); /* Extract 2nd word wich is the macro name */
 
             /* Check if definition is valid */
-            if (find_macro_in_table(table, macro_name) != NULL) {
+            macroname_found_flag = find_macro_in_table(table, macro_name);
+            if (macroname_found_flag != NULL) {
                 fclose(as_file);
                 fclose(am_file);
                 free(as_filename);

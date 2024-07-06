@@ -3,7 +3,7 @@
 #include <fcntl.h>
 #define ERR -1
 
-char *create_file_name(const char *initial_filename, const char *extension) {
+char *create_file_name(char *initial_filename, char *extension) {
     size_t initial_name_len = strlen(initial_filename);
     size_t extension_len = strlen(extension);
     size_t new_filename_len = initial_name_len + extension_len; /*Length of the new filename*/
@@ -21,7 +21,7 @@ char *create_file_name(const char *initial_filename, const char *extension) {
 
 }
 
-status copy_file_contents(const char *src_filename, const char *dest_filename) {
+status copy_file_contents(char *src_filename, char *dest_filename) {
     FILE *src_file = fopen(src_filename, "r");
     FILE *dest_file = fopen(dest_filename, "w");
     char buffer[BUFSIZ] = { 0 };
@@ -65,7 +65,7 @@ status copy_file_contents(const char *src_filename, const char *dest_filename) {
     return STATUS_OK;
 }
 
-status remove_whitespace(const char *filename) {
+status remove_whitespace(char *filename) {
     FILE *file;
     FILE *tmp_file;
     char tmp_filename[] = "tmpfileXXXXXX";
