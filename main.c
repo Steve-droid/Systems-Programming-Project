@@ -1,22 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "util/file_util.h"
+#include "pre_assembler.h"
 
 int main(int argc, char *argv[]) {
-
-    const char *filename = argv[1];
-    status result;
-
     if (argc != 2) {
         fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
         return EXIT_FAILURE;
     }
 
-    /* Remove whitespace from each line of the file and check the status */
-    result = remove_whitespace(filename);
+    char *base_filename = argv[1];
+    status result = pre_assemble(base_filename);
+
     switch (result) {
     case STATUS_OK:
-        printf("Whitespace removed successfully.\n");
+        printf("Pre-assembly completed successfully.\n");
         break;
     case STATUS_ERROR_OPEN_SRC:
         printf("Error: Could not open source file.\n");
@@ -29,6 +26,15 @@ int main(int argc, char *argv[]) {
         break;
     case STATUS_ERROR_WRITE:
         printf("Error: Could not write to destination file.\n");
+        break;
+    case STATUS_ERROR_MACRO_REDEFINITION:
+        printf("Error: Macro redefinition detected.\n");
+        break;
+    case STATUS_ERROR_MEMORY_ALLOCATION:
+        printf("Error: Memory allocation failed.\n");
+        break;
+    case STATUS_ERROR_MACRO_NOT_FOUND:
+        printf("Error: Macro not found.\n");
         break;
     default:
         printf("Unknown error.\n");

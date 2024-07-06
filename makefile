@@ -1,22 +1,21 @@
+# Makefile
+
 CC = gcc
-CFLAGS = -Wall -Wextra -pedantic -g
+CFLAGS = -g -Wall -std=c99
+TARGET = test
 
-all: pre
+SRC = main.c pre_assembler.c file_util.c macro.c
+OBJ = $(SRC:.c=.o)
 
-pre: main.o util.o pre_assembler.o macro.o
-	$(CC) $(CFLAGS) -o pre main.o util.o pre_assembler.o macro.o
+.PHONY: all clean
 
-main.o: main.c util.h pre_assembler.h macro.h
-	$(CC) $(CFLAGS) -c main.c
+all: $(TARGET)
 
-util.o: util.c util.h
-	$(CC) $(CFLAGS) -c util.c
+$(TARGET): $(OBJ)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJ)
 
-pre_assembler.o: pre_assembler.c pre_assembler.h util.h
-	$(CC) $(CFLAGS) -c pre_assembler.c
-
-macro.o: macro.c macro.h util.h
-	$(CC) $(CFLAGS) -c macro.c
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o pre
+	rm -f $(OBJ) $(TARGET)

@@ -5,13 +5,9 @@
  * @param name The name of the macro
  * @return macro*
  */
-macro *create_macro(char *macro_name, macro **new_macro) {
-
-    macro *new_macro = (macro *)malloc(sizeof(macro));
-    if (*new_macro == NULL) {
-        return STATUS_ERROR_MEMORY_ALLOCATION;
-    }
-
+status create_macro(char *macro_name, macro **new_macro) {
+    *new_macro = (macro *)malloc(sizeof(macro));
+    if (*new_macro == NULL) return STATUS_ERROR_MEMORY_ALLOCATION;
     (*new_macro)->name = strdup(macro_name);
     (*new_macro)->lines = NULL;
     (*new_macro)->line_capacity = 0;
@@ -97,7 +93,6 @@ status insert_macro_to_table(macro_table *table, macro *macr) {
 macro *find_macro_in_table(macro_table *table, char *name) {
     if (table == NULL) return NULL;
 
-    macro *_macro;
     int index;
 
     for (index = 0;index < table->macro_count;index++)

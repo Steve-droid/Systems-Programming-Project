@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include "macro.h"
 #include "vector.h"
-#include "util/file_util.h"
+#include "file_util.h"
 
 #define as_extention ".as"
 #define am_extention ".am"
@@ -18,10 +18,7 @@
 #define BUFFER_SIZE 1024
 
 
-void pre_assemble(char *filename);
-
-void define_new_macro(char *as_file);
-
+status pre_assemble(char *filename);
 
 
 #endif

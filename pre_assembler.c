@@ -2,11 +2,11 @@
 #include "pre_assembler.h"
 #define DEFINE_SEQUENCE_LEN 5
 
-static bool is_macro_definition(const char *line) {
+static bool is_macro_definition(char *line) {
     return strncmp(line, "macr ", DEFINE_SEQUENCE_LEN);
 }
 
-static bool is_macro_call(const char *line, macro_table *table) {
+static bool is_macro_call(char *line, macro_table *table) {
     char macro_name[MAX_MACRO_NAME_LENGTH] = { '\0' };
 
     /*
@@ -17,7 +17,7 @@ static bool is_macro_call(const char *line, macro_table *table) {
     return (find_macro_in_table(table, macro_name) != NULL);
 }
 
-static status add_macro_to_table(const char *macro_name, FILE *as_file, macro_table *table) {
+static status add_macro_to_table(char *macro_name, FILE *as_file, macro_table *table) {
     macro *new_macro;
     char line[BUFSIZ];
     status result = create_macro(macro_name, &new_macro);
@@ -30,10 +30,11 @@ static status add_macro_to_table(const char *macro_name, FILE *as_file, macro_ta
         if (result != STATUS_OK) return result;
     }
 
+    printf("Adding macro: %s\n", macro_name);
     return insert_macro_to_table(table, new_macro);
 }
 
-static status expand_macro(const char *macro_name, FILE *am_file, macro_table *table) {
+static status expand_macro(char *macro_name, FILE *am_file, macro_table *table) {
     int i;
     macro *m = find_macro_in_table(table, macro_name);
     if (m == NULL) return STATUS_ERROR_MACRO_NOT_FOUND;
@@ -41,7 +42,7 @@ static status expand_macro(const char *macro_name, FILE *am_file, macro_table *t
     return STATUS_OK;
 }
 
-status pre_assemble(const char *filename) {
+status pre_assemble(char *filename) {
     char *as_filename = create_file_name(filename, ".as");
     char *am_filename = create_file_name(filename, ".am");
     FILE *as_file = NULL, *am_file = NULL;
@@ -82,7 +83,10 @@ status pre_assemble(const char *filename) {
         line[strcspn(line, "\n")] = '\0'; /* Null terminate line */
         sscanf(line, "%s", first_word); /* Extract first word in the line */
 
-        if (is_macro_call(line, table)) expand_macro(first_word, am_file, table);
+        if (is_macro_call(line, table)) {
+            printf("Expanding macro: %s\n", first_word);
+            expand_macro(first_word, am_file, table);
+        }
         else if (is_macro_definition(line)) {
             sscanf(line, "macr %s", macro_name); /* Extract 2nd word wich is the macro name */
 

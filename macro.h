@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "vector.h"
-#include "util/file_util.h"
+#include "file_util.h"
 
 
 #define as_extention ".as"
@@ -38,7 +38,7 @@ typedef struct macro_table {
  * @param name The name of the macro
  * @return macro*
  */
-status *create_macro(char *macro_name, macro **new_macro);
+status create_macro(char *macro_name, macro **new_macro);
 
 
 status insert_line_to_macro(macro *mac, char *line);
