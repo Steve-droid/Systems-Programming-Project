@@ -7,20 +7,17 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "vector.h"
+#include "util/file_util.h"
+
 
 #define as_extention ".as"
 #define am_extention ".am"
 #define MAX_MACRO_AMOUNT 100
 #define MAX_LINE_LENGTH 80
+#define INITIAL_MACRO_CAPACITY 3
+#define INITIAL_MACRO_TABLE_CAPACITY 3
 #define MIN_MACRO_AMOUNT 3
 #define MIN_LINE_AMOUNT 3
-
-typedef enum macro_state {
-    definition, empty_line, line_other, macro_redefinition_error,
-    illegal_definition, illegeal_end_macro, call, illegal_call
-}macro_state;
-
-typedef struct macro *macro_pointer;
 
 typedef struct macro {
     char **lines;      /* Vector of strings- the lines that the macro expands to */

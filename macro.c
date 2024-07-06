@@ -41,9 +41,7 @@ void insert_line_to_macro(macro *mac, char *line) {
         mac->lines[mac->line_count] = strdup(line);
         mac->line_count++;
     }
-
 }
-
 
 /**
  * @brief Create a new macro table object
@@ -92,7 +90,6 @@ void insert_macro_to_table(macro_table *table, macro *macr) {
         table->macros[table->macro_count] = macr;
         table->macro_count++;
     }
-
 }
 
 /**
