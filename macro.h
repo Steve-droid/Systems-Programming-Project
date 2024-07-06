@@ -38,10 +38,10 @@ typedef struct macro_table {
  * @param name The name of the macro
  * @return macro*
  */
-macro *create_macro(char *macro_name);
+status *create_macro(char *macro_name, macro **new_macro);
 
 
-void insert_line_to_macro(macro *mac, char *line);
+status insert_line_to_macro(macro *mac, char *line);
 
 /**
  * @brief Destroy a macro object
@@ -63,7 +63,7 @@ macro_table *create_macro_table();
  * @param table The macro table to insert the macro into
  * @param macro The macro to insert
  */
-void insert_macro_to_table(macro_table *table, macro *mac);
+status insert_macro_to_table(macro_table *table, macro *mac);
 
 /**
  * @brief Get a macro from the macro table

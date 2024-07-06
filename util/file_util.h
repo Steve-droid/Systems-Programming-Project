@@ -20,8 +20,8 @@ typedef enum {
     STATUS_ERROR_READ,
     STATUS_ERROR_WRITE,
     STATUS_ERROR_MACRO_REDEFINITION,
-    STATUS_ERROR_MEMORY_ALLOCATION,  // New status value
-    STATUS_ERROR_MACRO_NOT_FOUND     // New status value
+    STATUS_ERROR_MEMORY_ALLOCATION,
+    STATUS_ERROR_MACRO_NOT_FOUND
 } status;
 
 char *create_file_name(const char *initial_name, const char *extension);
