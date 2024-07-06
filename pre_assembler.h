@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include "macro.h"
 #include "vector.h"
-#include "util.h"
+#include "util/file_util.h"
 
 #define as_extention ".as"
 #define am_extention ".am"

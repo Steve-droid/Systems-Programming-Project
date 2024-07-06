@@ -1,28 +1,39 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <err.h>
-#include <errno.h>
-#include "macro.h"
 #include "util/file_util.h"
 
+int main(int argc, char *argv[]) {
 
+    const char *filename = argv[1];
+    status result;
 
-
-int main() {
-
-    const char *initial_name = "input";
-    const char *extension = ".as";
-    char *new_file_name = create_file_name(initial_name, extension);
-
-    if (new_file_name != NULL) {
-        printf("New file name: %s\n", new_file_name);
-        free(new_file_name); // Remember to free the allocated memory
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+        return EXIT_FAILURE;
     }
 
+    /* Remove whitespace from each line of the file and check the status */
+    result = remove_whitespace(filename);
+    switch (result) {
+    case STATUS_OK:
+        printf("Whitespace removed successfully.\n");
+        break;
+    case STATUS_ERROR_OPEN_SRC:
+        printf("Error: Could not open source file.\n");
+        break;
+    case STATUS_ERROR_OPEN_DEST:
+        printf("Error: Could not open destination file.\n");
+        break;
+    case STATUS_ERROR_READ:
+        printf("Error: Could not read from source file.\n");
+        break;
+    case STATUS_ERROR_WRITE:
+        printf("Error: Could not write to destination file.\n");
+        break;
+    default:
+        printf("Unknown error.\n");
+        break;
+    }
 
-
-    return 0;
+    return result == STATUS_OK ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-
-
