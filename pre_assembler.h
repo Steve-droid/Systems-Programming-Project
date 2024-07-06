@@ -18,11 +18,9 @@
 #define BUFFER_SIZE 1024
 
 
-void compute_as_file_name(char *src_file_name, char *as_file_name);
+void pre_assemble(char *filename);
 
-void compute_am_file_name(char *src_file_name, char *am_file_name);
-
-void pre_assemble(char *as_file_name, char *am_file_name);
+void define_new_macro(char *as_file);
 
 
 

@@ -4,18 +4,21 @@
 #include <err.h>
 #include <errno.h>
 #include "macro.h"
-#include "pre_assembler.h"
-#include "util.h"
+#include "util/file_util.h"
 
 
 
-int main(int argc, char *argv[]) {
 
-    if (argc != 2) {
-        errx(1, "Usage: %s <file>", argv[0]);
+int main() {
+
+    const char *initial_name = "input";
+    const char *extension = ".as";
+    char *new_file_name = create_file_name(initial_name, extension);
+
+    if (new_file_name != NULL) {
+        printf("New file name: %s\n", new_file_name);
+        free(new_file_name); // Remember to free the allocated memory
     }
-
-    pre_assemble(argv[1], "output.am");
 
 
 
