@@ -13,11 +13,34 @@ char *create_file_name(char *initial_filename, char *extension) {
     new_filename = (char *)malloc((new_filename_len + 1));
     if (new_filename == NULL) err(errno, "Memory allocation failed\n");
 
-    /* Concatenate the initial name and the extention */
+    /* Concatenate the initial name and the extension */
     strcpy(new_filename, initial_filename);
     strcat(new_filename, extension);
 
     return new_filename;
+
+}
+
+
+
+status remove_extension(char *full_filename) {
+    size_t full_filename_len = strlen(full_filename);
+    char *name_final_char = full_filename + full_filename_len - 1;
+    char *extension_first_char = name_final_char - 2;
+
+    if (strcmp(extension_first_char, ".am") == 0) {
+        *extension_first_char = '\0';
+        return STATUS_OK;
+    }
+
+    if (strcmp(extension_first_char, ".as") == 0) {
+        *extension_first_char = '\0';
+        return STATUS_OK;
+    }
+
+    return STATUS_ERROR_INVALID_EXTENSION;
+
+
 
 }
 
@@ -152,4 +175,104 @@ status remove_whitespace(char *filename) {
     }
 
     return STATUS_OK;
+}
+
+status initallize_file_names(char *filename, char **am_filename, char **as_filename) {
+
+    if (remove_extension(filename) != STATUS_OK) {
+        printf("Error while removing file extension for %s. Exiting...", filename);
+        exit(EXIT_FAILURE);
+    }
+
+    *as_filename = create_file_name(filename, ".as");
+    *am_filename = create_file_name(filename, ".am");
+    if (as_filename == NULL || am_filename == NULL) {
+        printf("Error while creating file name. Exiting...");
+        exit(EXIT_FAILURE);
+    }
+    return STATUS_OK;
+}
+
+status backup_files(char ***backup_filenames, int file_count, char *filenames[]) {
+    char *current_filename = filenames[0];
+    char *filename_copy = NULL;
+    int i;
+    int backup_filenames_count = 0;
+    int current_filename_len = 0;
+    int filename_copy_len = 0;
+
+    if (filenames == NULL || file_count < 1) {
+        printf("Attempting to backup an empty file list. Exiting...");
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 0;i < file_count;i++) *backup_filenames[i] = NULL;
+
+    for (i = 0;i < file_count;i++) {
+        current_filename = filenames[i];
+
+        if (current_filename == NULL) {
+            printf("Error while backing up argument names. Original filename is NULL. Exiting...");
+            exit(EXIT_FAILURE);
+        }
+
+        current_filename_len = strlen(current_filename);
+        filename_copy_len = current_filename_len + strlen(".original") - 1;
+        filename_copy = (char *)malloc(filename_copy_len);
+        if (filename_copy == NULL) err(errno, "Memory allocation error while creating a new filename");
+        strcpy(filename_copy, current_filename);
+        strcat(filename_copy, ".original");
+
+        printf("Copying %s file into %s.original... ", current_filename, current_filename);
+        if (filename_copy == NULL) {
+            printf("Error while backing up files. Removing created backups...\n");
+            for (i = 0;i < backup_filenames_count;i++) {
+                if (*backup_filenames[i] != NULL) free(*backup_filenames[i]);
+            }
+            printf("Done. Exiting...\n");
+            exit(EXIT_FAILURE);
+        }
+        printf("Done\n");
+
+        if (copy_file_contents(current_filename, filename_copy) != STATUS_OK) {
+            printf("Error while creating a backup file for %s. Exiting...\n", current_filename);
+            exit(EXIT_FAILURE);
+        }
+
+        *backup_filenames[i] = filename_copy;
+        backup_filenames_count++;
+    }
+
+    if (backup_filenames_count != file_count) {
+        printf("Error while backing up files. Number of files in backup is different from the original number of files. ");
+        printf("\nRemoving backup filenames...");
+        for (i = 0;i < backup_filenames_count;i++) {
+            if (*backup_filenames[i] != NULL) free(*backup_filenames[i]);
+        }
+        printf("Done.\nExiting...\n");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Printing names of backup filenames. These files have a '.original' extension\n");
+    for (i = 0;i < backup_filenames_count;i++)
+        printf("File #%d is called: %s\n", i + 1, *backup_filenames[i]);
+
+    return STATUS_OK;
+}
+
+void delete_backup_names(size_t num_files, char **backup_names) {
+    int i;
+    if (backup_names == NULL) {
+        printf("ERROR: Attempted to free backups but backup is empty. Exiting...");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Deleting backup file names... ");
+    for (i = 0;i < num_files;i++) {
+        if (backup_names != NULL && backup_names[i] != NULL) {
+            printf("Deleting filename %s... ", backup_names[i]);
+            free(backup_names[i]);
+            printf("Done\n");
+        }
+    }
 }

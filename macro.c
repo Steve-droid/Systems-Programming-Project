@@ -142,3 +142,41 @@ void macro_table_destructor(macro_table *table) {
     free(table->macros);
     free(table);
 }
+
+status print_macro_lines(macro *mac) {
+    int index;
+
+    if (mac->lines == NULL) return STATUS_ERROR_MACRO_EXPANDS_TO_NOTHING;
+
+    for (index = 0; index < mac->line_count; index++)
+        printf("Macro %s: Line #%d: %s\n", mac->name, index + 1, mac->lines[index]);
+
+    printf("Finished printing lines for macro %s\n", mac->name);
+    printf("--------------------------------------------------------------\n");
+
+    return STATUS_OK;
+}
+
+
+status print_macro_table(macro_table *table) {
+    macro *current_macro;
+    int index;
+    if (table->macros == NULL) return STATUS_ERROR_MACRO_TABLE_IS_EMPTY;
+    printf("\n--------------------------------------------------------------\n");
+    printf("Printing macro table...\n");
+
+    for (index = 0;index < table->macro_count;index++) {
+        current_macro = table->macros[index];
+        printf("\n***Macro name: %s***\n\n", current_macro->name);
+        if (print_macro_lines(current_macro) != STATUS_OK) {
+            printf("Error while printing macro %s Exiting...", current_macro->name);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    printf("Done printing macro table");
+    printf("\n--------------------------------------------------------------\n");
+
+    return STATUS_OK;
+
+}

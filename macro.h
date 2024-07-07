@@ -10,8 +10,8 @@
 #include "file_util.h"
 
 
-#define as_extention ".as"
-#define am_extention ".am"
+#define as_extension ".as"
+#define am_extension ".am"
 #define MAX_MACRO_AMOUNT 100
 #define MAX_LINE_LENGTH 80
 #define INITIAL_MACRO_CAPACITY 3
@@ -89,5 +89,10 @@ macro_table *get_macro_table();
  * @param table The macro table to destroy
  */
 void macro_table_destructor(macro_table *table);
+
+status print_macro_lines(macro *mac);
+
+status print_macro_table(macro_table *table);
+
 
 #endif
