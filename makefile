@@ -2,7 +2,7 @@
 
 CC = gcc
 CFLAGS = -g -Wall -std=c99
-TARGET = test
+TARGET = pre_assemble
 
 SRC = main.c pre_assembler.c file_util.c macro.c
 OBJ = $(SRC:.c=.o)

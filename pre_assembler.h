@@ -10,15 +10,15 @@
 #include "vector.h"
 #include "file_util.h"
 
-#define as_extention ".as"
-#define am_extention ".am"
+#define as_extension ".as"
+#define am_extension ".am"
 #define MAX_MACRO_NAME_LENGTH 73
 #define MAX_MACRO_AMOUNT 100
 #define MAX_LINE_LENGTH 80
 #define BUFFER_SIZE 1024
 
 
-status pre_assemble(char *filename);
+status pre_assemble(char *as_filename, char *am_filename, macro_table *table);
 
 
 #endif
