@@ -1,21 +1,14 @@
-# Makefile
-
 CC = gcc
-CFLAGS = -g -Wall -std=c99
-TARGET = pre_assemble
+CFLAGS = -Wall -Wextra -std=c99 -g -I. -arch arm64
+LDFLAGS = -arch arm64
 
-SRC = main.c pre_assembler.c file_util.c macro.c
-OBJ = $(SRC:.c=.o)
+OBJS = main.o make_label_table.o decoding.o
 
-.PHONY: all clean
-
-all: $(TARGET)
-
-$(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJ)
+Test: $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -f $(OBJS) Test

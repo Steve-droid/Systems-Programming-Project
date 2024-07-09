@@ -1,85 +1,87 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "pre_assembler.h"
-#include "file_util.h"
-#include <string.h>
+#include "make_label_table.h"
+#include "decoding.h"
 
-char *as_filename;
-char *am_filename;
-macro_table *m_table;
+macro_table* create_test_macro_table();
+void print_label_table(label* label_table);
+void print_array_in_binary(int* array, int size);
+void print_binary(int num);
 
+int main(){
+    keyword* keyword_table;
+    macro_table* macroTable;
+    label* label_table;
+    int* decimal_decoded_array;
+    int decimal_decoded_array_size;
 
+    printf("OUTPUT: \n\n"); /*temp - start of output*/
 
+    keyword_table = fill_keywords_table();
+    macroTable = create_test_macro_table(); /*temp- instead of real macro-table*/
+    label_table = fill_label_table(macroTable, keyword_table);
+    print_label_table(label_table); /*temp - no nedded to be here*/
+    decimal_decoded_array = decoding(label_table, keyword_table, &decimal_decoded_array_size);
 
-int main(int argc, char *argv[]) {
+    free(keyword_table);
+    free(macroTable);
+    free(label_table);
 
-    char **backup_filenames = (char **)malloc(sizeof(char *) * (argc - 1));
-    if (backup_filenames == NULL) err(errno, "Memory allocation error while creating backup file names");
+    print_array_in_binary(decimal_decoded_array, decimal_decoded_array_size);
 
-    if (argc != 2) {
-        printf("Usage: %s <filename>\n", argv[0]);
-        return EXIT_FAILURE;
+    free(decimal_decoded_array);
+
+return 0;
+}
+
+macro_table* create_test_macro_table(){
+    int i;
+    macro_table* table = (macro_table*)malloc(5 * sizeof (macro_table));
+    for(i = 0 ; i < 5 ; i++){
+        table[i].size = 5;
+    }
+    strcpy(table[0].name,"a");
+    strcpy(table[1].name,"b");
+    strcpy(table[2].name,"c");
+    strcpy(table[3].name,"d");
+    strcpy(table[4].name,"e");
+
+    return table;
+}
+
+void print_label_table(label* label_table){
+    int i;
+    if(label_table == NULL){
+        printf("Error NULL FILE");
+        return;
     }
 
-    printf("Starting file backup...\n");
-    if (backup_files(&backup_filenames, argc - 1, argv + 1) != STATUS_OK) {
-        printf("File backup did not execute properly. Exiting..");
-        exit(EXIT_FAILURE);
+    for(i = 0 ; i < label_table[0].size ; i++ ){
+        printf("name: %s \n",label_table[i].name);
+        printf("key: %d \n",label_table[i].key);
+        printf("line: %d \n",label_table[i].line);
+        printf("size: %d \n\n",label_table[i].size);
+
     }
-    printf("Backup succesful\n\n");
+}
 
-    printf("Creating .am file... ");
-    if (initallize_file_names(argv[1], &am_filename, &as_filename) != STATUS_OK) {
-        printf("ERROR: .am file creation did not execute properly. Exiting..");
-        exit(EXIT_FAILURE);
+void print_array_in_binary(int* array, int size){
+    int i;
+
+    for( i = 0 ; i < size ; i++ ){
+        print_binary(array[i]);
     }
-    printf("Done\n\n");
+}
 
-    m_table = create_macro_table();
+void print_binary(int num) {
+    /* Allocate a string to hold the binary representation (16 chars: 15 bits + null terminator) */
+    char binary[16];
+    binary[15] = '\0';  /* Null terminator */
 
-    printf("Starting pre assembly...\n\n");
-    status result = pre_assemble(as_filename, am_filename, m_table);
-
-
-    switch (result) {
-    case STATUS_OK:
-        if (print_macro_table(m_table) == STATUS_ERROR_MACRO_TABLE_IS_EMPTY) {
-            printf("Macro table is empty. Exiting...");
-            exit(EXIT_FAILURE);
-        }
-        printf("Pre-assembly completed successfully.\n");
-        break;
-    case STATUS_ERROR_OPEN_SRC:
-        printf("Error: Could not open source file.\n");
-        break;
-    case STATUS_ERROR_OPEN_DEST:
-        printf("Error: Could not open destination file.\n");
-        break;
-    case STATUS_ERROR_READ:
-        printf("Error: Could not read from source file.\n");
-        break;
-    case STATUS_ERROR_WRITE:
-        printf("Error: Could not write to destination file.\n");
-        break;
-    case STATUS_ERROR_MACRO_REDEFINITION:
-        printf("Error: Macro redefinition detected.\n");
-        break;
-    case STATUS_ERROR_MEMORY_ALLOCATION:
-        printf("Error: Memory allocation failed.\n");
-        break;
-    case STATUS_ERROR_MACRO_NOT_FOUND:
-        printf("Error: Macro not found.\n");
-        break;
-    default:
-        printf("Unknown error.\n");
-        break;
+    /* Iterate through each bit, starting from the MSB */
+    for (int i = 14; i >= 0; i--) {
+        binary[i] = (num & 1) ? '1' : '0';
+        num >>= 1;  /* Shift the number to the right */
     }
 
-    free(as_filename);
-    free(am_filename);
-    macro_table_destructor(m_table);
-    delete_backup_names(argc - 1, backup_filenames);
-    free(backup_filenames);
-
-    return result == STATUS_OK ? EXIT_SUCCESS : EXIT_FAILURE;
+    /* Print the resulting binary string */
+    printf("%s\n", binary);
 }
