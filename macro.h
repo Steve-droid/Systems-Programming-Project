@@ -6,7 +6,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "vector.h"
 #include "file_util.h"
 
 
@@ -27,7 +26,7 @@ typedef struct macro {
 }macro;
 
 typedef struct macro_table {
-    macro **macros;      /* Vector of macro pointers */
+    macro **macros;            /* Vector of macro pointers */
     int macro_count;           /* Number of macros in the table */
     int capacity;
 }macro_table;

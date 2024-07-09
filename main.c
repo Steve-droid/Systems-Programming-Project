@@ -39,6 +39,7 @@ int main(int argc, char *argv[]) {
 
     printf("Starting pre assembly...\n\n");
     status result = pre_assemble(as_filename, am_filename, m_table);
+    rename("test1.as.backup", "test1.as");
 
 
     switch (result) {

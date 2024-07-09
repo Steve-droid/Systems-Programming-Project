@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "macro.h"
-#include "vector.h"
 #include "file_util.h"
 
 #define as_extension ".as"

@@ -17,5 +17,8 @@ $(TARGET): $(OBJ)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+
 clean:
 	rm -f $(OBJ) $(TARGET)
+	rm test1.am 
+	
