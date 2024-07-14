@@ -396,7 +396,7 @@ int map_argument_data(char* str , int addressing_method, label* label_table, int
 
     switch (addressing_method){
         case 0: /*return the number after '#'  */
-            val = atoi(&str[1]);
+            val = atoi(&str[1]) + 4; /* 4 for A */
             break;
         case 1: /*return the key for each label to map their address later*/
             label_location = string_to_label(str,label_table);

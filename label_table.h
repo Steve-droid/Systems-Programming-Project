@@ -13,7 +13,7 @@
 /* Declarations */
 label* create_labels_table();
 void fill_label_data_exclude_address(label* any_label, char *line, int line_counter);
-label* fill_label_table(macro_table* table, keyword* keywords_table);
+label* fill_label_table(char* am_filename , macro_table* macroTable , keyword* keywords_table);
 void fill_table_size(label* label_table, int labels_counter);
 void increase_labels_table(label** table, size_t new_size);
 int label_name_is_in_table(label* label_table, char* label_name, int table_size);

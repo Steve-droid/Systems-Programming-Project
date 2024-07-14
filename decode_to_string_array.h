@@ -7,7 +7,7 @@
 #include <ctype.h>
 #include "help_table.h"
 
-int** decode_without_label_addresses(label* label_table, keyword* keyword_table);
+int** decode_without_label_addresses(char* am_filename, label* label_table, keyword* keyword_table);
 int deciphering_command(char* line, label* label_table, keyword* keyword_table, int current_line);
 int arguments_amount_for_command(int command_name);
 int fill_pre_decoded(char* line, string* pre_decoded, int pre_decoded_size, keyword* keyword_table, int command_name_key, label* label_table, int current_line);

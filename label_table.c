@@ -11,7 +11,7 @@
 
 /* Functions */
 
-label* fill_label_table(macro_table* macroTable , keyword* keywords_table){
+label* fill_label_table(char* am_filename , macro_table* macroTable , keyword* keywords_table){
     char line[MAX_LINE_LENGTH]; /* Buffer to hold each line */
     char label_name[MAX_LABEL_LENGTH]; /* Buffer to hold each label name */
     label* label_table = NULL;
@@ -20,11 +20,13 @@ label* fill_label_table(macro_table* macroTable , keyword* keywords_table){
     initialize_char_array(line);
     initialize_char_array(label_name);
 
-    FILE *file = fopen("mmn14_test.txt", "r"); /* Open the file for reading*/
+    FILE *file = fopen(am_filename, "r"); /* Open the file for reading*/
     if (file == NULL) { /*PROBLEM-FILE NOT EXIST*/
         printf("Error- file doesnt open\n");
         return NULL;
     }
+
+    printf("%s\n",am_filename);
 
     label_table = create_labels_table();
     table_size = 1;

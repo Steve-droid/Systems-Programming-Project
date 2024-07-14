@@ -19,6 +19,8 @@
 #define MINUS -50002
 #define COMMA -50003
 
+#define UNUSED(x) (void)(x)
+
 typedef struct{
     char name[MAX_LINE_LENGTH];
     int key;

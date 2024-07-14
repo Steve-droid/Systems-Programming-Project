@@ -11,11 +11,11 @@
 
 /* The function makes a binary code*/
 
-int* decoding(label* label_table, keyword* keyword_table){
+int* decoding(char* am_filename, label* label_table, keyword* keyword_table){
     int* decoded;
     int** decoded_table;
 
-    decoded_table = decode_without_label_addresses(label_table,keyword_table);
+    decoded_table = decode_without_label_addresses(am_filename,label_table,keyword_table);
     decoded = convert_to_1D(decoded_table);
     printf("\nPOST-DECODED (LABEL PRESENTED AS ITS KEY):\n");
     print_array_in_binary(decoded);

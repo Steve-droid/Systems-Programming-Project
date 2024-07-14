@@ -9,7 +9,7 @@
 #include "help_table.h"
 
 
-int** decode_without_label_addresses(label* label_table, keyword* keyword_table){
+int** decode_without_label_addresses(char* am_filename, label* label_table, keyword* keyword_table){
     char line[MAX_LINE_LENGTH]; /* Buffer to hold each line */
     string* pre_decoded; /*An array that contains the arguments in each cell*/
     int command_name , pre_decoded_size, line_counter, post_decoded_table_size;
@@ -26,7 +26,7 @@ int** decode_without_label_addresses(label* label_table, keyword* keyword_table)
 
     initialize_char_array(line);
 
-    FILE *file = fopen("mmn14_test.txt", "r"); /* Open the file for reading*/
+    FILE *file = fopen(am_filename, "r"); /* Open the file for reading*/
     if (file == NULL) { /*PROBLEM-FILE NOT EXIST*/
         printf("Error- file doesnt open\n");
         free(post_decoded_table);
