@@ -4,14 +4,14 @@
 #include "file_util.h"
 #include <string.h>
 
-char *as_filename;
-char *am_filename;
-macro_table *m_table;
 
 
 
 
 int main(int argc, char *argv[]) {
+    char *as_filename;
+    char *am_filename;
+    macro_table *m_table;
 
     char **backup_filenames = (char **)malloc(sizeof(char *) * (argc - 1));
     if (backup_filenames == NULL) err(errno, "Memory allocation error while creating backup file names");
