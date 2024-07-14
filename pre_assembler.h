@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "macro.h"
-#include "vector.h"
 #include "file_util.h"
 
 #define as_extension ".as"
@@ -19,6 +18,7 @@
 
 
 status pre_assemble(char *as_filename, char *am_filename, macro_table *table);
+macro_table *fill_macro_table(int argc, char *argv[], char **am_filename);
 
 
 #endif

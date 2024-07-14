@@ -50,7 +50,6 @@ status pre_assemble(char *as_filename, char *am_filename, macro_table *m_table) 
     macro *macroname_found_flag = NULL;
 
 
-
     if (remove_whitespace(as_filename) != STATUS_OK) {
         free(as_filename);
         free(am_filename);
