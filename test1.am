@@ -1,0 +1,111 @@
+LABEL1:
+ regule
+r line 
+1
+LABEL2:
+ regule
+r line 
+2
+reguler
+ line 3
+
+reguler
+ line 4
+
+reguler
+ line 5
+
+reguler
+ line 6
+
+1st_mac
+ro
+t_macro
+line 1: I am the 1st_macro and I have 8 lines
+line 2: I am the 1st_macro
+line 3: I am the 1st_macro
+line 4: I am the 1st_macro
+line 5: I am the 1st_macro
+line 6: I am the 1st_macro
+line 7: I am the 1st_macro
+line 8: I am the 1st_macro
+d_macro
+
+line 1:
+ I am t
+he 2st_
+macro a
+nd I ha
+ve 10 l
+ines
+line 2:
+ I am t
+he 2st_
+macro
+line 3:
+ I am t
+he 2st_
+macro
+line 4:
+ I am t
+he 2st_
+macro
+line 5:
+ I am t
+he 2st_
+macro
+line 6:
+ I am t
+he 2st_
+macro
+line 7:
+ I am t
+he 2st_
+macro
+line 8:
+ I am t
+he 2st_
+macro
+line 9:
+ I am t
+he 2st_
+macro
+line 10
+: I am 
+the 2st
+_macro
+endmacr
+
+reguler
+ line 7
+
+reguler
+ line 8
+
+reguler
+ line 9
+
+reguler
+ line 1
+0
+LABEL3:
+ regule
+r line 
+11
+LABEL4:
+ regule
+r line 
+12
+LABEL5:
+ regule
+r line 
+13
+reguler
+ line 1
+4
+LABEL6:
+ regule
+r line 
+15
+2nd_mac
+ro

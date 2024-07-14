@@ -8,10 +8,12 @@
 
 
 
+
 int main(int argc, char *argv[]) {
     char *as_filename;
     char *am_filename;
     macro_table *m_table;
+
 
     char **backup_filenames = (char **)malloc(sizeof(char *) * (argc - 1));
     if (backup_filenames == NULL) err(errno, "Memory allocation error while creating backup file names");
@@ -26,28 +28,24 @@ int main(int argc, char *argv[]) {
         printf("File backup did not execute properly. Exiting..");
         exit(EXIT_FAILURE);
     }
-    printf("Backup succesful\n\n");
+    printf("Backup succesful\n");
 
     printf("Creating .am file... ");
     if (initallize_file_names(argv[1], &am_filename, &as_filename) != STATUS_OK) {
         printf("ERROR: .am file creation did not execute properly. Exiting..");
         exit(EXIT_FAILURE);
     }
-    printf("Done\n\n");
+    printf("Done\n");
 
     m_table = create_macro_table();
 
-    printf("Starting pre assembly...\n\n");
+    printf("Starting pre assembly...\n");
     status result = pre_assemble(as_filename, am_filename, m_table);
     rename("test1.as.backup", "test1.as");
 
 
     switch (result) {
     case STATUS_OK:
-        if (print_macro_table(m_table) == STATUS_ERROR_MACRO_TABLE_IS_EMPTY) {
-            printf("Macro table is empty. Exiting...");
-            exit(EXIT_FAILURE);
-        }
         printf("Pre-assembly completed successfully.\n");
         break;
     case STATUS_ERROR_OPEN_SRC:

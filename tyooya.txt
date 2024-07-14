@@ -1,0 +1,12 @@
+1. Map the labels to a label table.
+2. Move each line in the .am file to an array of strings according to the number of arguments.
+ Each cell in the array of string contains an argument.
+ In step 2 we find all possible syntax problems that might be in the command.
+  When stage 2 is finished, the array of strings contains valid command.
+
+3. Translate the commands in the array of strings into an array of pointers to int.
+ Each one of the pointers to int points to an array that contains each field that needs to be incoded. 
+ If The field is a label, the ponter to the corresponding array cell points to the key of the label.
+
+MAIN:   add r3,list
+

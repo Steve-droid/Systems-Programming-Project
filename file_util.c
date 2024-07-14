@@ -270,10 +270,6 @@ status backup_files(char ***backup_filenames, int file_count, char *filenames[])
         exit(EXIT_FAILURE);
     }
 
-    printf("Printing names of backup filenames. These files have a '.backup' extension\n");
-    for (i = 0;i < backup_filenames_count;i++)
-        printf("File #%d is called: %s\n", i + 1, *backup_filenames[i]);
-
     return STATUS_OK;
 }
 
@@ -284,7 +280,7 @@ void delete_backup_names(size_t num_files, char **backup_names) {
         exit(EXIT_FAILURE);
     }
 
-    printf("Deleting backup file names... ");
+    printf("Deleting backup file names...\n");
     for (i = 0;i < num_files;i++) {
         if (backup_names != NULL && backup_names[i] != NULL) {
             printf("Deleting filename %s... ", backup_names[i]);

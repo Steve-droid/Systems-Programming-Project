@@ -1,0 +1,28 @@
+MAIN:	a
+dd	r3,	
+LIST
+LOOP:	p
+rn	#48
+lea	STR
+,	r6
+inc	r6
+mov	*r6
+,	K
+sub	r1,
+	r4
+m_macr
+dec	K
+jmp	LOO
+P
+END:	st
+op
+STR:	.s
+tring	"
+abcd"
+LIST:	.
+data	6,
+	-9
+.data	-
+100
+K:	.dat
+a	31
