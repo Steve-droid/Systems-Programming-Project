@@ -4,15 +4,17 @@
 #include "file_util.h"
 #include <string.h>
 
+void main(int argc, char *argv[]) {
+    char *am_filename = NULL;
+    fill_macro_table(argc, argv, &am_filename);
+    printf("\nfilename is: %s\n", am_filename);
 
+}
 
-
-
-
-int main(int argc, char *argv[]) {
+macro_table *fill_macro_table(int argc, char *argv[], char **am_filename) {
     char *as_filename;
-    char *am_filename;
     macro_table *m_table;
+    int i;
 
 
     char **backup_filenames = (char **)malloc(sizeof(char *) * (argc - 1));
@@ -20,33 +22,36 @@ int main(int argc, char *argv[]) {
 
     if (argc != 2) {
         printf("Usage: %s <filename>\n", argv[0]);
-        return EXIT_FAILURE;
+        return NULL;
     }
 
     printf("Starting file backup...\n");
     if (backup_files(&backup_filenames, argc - 1, argv + 1) != STATUS_OK) {
         printf("File backup did not execute properly. Exiting..");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
     printf("Backup succesful\n");
 
     printf("Creating .am file... ");
-    if (initallize_file_names(argv[1], &am_filename, &as_filename) != STATUS_OK) {
+    if (initallize_file_names(argv[1], am_filename, &as_filename) != STATUS_OK) {
         printf("ERROR: .am file creation did not execute properly. Exiting..");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
     printf("Done\n");
 
     m_table = create_macro_table();
 
     printf("Starting pre assembly...\n");
-    status result = pre_assemble(as_filename, am_filename, m_table);
-    rename("test1.as.backup", "test1.as");
+    status result = pre_assemble(as_filename, *am_filename, m_table);
+    rename("test.as.backup", "test.as");
 
 
     switch (result) {
     case STATUS_OK:
         printf("Pre-assembly completed successfully.\n");
+        for (i = 0;i < m_table->macro_count;i++) {
+            printf("%s\n", m_table->macros[i]->name);
+        }
         break;
     case STATUS_ERROR_OPEN_SRC:
         printf("Error: Could not open source file.\n");
@@ -75,10 +80,8 @@ int main(int argc, char *argv[]) {
     }
 
     free(as_filename);
-    free(am_filename);
-    macro_table_destructor(m_table);
     delete_backup_names(argc - 1, backup_filenames);
     free(backup_filenames);
 
-    return result == STATUS_OK ? EXIT_SUCCESS : EXIT_FAILURE;
+    return m_table;
 }

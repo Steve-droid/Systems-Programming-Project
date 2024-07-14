@@ -44,19 +44,11 @@ static status expand_macro(char *macro_name, FILE *am_file, macro_table *table) 
 
 status pre_assemble(char *as_filename, char *am_filename, macro_table *m_table) {
     FILE *as_file = NULL, *am_file = NULL;
-    char *line = (char *)malloc(BUFSIZ);
+    char line[BUFSIZ] = { '\0' };
     char first_word[MAX_LINE_LENGTH] = { '\0' };
     char macro_name[MAX_LINE_LENGTH] = { '\0' };
-    char *whitespace_ptr = NULL;
     macro *macroname_found_flag = NULL;
-    int i;
-    if (line == NULL) {
-        err(errno, "Error allocating memory for buffer in pre_assemble function");
-    }
 
-    for (i = 0;i < BUFSIZ;i++) {
-        line[i] = '\0';
-    }
 
     if (remove_whitespace(as_filename) != STATUS_OK) {
         free(as_filename);
@@ -93,16 +85,7 @@ status pre_assemble(char *as_filename, char *am_filename, macro_table *m_table) 
             }
         }
         else if (is_macro_definition(line)) {
-            whitespace_ptr = line;
-            while (line != NULL && ((*line) != ' ' && (*line) != '\t'))line++;
-            while (line != NULL && ((*line) == ' ' || (*line) == '\t')) line++;
-
-            if (whitespace_ptr == NULL || *whitespace_ptr == '\0') {
-                printf("Invalid macro definition. Exiting...\n");
-                exit(EXIT_FAILURE);
-            }
-            line = whitespace_ptr;
-            sscanf(line, "%s", macro_name); /* Extract 2nd word wich is the macro name */
+            sscanf(line, "macr %s", macro_name); /* Extract 2nd word wich is the macro name */
 
             /* Check if definition is valid */
             macroname_found_flag = find_macro_in_table(m_table, macro_name);
