@@ -34,7 +34,6 @@ int* decode_pre_decoded(string* pre_decoded , int pre_decoded_size, keyword* key
     if(JSR == command_number_by_key(keyword_table,key) || STOP == command_number_by_key(keyword_table,key) ){
         return post_decoded;
     }
-    /*###########################*/
     post_decoded = decode_pre_decoded_data(command_val,post_decoded,pre_decoded,pre_decoded_size,label_table);
 
     if(post_decoded == NULL){

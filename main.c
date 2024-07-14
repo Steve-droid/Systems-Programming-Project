@@ -21,8 +21,8 @@ int main(int argc , char* argv[]){
     label_table = fill_label_table(am_filename , macroTable, keyword_table);
     print_label_table(label_table);
     decoded_array = decoding(am_filename , label_table, keyword_table);
-    printf("\nOUTPUT AFTER DECODING LABEL ADDRESS:\n\n"); /*temp - no nedded to be here*/
-    print_array_in_binary(decoded_array); /*temp - steve continue from here*/
+    printf("\nOUTPUT AFTER DECODING LABEL ADDRESS:\n\n");
+    print_array_in_binary(decoded_array);
 
     free(am_filename);
     free(keyword_table);
