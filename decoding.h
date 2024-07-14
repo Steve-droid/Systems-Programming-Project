@@ -1,31 +1,27 @@
-#ifndef MMN14_MAIN_H
-#define MMN14_MAIN_H
+#ifndef DECODING_H
+#define DECODING_H
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include "help_table.h"
 
-#include "make_label_table.h"
-
-typedef struct{
-    char data[MAX_LINE_LENGTH];
-}string;
-
-#define UNKNOWN_NUMBER_OF_ARGUMENTS 100
-#define UNDEFINED -1
+#define UNKNOWN_NUMBER_OF_ARGUMENTS -2
+#define NO_NEED_TO_DECODE -10
+#define OUTPUT_COMMAND_LEN 15
+#define OPCODE_LEN 4
+#define ADDRESSING_METHOD_LEN 4
+#define A 12
+#define R 13
+#define E 14 
+#define SOURCE 2
+#define DEST 1
+#define FIRST_ADDRESS 100
 
 /* Declerations */
-int* decoding(label* label_table, keyword* keyword_table, int* decoded_array_size);
-int arguments_amount_for_command(int command_name);
-int deciphering_command(char* line, label* label_table, keyword* keyword_table, int current_line);
-void fill_pre_decoded(char* line, string* pre_decoded, int pre_decoded_size, keyword* keyword_table, int command_name_key, label* label_table, int current_line);
-char* pointer_after_label(char* line, label* label_table, int current_line);
-void fill_pre_decoded_unknown_arguments_amount(char* line, int command_number, keyword* keyword_table, string* pre_decoded);
-void fill_pre_decoded_known_arguments_amount();
-int command_number_by_key(keyword* keyword_table, int key);
-int* decode_pre_decoded(string* pre_decoded , int* post_decoded_size);
+int* decoding(label* label_table, keyword* keyword_table);
+void fill_label_table_addresses(int** decoded_table , label* label_table);
+void decode_label_addersses(int* decoded , label* label_table);
 
-
-
-#endif //MMN14_MAIN_H
+#endif //DECODING_H
