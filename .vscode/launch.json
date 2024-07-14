@@ -7,7 +7,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/pre_assemble",
-            "args": ["test1.as"],
+            "args": ["test.as"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

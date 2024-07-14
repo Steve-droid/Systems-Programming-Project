@@ -91,11 +91,16 @@ status copy_file_contents(char *src_filename, char *dest_filename) {
 status remove_whitespace(char *filename) {
     FILE *file;
     FILE *tmp_file;
+    char *start;
+    char *end;
+    char *tmp;
+    int i;
     char tmp_filename[] = "tmpfileXXXXXX";
     int temp_file_descriptor;
     char line[BUFSIZ];
     int original_line_count = 0;
     int cleaned_line_count = 0;
+    bool line_contains_only_whitespace = false;
 
     file = fopen(filename, "r");
     if (file == NULL) {
@@ -121,19 +126,31 @@ status remove_whitespace(char *filename) {
 
     /* Count lines in the original file and write cleaned lines to the temporary file */
     while (fgets(line, sizeof(line), file)) {
-        char *start;
-        char *end;
+
+        start = line;
+        end = start + strlen(start) - 1;
+        line_contains_only_whitespace = true;
+
+        /*Check if the line contains only whitespace. If so, skip the line*/
+        for (i = 0, tmp = start;line_contains_only_whitespace == true && i < strlen(start) && tmp != NULL;i++, tmp++) {
+            if (!isspace(*tmp)) {
+                line_contains_only_whitespace = false;
+                break;
+            }
+        }
+
+        if (line_contains_only_whitespace) continue;
+
+
 
         original_line_count++;
 
         /* Remove leading whitespace */
-        start = line;
         while (isspace((unsigned char)*start)) {
             start++;
         }
 
         /* Remove trailing whitespace */
-        end = start + strlen(start) - 1;
         while (end > start && isspace((unsigned char)*end)) {
             end--;
         }
@@ -217,13 +234,13 @@ status backup_files(char ***backup_filenames, int file_count, char *filenames[])
         }
 
         current_filename_len = strlen(current_filename);
-        filename_copy_len = current_filename_len + strlen(".original") - 1;
+        filename_copy_len = current_filename_len + strlen(".backup") - 1;
         filename_copy = (char *)malloc(filename_copy_len);
         if (filename_copy == NULL) err(errno, "Memory allocation error while creating a new filename");
         strcpy(filename_copy, current_filename);
-        strcat(filename_copy, ".original");
+        strcat(filename_copy, ".backup");
 
-        printf("Copying %s file into %s.original... ", current_filename, current_filename);
+        printf("Copying %s file into %s.backup... ", current_filename, current_filename);
         if (filename_copy == NULL) {
             printf("Error while backing up files. Removing created backups...\n");
             for (i = 0;i < backup_filenames_count;i++) {
@@ -253,10 +270,6 @@ status backup_files(char ***backup_filenames, int file_count, char *filenames[])
         exit(EXIT_FAILURE);
     }
 
-    printf("Printing names of backup filenames. These files have a '.original' extension\n");
-    for (i = 0;i < backup_filenames_count;i++)
-        printf("File #%d is called: %s\n", i + 1, *backup_filenames[i]);
-
     return STATUS_OK;
 }
 
@@ -267,7 +280,7 @@ void delete_backup_names(size_t num_files, char **backup_names) {
         exit(EXIT_FAILURE);
     }
 
-    printf("Deleting backup file names... ");
+    printf("Deleting backup file names...\n");
     for (i = 0;i < num_files;i++) {
         if (backup_names != NULL && backup_names[i] != NULL) {
             printf("Deleting filename %s... ", backup_names[i]);
