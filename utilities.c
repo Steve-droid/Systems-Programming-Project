@@ -522,6 +522,8 @@ void print_array_in_binary(int *arr) {
     for (i = 0; arr[i] != FLAG; i++) {
         print_binary(arr[i]);
     }
+
+    printf("\n");
 }
 
 void print_binary(int num) {

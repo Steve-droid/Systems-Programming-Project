@@ -1,16 +1,62 @@
-Creating generic filenames...
-Backing up original .as files...
-Copying org.as file into org.as.backup... Done
-Backup for .as files is succesful
+Creating generic filenames...Done
+Backing up original .as files...Copying org.as file into org.as.backup... Done
 Creating .am files... Done
 Starting pre assembly for file 'org.as'...
-Adding macro: m_macr to macro table...
-Pre-assembly of 'org.as'completed successfully.
+Adding macro 'm_macr' to macro table...
+Pre-assembly of 'org.as' completed successfully.
+
+-------------------------------------------------------
+Information about the .am/.as files after pre assembly:
+-------------------------------------------------------
+Filename: 'org.as'
+Printing contents of file 'org.as':
+MAIN:   add r3, LIST
+LOOP:   prn    #48
+        macr m_macr
+        cmp    r3, #-6
+        bne    END
+        endmacr
+        lea    STR, r6
+        inc    r6
+        mov    *r6, K
+        sub    r1, r4
+        m_macr
+        dec    K
+        jmp    LOOP
+END:    stop
+STR:    .string "abcd"
+LIST:   .data  6, -9
+        .data  -100
+K:      .data  31
+
+-------------------------------------------------------
+Finished printing contents of file 'org.as'
+-------------------------------------------------------
+Filename: 'org.am'
+Printing contents of file 'org.am':
+MAIN:   add r3, LIST
+LOOP:   prn    #48
+lea    STR, r6
+inc    r6
+mov    *r6, K
+sub    r1, r4
+cmp    r3, #-6
+bne    END
+dec    K
+jmp    LOOP
+END:    stop
+STR:    .string "abcd"
+LIST:   .data  6, -9
+.data  -100
+K:      .data  31
+
+-------------------------------------------------------
+Finished printing contents of file 'org.am'
+-------------------------------------------------------
 Deleting filenames...
 Deleting filename org.as.backup... Done
 Deleting filenames...
-Deleting filename org... Done
-Finished pre assembly for all files. Returning to main...
+Deleting filename org.as... Done
 
 --------------------------------------------------------------
 Printing macro table...
@@ -147,6 +193,7 @@ POST-DECODED (LABEL PRESENTED AS ITS KEY):
 111111110011100
 000000000011111
 
+
 OUTPUT AFTER DECODING LABEL ADDRESS:
 
 001010000010100
@@ -183,5 +230,6 @@ OUTPUT AFTER DECODING LABEL ADDRESS:
 111111111110111
 111111110011100
 000000000011111
+
 Deleting filenames...
 Deleting filename org.am... Done

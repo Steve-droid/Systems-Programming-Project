@@ -29,7 +29,7 @@ static status add_macro_to_table(char *macro_name, FILE *as_file, macro_table *t
         if (result != STATUS_OK) return result;
     }
 
-    printf("Adding macro: %s to macro table...\n", macro_name);
+    printf("Adding macro '%s' to macro table...\n", macro_name);
     return insert_macro_to_table(table, new_macro);
 }
 
@@ -144,6 +144,9 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
     char **as_filenames = argv + 1;
     char **backup_filenames = NULL;
     char **generic_filenames = NULL;
+    char ch = '\0';
+    FILE *tmp = NULL;
+
 
     if (file_amount < 1) {
         printf("Usage: %s <filename>\n", argv[0]);
@@ -186,7 +189,6 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
         delete_filenames(file_amount, generic_filenames);
         exit(EXIT_FAILURE);
     }
-    printf("Done\n");
 
     printf("Creating .am files... ");
     for (i = 0;i < file_amount;i++) {
@@ -212,7 +214,7 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
 
         switch (result) {
         case STATUS_OK:
-            printf("Pre-assembly of '%s'completed successfully.\n", as_filenames[i]);
+            printf("Pre-assembly of '%s' completed successfully.\n", as_filenames[i]);
             break;
         case STATUS_ERROR_OPEN_SRC:
             printf("Error: Could not open source file.\n");
@@ -246,12 +248,36 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
         rename(backup_filenames[i], strcat(generic_filenames[i], ".as"));
     }
 
-
-    printf("Output files after pre assembly:\n");
+    printf("\n-------------------------------------------------------\n");
+    printf("Information about the .am/.as files after pre assembly:\n");
+    printf("-------------------------------------------------------\n");
     for (i = 0;i < file_amount;i++) {
-        printf("File #%lu:\nFilename: %s\n", i, backup_filenames[i]);
-        printf("File contents:\n");
-
+        printf("Filename: '%s'\n", generic_filenames[i]);
+        printf("Printing contents of file '%s':\n", generic_filenames[i]);
+        tmp = NULL;
+        tmp = fopen(generic_filenames[i], "r");
+        if (tmp == NULL) {
+            printf("Error opening file %s\n", generic_filenames[i]);
+            continue;
+        }
+        while ((ch = fgetc(tmp)) != EOF) putchar(ch);
+        fclose(tmp);
+        printf("\n-------------------------------------------------------\n");
+        printf("Finished printing contents of file '%s'\n", generic_filenames[i]);
+        printf("-------------------------------------------------------\n");
+        printf("Filename: '%s'\n", *(am_filenames)[i]);
+        printf("Printing contents of file '%s':\n", *(am_filenames)[i]);
+        tmp = NULL;
+        tmp = fopen(*(am_filenames)[i], "r");
+        if (tmp == NULL) {
+            printf("Error opening file %s\n", *(am_filenames)[i]);
+            continue;
+        }
+        while ((ch = fgetc(tmp)) != EOF) putchar(ch);
+        fclose(tmp);
+        printf("\n-------------------------------------------------------\n");
+        printf("Finished printing contents of file '%s'\n", *(am_filenames)[i]);
+        printf("-------------------------------------------------------\n");
     }
 
     delete_filenames(file_amount, backup_filenames);
