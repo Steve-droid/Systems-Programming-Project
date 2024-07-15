@@ -26,7 +26,7 @@ typedef enum {
     STATUS_ERROR_MACRO_NOT_FOUND,
     STATUS_ERROR_MACRO_TABLE_IS_EMPTY,
     STATUS_ERROR_MACRO_EXPANDS_TO_NOTHING,
-    STATUS_ERROR_WHILE_CREATING_FILENAME,
+    STATUS_ERROR_WHILE_CREATING_FILENAME
 } status;
 /**
  *@brief Create a file name given a name and an extension

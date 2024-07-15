@@ -1,10 +1,10 @@
 # Makefile
 
 CC = gcc
-CFLAGS = -g -Wall -std=c99
+CFLAGS = -g -Wall -pedantic -ansi 
 TARGET = pre_assemble
 
-SRC = pre_asm_init.c pre_assembler.c file_util.c macro.c
+SRC = pre_assembler.c file_util.c macro.c
 OBJ = $(SRC:.c=.o)
 
 .PHONY: all clean
