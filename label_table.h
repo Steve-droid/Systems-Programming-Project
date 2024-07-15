@@ -6,6 +6,8 @@
 #include <string.h>
 #include <ctype.h>
 #include "help_table.h"
+#include "macro.h"
+
 
 #define MAX_LABEL_LENGTH 33 /* max label len is 31 , + 1 for ':' , + 1 for '\0' */
 #define FIRST_KEY 40001 /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
@@ -25,4 +27,4 @@ int string_to_label(char* str , label* label_table);
 
 
 
-#endif //LABEL_TABLE_H
+#endif /* LABEL_TABLE_H */

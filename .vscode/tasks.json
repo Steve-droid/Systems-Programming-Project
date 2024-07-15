@@ -1,4 +1,3 @@
-// .vscode/tasks.json
 {
     "version": "2.0.0",
     "tasks": [
@@ -11,7 +10,7 @@
                 "isDefault": true
             },
             "problemMatcher": ["$gcc"],
-            "detail": "Generated task for building the project"
+            "detail": "Generated task for Makefile."
         }
     ]
 }

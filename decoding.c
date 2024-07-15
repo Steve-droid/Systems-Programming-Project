@@ -12,13 +12,14 @@
 /* The function makes a binary code*/
 
 int* decoding(char* am_filename, label* label_table, keyword* keyword_table){
-    int* decoded;
-    int** decoded_table;
+    int* decoded = NULL;
+    int** decoded_table = NULL;
 
     decoded_table = decode_without_label_addresses(am_filename,label_table,keyword_table);
     decoded = convert_to_1D(decoded_table);
     printf("\nPOST-DECODED (LABEL PRESENTED AS ITS KEY):\n");
     print_array_in_binary(decoded);
+    
 
 
     fill_label_table_addresses(decoded_table,label_table);

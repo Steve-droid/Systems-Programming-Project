@@ -36,11 +36,6 @@ typedef struct{
     int length;
 }keyword;
 
-typedef struct{
-    char name[MAX_MACRO_NAME];
-    int size;
-}macro_table;
-
 typedef enum {
     R0,
     R1,
@@ -116,10 +111,9 @@ int is_empty_line(char* str);
 int char_to_int(char c);
 void remove_commas_from_str(char* str);
 void shift_left_str(char* str , int steps);
-int set_bits_7_to_10(int num);
-int set_bits_3_to_6(int num);
 int* convert_to_int_array(char* str);
+void print_2D_array(int** arr);
 
 
 
-#endif //HELP_FUNCTION_H
+#endif /* HELP_FUNCTION_H */

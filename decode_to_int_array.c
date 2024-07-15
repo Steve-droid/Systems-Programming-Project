@@ -12,7 +12,7 @@
 
 int* decode_pre_decoded(string* pre_decoded , int pre_decoded_size, keyword* keyword_table , int key , label* label_table){
     int command_val, post_decoded_size;
-    int* post_decoded;
+    int* post_decoded = NULL;
     
     command_val = decode_pre_decoded_command(pre_decoded,pre_decoded_size,keyword_table,key, label_table);
 
@@ -36,17 +36,12 @@ int* decode_pre_decoded(string* pre_decoded , int pre_decoded_size, keyword* key
     }
     post_decoded = decode_pre_decoded_data(command_val,post_decoded,pre_decoded,pre_decoded_size,label_table);
 
-    if(post_decoded == NULL){
-        printf("ERROR- allocation failed");
-        return NULL;
-    }
-
     return post_decoded;
 }
 
 int decode_pre_decoded_command(string* pre_decoded, int pre_decoded_size, keyword* keyword_table, int key, label* label_table){
     int opcode, i, addressing_method, val;
-    int* binary_command;
+    int* binary_command = NULL;
     
     opcode = decode_pre_decoded_command_opcode(keyword_table,key);
     if(opcode == NO_NEED_TO_DECODE){
@@ -289,12 +284,12 @@ int* decode_pre_decoded_data(int which_data , int* post_decoded , string* pre_de
 
 int* decode_pre_decoded_data_unknown_arguments_amount(string* pre_decoded){
     int i ,data_arr_size;
-    int* data_arr;
+    int* data_arr = NULL;
 
     if(!strcmp(pre_decoded[0].data,".data")){
         data_arr = convert_to_int_array(pre_decoded[1].data);
     }
-    else{ /*string - ascii val*/
+    else{ /*string - need the ascii val*/
         data_arr_size = 0;
         data_arr = (int*)malloc((data_arr_size + 1) * sizeof(int*)); /* 1 for ending array flag*/
         if(data_arr == NULL){
@@ -305,14 +300,25 @@ int* decode_pre_decoded_data_unknown_arguments_amount(string* pre_decoded){
 
         for(i = 0 ; pre_decoded[1].data[i] != '\0' ; i++){
             data_arr_size++;
-            data_arr = (int*)realloc(data_arr , data_arr_size + 1 ); /* 1 for ending array flag*/
+            data_arr = (int*)realloc(data_arr , (data_arr_size + 1) * sizeof(int) ); /* 1 for ending array flag*/
             if(data_arr == NULL){
                 printf("ERROR-ALOOCATION FAILED");
                 return NULL;
             }
             data_arr[data_arr_size-1] = pre_decoded[1].data[i];
             data_arr[data_arr_size] = FLAG;
+
         }
+        /*last cell - terminator*/
+        data_arr_size++;
+        data_arr = (int*)realloc(data_arr , (data_arr_size + 1) * sizeof(int) ); /* 1 for ending array flag*/
+        if(data_arr == NULL){
+            printf("ERROR-ALOOCATION FAILED");
+            return NULL;
+        }
+        data_arr[data_arr_size-1] = 0; /*String terminator*/
+        data_arr[data_arr_size] = FLAG;
+
     }
     
     return data_arr;
@@ -382,9 +388,9 @@ int decode_2_registers_command( char* source , char* dest){
     dest_reg = which_register(dest);
 
     val = 0;
-    val += set_bits_7_to_10(source_reg);
-    val += set_bits_3_to_6(dest_reg);
-
+    val += source_reg << 7;
+    val += dest_reg << 3;
+    val += 4; /* A */
     return val;
 }
 
@@ -395,7 +401,8 @@ int map_argument_data(char* str , int addressing_method, label* label_table, int
 
     switch (addressing_method){
         case 0: /*return the number after '#'  */
-            val = atoi(&str[1]) + 4; /* 4 for A */
+            val = atoi(&str[1]) << 3;
+            val += 4; /*4 for A*/
             break;
         case 1: /*return the key for each label to map their address later*/
             label_location = string_to_label(str,label_table);

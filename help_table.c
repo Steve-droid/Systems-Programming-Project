@@ -19,39 +19,37 @@ void initialize_char_array(char* char_array){
     }
 }
 
-void remove_prefix_spaces(char* line){
-    int i , counter;
+void remove_prefix_spaces(char* line) {
+    int i, counter;
     counter = 0;
 
-    while(isspace(line[counter])){
+    /** Count leading spaces */
+    while (line[counter] != '\0' && isspace((unsigned char)line[counter])) {
         counter++;
     }
 
-    for(i = counter ; line[i] != '\0' ; i++){
-        line[i-counter] = line[i];
+    /** Shift the rest of the line to the front */
+    if (counter > 0) {
+        for (i = 0; line[i + counter] != '\0'; i++) {
+            line[i] = line[i + counter];
+        }
+        line[i] = '\0';  /** Null-terminate the shifted string */
     }
-    line[i-counter] = '\0';
 }
 
-char* pointer_after_label(char* line, label* label_table, int current_line){
-    int i, first_letter;
-    char* line_from_first_letter;
+char* pointer_after_label(char* line, label* label_table, int current_line) {
+    int i, first_letter = 0;
 
-    first_letter = 0;
-
-    /*find the first letter after the label name*/
-    for(i = 0 ; i < label_table[0].size ; i++){
-        if(label_table[i].line == current_line){
-            first_letter = 1 + strlen(label_table[i].name); /* another 1 for ':'*/
+    /** Find the first letter after the label name */
+    for (i = 0; i < label_table[0].size; i++) {
+        if (label_table[i].line == current_line) {
+            first_letter = 1 + strlen(label_table[i].name);  /** another 1 for ':' */
+            break;  /** Exit loop once the label is found */
         }
     }
 
-    /*point on the new "array"*/
-    line_from_first_letter = &line[first_letter];
-    /*remove unnecessary spaces*/
-    remove_prefix_spaces(line_from_first_letter);
-
-    return line_from_first_letter;
+    /** Point to the new "array" */
+    return line + first_letter;
 }
 
 int command_number_by_key(keyword* keyword_table, int key){
@@ -146,24 +144,26 @@ void print_pre_decoded(string* pre_decoded, int pre_decoded_size){
 }
 
 void int_to_binary_array(int num, int *arr, int from_cell, int to_cell) {
+    int i;
     /** If the number is negative, adjust for two's complement */
     if (num < 0) {
         num += (1 << (to_cell - from_cell + 1));
     }
 
     /** Convert the number to binary and store it in the array */
-    for (int i = to_cell; i >= from_cell; i--) {
+    for ( i = to_cell; i >= from_cell; i--) {
         arr[i] = num % 2;
         num /= 2;
     }
 }
 
 int binary_array_to_int(int *array) {
-    int value = 0;
-    int sign_bit = array[0];
+    int sign_bit,value,i;
+    sign_bit = array[0];
+    value = 0;
 
     /** Iterate over the array to construct the integer value */
-    for (int i = 0; i < OUTPUT_COMMAND_LEN; i++) {
+    for (i = 0; i < OUTPUT_COMMAND_LEN; i++) {
         value = (value << 1) | array[i];
     }
 
@@ -177,11 +177,14 @@ int binary_array_to_int(int *array) {
 }
 
 int* convert_to_1D(int** array2D) {
+    int total_elements,i ,j, index;
+    int* array1D = NULL;
+
+    
     if(array2D == NULL){
         return NULL;
     }
     /* Calculate the total number of elements (excluding FLAGs) */
-    int total_elements,i ,j;
     total_elements = 0;
     for (i = 0; array2D[i] != NULL; i++) {
         for (j = 0; array2D[i][j] != FLAG; j++) {
@@ -190,14 +193,14 @@ int* convert_to_1D(int** array2D) {
     }
 
     /* Allocate memory for the 1D array plus one additional space for the FLAG */
-    int* array1D = (int*)malloc((total_elements + 1) * sizeof(int));
+    array1D = (int*)malloc((total_elements + 1) * sizeof(int));
     if (array1D == NULL) {
         printf( "ERROR-Memory allocation failed\n");
         return NULL;
     }
 
     /* Copy elements from the 2D array to the 1D array */
-    int index = 0;
+    index = 0;
     for ( i = 0; array2D[i] != NULL; i++) {
         for (j = 0; array2D[i][j] != FLAG; j++) {
             array1D[index++] = array2D[i][j];
@@ -229,22 +232,33 @@ void print_array_in_binary(int* arr){
 }
 
 void print_binary(int num) {
-    /* Allocate a string to hold the binary representation (16 chars: 15 bits + null terminator) */
-
-    if(num >= FIRST_KEY){
-        printf("%d\n" , num);
-        return;
-    }
+    int i;
     char binary[16];
     binary[15] = '\0';  /* Null terminator */
 
-    /* Iterate through each bit, starting from the MSB */
-    for (int i = 14; i >= 0; i--) {
-        binary[i] = (num & 1) ? '1' : '0';
-        num >>= 1;  /* Shift the number to the right */
+    unsigned int mask = 1 << 14;  /* Mask for the 15th bit */
+
+    /** If the number is negative, convert it to 2's complement representation */
+    unsigned int u_num;
+    if (num < 0) {
+        u_num = (unsigned int)(num + (1 << 15));  /* 2's complement for negative number */
+    } else {
+        u_num = (unsigned int)num;
     }
 
-    /* Print the resulting binary string */
+    /** Check if the number is greater than or equal to FIRST_KEY and print it if so */
+    if (num >= FIRST_KEY) {
+        printf("%d\n", num);
+        return;
+    }
+
+    /** Create the binary string */
+    for (i = 0; i < 15; i++) {
+        binary[i] = (u_num & mask) ? '1' : '0';
+        mask >>= 1;
+    }
+
+    /** Print the resulting binary string */
     printf("%s\n", binary);
 }
 
@@ -267,9 +281,13 @@ void print_label_table(label* label_table){
 }
 
 keyword* fill_keywords_table() {
-    keyword *keywords_table;
+    keyword *keywords_table = NULL;
 
-    while (!(keywords_table = (keyword*)malloc(KEYWORD_TABLE_LENGTH * sizeof(keyword)))) ;
+    keywords_table = (keyword*)malloc(KEYWORD_TABLE_LENGTH * sizeof(keyword)) ;
+    if(keywords_table == NULL){
+        printf("ERROR-ALLOCATION FAILED\n");
+        return NULL;
+    }
 
     /* Register keywords */
     strcpy(keywords_table[0].name, "r0");
@@ -431,36 +449,10 @@ void shift_left_str(char* str, int steps) {
     str[i] = '\0';
 }
 
-int set_bits_7_to_10(int num) {
-    /* Extract the last 4 bits of the number */
-    int value = num & 0xF;
-
-    /* Clear bits 7 to 10 in the original number */
-    num &= ~(0xF << 7);
-
-    /* Set bits 7 to 10 with the extracted value */
-    num |= (value << 7);
-
-    return num;
-}
-
-int set_bits_3_to_6(int num) {
-    /* Extract the last 4 bits of the number */
-    int value = num & 0xF;
-
-    /* Clear bits 3 to 6 in the original number */
-    num &= ~(0xF << 3);
-
-    /* Set bits 3 to 6 with the extracted value */
-    num |= (value << 3);
-
-    return num;
-}
-
 int* convert_to_int_array(char* str) {
     /* Temporary variables */
     int* result = NULL;
-    char* token;
+    char* token = NULL;
     int index = 0;
 
     /* Tokenize the string and convert each token to an integer */
@@ -491,4 +483,18 @@ int* convert_to_int_array(char* str) {
     result[index] = FLAG;
 
     return result;
+}
+
+void print_2D_array(int** arr){
+    int i,j,counter;
+    counter = 99;
+
+    printf("THE 2D ARRAY:\n");
+    for(i=0 ; arr[i] != NULL ; i++){
+        for(j = 0 ; arr[i][j] != FLAG ; j++){
+            counter++;
+            printf("line: %d, number: %d\n",counter,arr[i][j]);
+        }
+    }
+    printf("END 2D ARRAY\n");
 }

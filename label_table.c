@@ -7,6 +7,7 @@
 #include "decode_to_int_array.h"
 #include "decode_to_string_array.h"
 #include "help_table.h"
+#include "macro.h"
 
 
 /* Functions */
@@ -56,7 +57,7 @@ label* fill_label_table(char* am_filename , macro_table* macroTable , keyword* k
    /* free(&label_table[labels_counter]); */
     fill_table_size(label_table, labels_counter);
 
-    fclose(file); // Close the file
+    fclose(file); /* Close the file */
     return label_table;
 }
 
@@ -150,8 +151,8 @@ int label_name_is_macro(char* label_name, macro_table* macroTable){
 
     label_name_len = (int)strlen(label_name);
 
-    for( i = 0 ; i < macroTable->size ; i++){
-        if(!strncmp(label_name , macroTable[i].name , label_name_len)){
+    for( i = 0 ; i < macroTable->macro_count ; i++){
+        if(!strncmp(label_name , macroTable->macros[i]->name , label_name_len)){
             return TRUE;
         }
     }

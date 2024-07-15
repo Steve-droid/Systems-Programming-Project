@@ -24,4 +24,4 @@ int* decoding(char* am_filename, label* label_table, keyword* keyword_table);
 void fill_label_table_addresses(int** decoded_table , label* label_table);
 void decode_label_addersses(int* decoded , label* label_table);
 
-#endif //DECODING_H
+#endif /* DECODING_H */

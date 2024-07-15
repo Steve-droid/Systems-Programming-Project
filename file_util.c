@@ -132,7 +132,7 @@ status remove_whitespace(char *filename) {
         line_contains_only_whitespace = true;
 
         /*Check if the line contains only whitespace. If so, skip the line*/
-        for (i = 0, tmp = start;line_contains_only_whitespace == true && i < strlen(start) && tmp != NULL;i++, tmp++) {
+        for (i = 0, tmp = start;line_contains_only_whitespace == true && i < (int)strlen(start) && tmp != NULL;i++, tmp++) {
             if (!isspace(*tmp)) {
                 line_contains_only_whitespace = false;
                 break;
@@ -281,7 +281,7 @@ void delete_backup_names(size_t num_files, char **backup_names) {
     }
 
     printf("Deleting backup file names...\n");
-    for (i = 0;i < num_files;i++) {
+    for (i = 0; i < (int)num_files ; i++) {
         if (backup_names != NULL && backup_names[i] != NULL) {
             printf("Deleting filename %s... ", backup_names[i]);
             free(backup_names[i]);

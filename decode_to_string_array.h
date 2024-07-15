@@ -16,4 +16,4 @@ int fill_pre_decoded_known_arguments_amount(char* line, string* pre_decoded, int
 int check_dotData_numbers(char* str);
 int known_argument_data_is_valid(char* str, label* label_table);
 
-#endif //DECODE_TO_STRING_ARRAY_H
+#endif /* DECODE_TO_STRING_ARRAY_H */

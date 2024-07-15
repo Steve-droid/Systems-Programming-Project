@@ -8,12 +8,12 @@
 #include <stdbool.h>
 #include "macro.h"
 #include "file_util.h"
+#include "help_table.h"
 
 #define as_extension ".as"
 #define am_extension ".am"
 #define MAX_MACRO_NAME_LENGTH 73
 #define MAX_MACRO_AMOUNT 100
-#define MAX_LINE_LENGTH 80
 #define BUFFER_SIZE 1024
 
 

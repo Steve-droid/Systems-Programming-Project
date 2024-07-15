@@ -1,18 +1,18 @@
-// .vscode/launch.json
 {
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug Test",
+            "name": "(lldb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/pre_assemble",
+            "program": "${workspaceFolder}/Test",  // Path to the executable
             "args": ["test.as"],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}",  // Set the working directory to the project folder
             "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
+            "externalConsole": false,  // Use internal console
+            "MIMode": "lldb",
+            "preLaunchTask": "build",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -20,13 +20,12 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "build",
-            "miDebuggerPath": "/usr/bin/gdb",
             "logging": {
-                "engineLogging": true,
-                "trace": true,
-                "traceResponse": true
-            }
+                "engineLogging": false,  // Disable engine logging
+                "trace": false,  // Disable tracing
+                "traceResponse": false  // Disable trace response
+            },
+            "internalConsoleOptions": "openOnSessionStart"  // Ensure internal console is used
         }
     ]
 }

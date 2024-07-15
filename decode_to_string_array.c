@@ -13,8 +13,8 @@ int** decode_without_label_addresses(char* am_filename, label* label_table, keyw
     char line[MAX_LINE_LENGTH]; /* Buffer to hold each line */
     string* pre_decoded; /*An array that contains the arguments in each cell*/
     int command_name , pre_decoded_size, line_counter, post_decoded_table_size;
-    int* post_decoded;
-    int** post_decoded_table;
+    int* post_decoded = NULL;
+    int** post_decoded_table = NULL;
 
     post_decoded_table_size = 0;
     post_decoded_table = (int**)malloc((post_decoded_table_size+1) * sizeof(int)); /* +1 for NULL terminator*/
@@ -97,17 +97,23 @@ int** decode_without_label_addresses(char* am_filename, label* label_table, keyw
         }
     }
 
-    fclose(file); // Close the file
+    printf("line counter is: %d\n", line_counter);
+    free(pre_decoded);
+    fclose(file); /* Close the file */
+
+    print_2D_array(post_decoded_table);
 
     return post_decoded_table;
 }
 
 int deciphering_command(char* line, label* label_table, keyword* keyword_table, int current_line){
     int i;
-    char* line_from_first_letter;
+    char* line_from_first_letter = NULL;
     char commend_name[MAX_LINE_LENGTH];
 
     line_from_first_letter = pointer_after_label(line, label_table, current_line);
+    remove_prefix_spaces(line_from_first_letter); /*skip unnecessary spaces*/
+
 
     for(i = 0 ; line_from_first_letter[i] != '\n' && !isspace(line_from_first_letter[i]) ; i++){
         commend_name[i] = line_from_first_letter[i];
@@ -168,7 +174,7 @@ int arguments_amount_for_command(int command_name){
 
 int fill_pre_decoded(char* line, string* pre_decoded, int pre_decoded_size, keyword* keyword_table, int command_name_key, label* label_table, int current_line){
     int command_number;
-    char* line_from_first_letter;
+    char* line_from_first_letter = NULL;
 
     /*adding the first argument- the command (in array[0])*/
     command_number = command_number_by_key(keyword_table, command_name_key);

@@ -7,12 +7,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "file_util.h"
+#include "help_table.h"
 
 
 #define as_extension ".as"
 #define am_extension ".am"
 #define MAX_MACRO_AMOUNT 100
-#define MAX_LINE_LENGTH 80
 #define INITIAL_MACRO_CAPACITY 3
 #define INITIAL_MACRO_TABLE_CAPACITY 3
 #define MIN_MACRO_AMOUNT 3

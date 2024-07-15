@@ -7,26 +7,29 @@
 #include "decoding.h"
 #include "label_table.h"
 #include "help_table.h"
+#include "pre_assembler.h"
 
-int main(int argc , char* argv[]){
+int main(int argc, char *argv[])
+{
 
-    keyword* keyword_table;
-    macro_table* macroTable;
-    label* label_table;
-    int* decoded_array;
-    char* am_filename;
+    keyword *keyword_table = NULL;
+    macro_table *macroTable = NULL;
+    label *label_table = NULL;
+    int *decoded_array = NULL;
+    char *am_filename = NULL;
 
     keyword_table = fill_keywords_table();
-    macroTable = fill_macro_table(argc , argv , &am_filename);
-    label_table = fill_label_table(am_filename , macroTable, keyword_table);
+    macroTable = fill_macro_table(argc, argv, &am_filename);
+    print_macro_table(macroTable);
+    label_table = fill_label_table(am_filename, macroTable, keyword_table);
     print_label_table(label_table);
-    decoded_array = decoding(am_filename , label_table, keyword_table);
+    decoded_array = decoding(am_filename, label_table, keyword_table);
     printf("\nOUTPUT AFTER DECODING LABEL ADDRESS:\n\n");
     print_array_in_binary(decoded_array);
 
     free(am_filename);
     free(keyword_table);
-    free(macroTable);
+    macro_table_destructor(macroTable);
     free(label_table);
     free(decoded_array);
 

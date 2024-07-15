@@ -21,4 +21,4 @@ int map_argument_data(char* str , int addressing_method, label* label_table, int
 int which_register(char* reg);
 int calc_methods_2_3(int number, int pos);
 
-#endif //DECODE_TO_INT_ARRAY_H
+#endif /* DECODE_TO_INT_ARRAY_H */
