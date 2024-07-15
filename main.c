@@ -32,8 +32,6 @@ int main(int argc, char *argv[])
     macro_table_destructor(macroTable);
     free(label_table);
     free(decoded_array);
-    char *am_filename = NULL;
-    macro_table *m_table;
 
     return 0;
 }

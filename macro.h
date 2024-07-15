@@ -6,7 +6,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "utilities.h"
+#include <err.h>
+#include <errno.h>
 
 
 #define as_extension ".as"
@@ -17,6 +18,22 @@
 #define INITIAL_MACRO_TABLE_CAPACITY 3
 #define MIN_MACRO_AMOUNT 3
 #define MIN_LINE_AMOUNT 3
+
+typedef enum {
+    STATUS_OK,
+    STATUS_ERROR,
+    STATUS_ERROR_OPEN_SRC,
+    STATUS_ERROR_OPEN_DEST,
+    STATUS_ERROR_READ,
+    STATUS_ERROR_WRITE,
+    STATUS_ERROR_INVALID_EXTENSION,
+    STATUS_ERROR_MACRO_REDEFINITION,
+    STATUS_ERROR_MEMORY_ALLOCATION,
+    STATUS_ERROR_MACRO_NOT_FOUND,
+    STATUS_ERROR_MACRO_TABLE_IS_EMPTY,
+    STATUS_ERROR_MACRO_EXPANDS_TO_NOTHING,
+    STATUS_ERROR_WHILE_CREATING_FILENAME
+} status;
 
 typedef struct macro {
     char **lines;      /* Vector of strings- the lines that the macro expands to */

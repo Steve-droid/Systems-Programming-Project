@@ -1,8 +1,9 @@
 #ifndef UTIL_H
 #define UTIL_H
+#define _POSIX_C_SOURCE 200809L
+
 
 #include <string.h>
-#include "macro.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -11,11 +12,11 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include "macro.h"
 
 #define _POSIX_C_SOURCE 200809L
 #define MAX_LABEL_LENGTH 33 /* max label len is 31 , + 1 for ':' , + 1 for '\0' */
 #define FIRST_KEY 40001 /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
-#define MAX_LINE_LENGTH 81
 #define TRUE 1
 #define FALSE 0
 #define MAX_KEYWORD_LENGTH 8 /* .string + '\0' */
@@ -27,23 +28,6 @@
 #define MINUS -50002
 #define COMMA -50003
 #define UNUSED(x) (void)(x)
-
-
-typedef enum {
-    STATUS_OK,
-    STATUS_ERROR,
-    STATUS_ERROR_OPEN_SRC,
-    STATUS_ERROR_OPEN_DEST,
-    STATUS_ERROR_READ,
-    STATUS_ERROR_WRITE,
-    STATUS_ERROR_INVALID_EXTENSION,
-    STATUS_ERROR_MACRO_REDEFINITION,
-    STATUS_ERROR_MEMORY_ALLOCATION,
-    STATUS_ERROR_MACRO_NOT_FOUND,
-    STATUS_ERROR_MACRO_TABLE_IS_EMPTY,
-    STATUS_ERROR_MACRO_EXPANDS_TO_NOTHING,
-    STATUS_ERROR_WHILE_CREATING_FILENAME
-} status;
 
 typedef struct {
     char name[MAX_LINE_LENGTH];
@@ -109,7 +93,7 @@ typedef enum {
     PRN_OPCODE,    /* 12 */
     JSR_OPCODE,    /* 13 */
     RTS_OPCODE,    /* 14 */
-    STOP_OPCODE,   /* 15 */
+    STOP_OPCODE   /* 15 */
 } commands_opcodes;
 
 typedef struct {
@@ -138,6 +122,22 @@ int label_name_is_macro(char *label_name, macro_table *table);
 int label_name_is_valid(label *label_table, char *label_name, int table_size, keyword *keywords_table, macro_table *macroTable);
 void str_cpy_until_char(char *destination, const char *source, char x);
 int string_to_label(char *str, label *label_table);
+int command_number_by_key(keyword *keyword_table, int key);
+int map_addressing_method(char *str, label *label_table);
+int *convert_to_int_array(char *str);
+void int_to_binary_array(int num, int *arr, int from_cell, int to_cell);
+int binary_array_to_int(int *array);
+void initialize_char_array(char *char_array);
+int is_empty_line(char *str);
+void print_2D_array(int **arr);
+char *pointer_after_label(char *line, label *label_table, int current_line);
+void remove_prefix_spaces(char *line);
+void print_pre_decoded(string *pre_decoded, int pre_decoded_size);
+void print_array_in_binary(int *arr);
+int *convert_to_1D(int **array2D);
+void print_binary(int num);
+keyword *fill_keywords_table();
+void print_label_table(label *label_table);
 
 
 #endif 

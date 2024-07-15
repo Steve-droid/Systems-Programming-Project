@@ -15,6 +15,7 @@ int **decode_without_label_addresses(char *am_filename, label *label_table, keyw
     int command_name, pre_decoded_size, line_counter, post_decoded_table_size;
     int *post_decoded = NULL;
     int **post_decoded_table = NULL;
+    FILE *file = NULL;
 
     post_decoded_table_size = 0;
     post_decoded_table = (int **)malloc((post_decoded_table_size + 1) * sizeof(int)); /* +1 for NULL terminator*/
@@ -26,7 +27,7 @@ int **decode_without_label_addresses(char *am_filename, label *label_table, keyw
 
     initialize_char_array(line);
 
-    FILE *file = fopen(am_filename, "r"); /* Open the file for reading*/
+    file = fopen(am_filename, "r"); /* Open the file for reading*/
     if (file == NULL) { /*PROBLEM-FILE NOT EXIST*/
         printf("Error- file doesnt open\n");
         free(post_decoded_table);
@@ -85,7 +86,7 @@ int **decode_without_label_addresses(char *am_filename, label *label_table, keyw
         if (post_decoded != NULL) {
             post_decoded_table_size++;
 
-            post_decoded_table = (int **)realloc(post_decoded_table, post_decoded_table_size + 1); /*1 for flag-NULL*/
+            post_decoded_table = (int **)realloc(post_decoded_table, (post_decoded_table_size + 1) * sizeof(int *)); /*1 for flag-NULL*/
             if (post_decoded_table == NULL) {
                 printf("ERROR- ALLOCATION FAILED");
                 free(post_decoded_table);

@@ -22,8 +22,6 @@ char *create_file_name(char *initial_filename, char *extension) {
     return new_filename;
 }
 
-
-
 status remove_extension(char *full_filename) {
     size_t full_filename_len = strlen(full_filename);
     char *name_final_char = full_filename + full_filename_len - 1;
@@ -95,7 +93,7 @@ status remove_whitespace(char *filename) {
     char *start;
     char *end;
     char *tmp;
-    int i;
+    size_t i;
     char tmp_filename[] = "tmpfileXXXXXX";
     int temp_file_descriptor;
     char line[BUFSIZ];
@@ -275,7 +273,7 @@ status backup_files(char ***backup_filenames, int file_count, char *filenames[])
 }
 
 void delete_backup_names(size_t num_files, char **backup_names) {
-    int i;
+    size_t i;
     if (backup_names == NULL) {
         printf("ERROR: Attempted to free backups but backup is empty. Exiting...");
         exit(EXIT_FAILURE);
@@ -290,9 +288,6 @@ void delete_backup_names(size_t num_files, char **backup_names) {
         }
     }
 }
-
-
-
 
 void initialize_char_array(char *char_array) {
     int i, array_len;
@@ -518,13 +513,14 @@ void print_array_in_binary(int *arr) {
 
 void print_binary(int num) {
     int i;
+    unsigned int mask;
+    unsigned int u_num;
     char binary[16];
     binary[15] = '\0';  /* Null terminator */
 
-    unsigned int mask = 1 << 14;  /* Mask for the 15th bit */
+    mask = 1 << 14;  /* Mask for the 15th bit */
 
     /** If the number is negative, convert it to 2's complement representation */
-    unsigned int u_num;
     if (num < 0) {
         u_num = (unsigned int)(num + (1 << 15));  /* 2's complement for negative number */
     }
@@ -721,6 +717,7 @@ void remove_commas_from_str(char *str) {
 void shift_left_str(char *str, int steps) {
     /* Get the length of the string */
     int length = strlen(str);
+    int i;
 
     /* If steps are greater than or equal to string length, the result is an empty string */
     if (steps >= length) {
@@ -729,7 +726,6 @@ void shift_left_str(char *str, int steps) {
     }
 
     /* Loop to shift the characters to the left by 'steps' positions */
-    int i;
     for (i = 0; i + steps < length; i++) {
         str[i] = str[i + steps];
     }

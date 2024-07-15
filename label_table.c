@@ -16,11 +16,12 @@ label *fill_label_table(char *am_filename, macro_table *macroTable, keyword *key
     char label_name[MAX_LABEL_LENGTH]; /* Buffer to hold each label name */
     label *label_table = NULL;
     int labels_counter, table_size, lines_counter;
+    FILE *file = NULL;
 
     initialize_char_array(line);
     initialize_char_array(label_name);
 
-    FILE *file = fopen(am_filename, "r"); /* Open the file for reading*/
+    file = fopen(am_filename, "r"); /* Open the file for reading*/
     if (file == NULL) { /*PROBLEM-FILE NOT EXIST*/
         printf("Error- file doesnt open\n");
         return NULL;

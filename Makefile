@@ -2,7 +2,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS = -Wall -Wextra -Werror -std=c90 -g
+CFLAGS = -Wall -pedantic -ansi -std=c90 -g
 
 # Include directories
 INCLUDES = -I.
@@ -11,10 +11,8 @@ INCLUDES = -I.
 SRCS = decode_to_int_array.c \
        decode_to_string_array.c \
        decoding.c \
-       file_util.c \
-       help_table.c \
+       utilities.c \
        label_table.c \
-       macro_table.c \
        macro.c \
        main.c \
        pre_assembler.c
@@ -23,7 +21,7 @@ SRCS = decode_to_int_array.c \
 OBJS = $(SRCS:.c=.o)
 
 # Executable name
-EXEC = Test
+EXEC = exec
 
 # Default target
 all: $(EXEC)
@@ -47,21 +45,13 @@ decoding.o: decoding.c decoding.h
 	@echo "Compiling decoding.c..."
 	$(CC) $(CFLAGS) $(INCLUDES) -c decoding.c -o decoding.o
 
-file_util.o: file_util.c file_util.h
-	@echo "Compiling file_util.c..."
-	$(CC) $(CFLAGS) $(INCLUDES) -c file_util.c -o file_util.o
-
-help_table.o: help_table.c help_table.h
-	@echo "Compiling help_table.c..."
-	$(CC) $(CFLAGS) $(INCLUDES) -c help_table.c -o help_table.o
+utilities.o: utilities.c utilities.h
+	@echo "Compiling utilities.c..."
+	$(CC) $(CFLAGS) $(INCLUDES) -c utilities.c -o utilities.o
 
 label_table.o: label_table.c label_table.h
 	@echo "Compiling label_table.c..."
 	$(CC) $(CFLAGS) $(INCLUDES) -c label_table.c -o label_table.o
-
-macro_table.o: macro_table.c macro_table.h
-	@echo "Compiling macro_table.c..."
-	$(CC) $(CFLAGS) $(INCLUDES) -c macro_table.c -o macro_table.o
 
 macro.o: macro.c macro.h
 	@echo "Compiling macro.c..."
