@@ -91,9 +91,8 @@ status insert_macro_to_table(macro_table *table, macro *macr) {
  * @return NULL if not found
  */
 macro *find_macro_in_table(macro_table *table, char *name) {
-    if (table == NULL) return NULL;
-
     int index;
+    if (table == NULL) return NULL;
 
     for (index = 0;index < table->macro_count;index++)
         if (strcmp(table->macros[index]->name, name) == 0)
@@ -135,8 +134,8 @@ void macro_destructor(macro *mac) {
  * @param table The macro table to destroy
  */
 void macro_table_destructor(macro_table *table) {
-
-    for (int i = 0; i < table->macro_count; i++) {
+    int i;
+    for (i = 0; i < table->macro_count; i++) {
         macro_destructor(table->macros[i]);
     }
     free(table->macros);

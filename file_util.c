@@ -154,7 +154,7 @@ status remove_whitespace(char *filename) {
         while (end > start && isspace((unsigned char)*end)) {
             end--;
         }
-        *(end + 1) = '\0';  // Null-terminate the string
+        *(end + 1) = '\0';  /* Null-terminate the string*/
 
         /* Only write non-empty lines to the temporary file */
         if (*start != '\0') {
