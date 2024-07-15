@@ -7,7 +7,7 @@
  */
 status create_macro(char *macro_name, macro **new_macro) {
     *new_macro = (macro *)malloc(sizeof(macro));
-    if (*new_macro == NULL) return STATUS_ERROR_MEMORY_ALLOCATION;
+    if (*new_macro == NULL) err(errno, "Failed to allocate memory for a new macro");
     (*new_macro)->name = strdup(macro_name);
     (*new_macro)->lines = NULL;
     (*new_macro)->line_capacity = 0;
@@ -20,7 +20,7 @@ status insert_line_to_macro(macro *mac, char *line) {
 
     if (mac->lines == NULL) {
         mac->lines = (char **)malloc(sizeof(char *) * INITIAL_MACRO_CAPACITY);
-        if (mac->lines == NULL) return STATUS_ERROR_MEMORY_ALLOCATION;
+        if (mac->lines == NULL) err(errno, "Failed to reallocate memory for macro lines");
         mac->line_capacity = INITIAL_MACRO_CAPACITY;
     }
 
@@ -28,7 +28,7 @@ status insert_line_to_macro(macro *mac, char *line) {
         mac->line_capacity = mac->line_count + 1;
         mac->lines = (char **)realloc(mac->lines, mac->line_capacity * sizeof(char *));
         if (mac->lines == NULL) {
-            return STATUS_ERROR_MEMORY_ALLOCATION;
+            err(errno, "Failed to allocate memory for macro lines");
         }
     }
 
@@ -74,7 +74,7 @@ status insert_macro_to_table(macro_table *table, macro *macr) {
     if (table->macro_count == table->capacity) {
         table->capacity = table->macro_count + 1;
         table->macros = (macro **)realloc(table->macros, table->capacity * sizeof(macro *));
-        if (table->macros == NULL) return STATUS_ERROR_MEMORY_ALLOCATION;
+        if (table->macros == NULL) err(errno, "Failed to allocate memory for macro table");
     }
 
     table->macros[table->macro_count] = macr;
@@ -91,9 +91,8 @@ status insert_macro_to_table(macro_table *table, macro *macr) {
  * @return NULL if not found
  */
 macro *find_macro_in_table(macro_table *table, char *name) {
-    if (table == NULL) return NULL;
-
     int index;
+    if (table == NULL) return NULL;
 
     for (index = 0;index < table->macro_count;index++)
         if (strcmp(table->macros[index]->name, name) == 0)
@@ -135,8 +134,8 @@ void macro_destructor(macro *mac) {
  * @param table The macro table to destroy
  */
 void macro_table_destructor(macro_table *table) {
-
-    for (int i = 0; i < table->macro_count; i++) {
+    int i;
+    for (i = 0; i < table->macro_count; i++) {
         macro_destructor(table->macros[i]);
     }
     free(table->macros);
@@ -146,15 +145,18 @@ void macro_table_destructor(macro_table *table) {
 status print_macro_lines(macro *mac) {
     int index;
 
-    if (mac->lines == NULL) return STATUS_ERROR_MACRO_EXPANDS_TO_NOTHING;
+    if (mac->lines == NULL) {
+
+
+    }
 
     for (index = 0; index < mac->line_count; index++)
         printf("Macro %s: Line #%d: %s\n", mac->name, index + 1, mac->lines[index]);
 
     printf("Finished printing lines for macro %s\n", mac->name);
     printf("--------------------------------------------------------------\n");
-
     return STATUS_OK;
+
 }
 
 
@@ -170,13 +172,11 @@ status print_macro_table(macro_table *table) {
         printf("\n***Macro name: %s***\n\n", current_macro->name);
         if (print_macro_lines(current_macro) != STATUS_OK) {
             printf("Error while printing macro %s Exiting...", current_macro->name);
-            exit(EXIT_FAILURE);
+            return STATUS_ERROR;
         }
     }
-
     printf("Done printing macro table");
     printf("\n--------------------------------------------------------------\n");
-
     return STATUS_OK;
 
 }
