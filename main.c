@@ -4,12 +4,6 @@
 #include "file_util.h"
 #include <string.h>
 
-// void main(int argc, char *argv[]) {
-//     char *am_filename = NULL;
-//     fill_macro_table(argc, argv, &am_filename);
-//     printf("\nfilename is: %s\n", am_filename);
-
-// }
 
 macro_table *fill_macro_table(int argc, char *argv[], char **am_filename) {
     char *as_filename;
