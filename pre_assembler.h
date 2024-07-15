@@ -17,7 +17,7 @@
 
 
 status pre_assemble(char *as_filename, char *am_filename, macro_table *m_table);
-macro_table *fill_macro_table(int argc, char *argv[], char **am_filename);
+macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames);
 
 
 #endif

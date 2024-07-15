@@ -136,74 +136,127 @@ status pre_assemble(char *as_filename, char *am_filename, macro_table *m_table) 
 
 
 
-macro_table *fill_macro_table(int argc, char *argv[], char **am_filename) {
-    char *as_filename;
-    macro_table *m_table;
+macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
+    macro_table *m_table = NULL;
     status result = STATUS_ERROR;
+    size_t i = 0;
+    size_t file_amount = argc - 1;
+    char **as_filenames = argv + 1;
+    char **backup_filenames = NULL;
+    char **generic_filenames = NULL;
 
-
-    char **backup_filenames = (char **)malloc(sizeof(char *) * (argc - 1));
-    if (backup_filenames == NULL) err(errno, "Memory allocation error while creating backup file names");
-
-    if (argc != 2) {
+    if (file_amount < 1) {
         printf("Usage: %s <filename>\n", argv[0]);
         return NULL;
     }
 
-    printf("Backing up files...\n");
-    if (backup_files(&backup_filenames, argc - 1, argv + 1) != STATUS_OK) {
-        printf("File backup did not execute properly. Exiting..");
-        return NULL;
-    }
-    printf("Backup succesful\n");
+    backup_filenames = (char **)malloc(sizeof(char *) * file_amount);
+    if (backup_filenames == NULL) err(errno, "Memory allocation error while creating backup file names");
 
-    printf("Creating .am file... ");
-    if (initallize_file_names(argv[1], am_filename, &as_filename) != STATUS_OK) {
-        printf("ERROR: .am file creation did not execute properly. Exiting..");
-        return NULL;
+    *(am_filenames) = (char **)malloc(sizeof(char *) * file_amount);
+    if (backup_filenames == NULL) err(errno, "Memory allocation error while creating .am file names");
+
+    generic_filenames = (char **)malloc(sizeof(char *) * file_amount);
+    if (backup_filenames == NULL) err(errno, "Memory allocation error while creating generic file names");
+
+    /* Initiallize arrays */
+    for (i = 0;i < file_amount;i++) {
+        backup_filenames[i] = NULL;
+        *(am_filenames)[i] = NULL;
+        generic_filenames[i] = NULL;
+    }
+
+    printf("Creating generic filenames...");
+    for (i = 0;i < file_amount;i++) {
+        if (remove_file_extension(as_filenames[i], generic_filenames + i) != STATUS_OK) {
+            printf("Error while creating generic filenames. Exiting...");
+            delete_filenames(file_amount, backup_filenames);
+            delete_filenames(file_amount, *(am_filenames));
+            delete_filenames(file_amount, generic_filenames);
+            exit(EXIT_FAILURE);
+        }
     }
     printf("Done\n");
 
-    m_table = create_macro_table();
+    printf("Backing up original .as files...");
+    if (duplicate_files(&backup_filenames, file_amount, as_filenames, ".backup") != STATUS_OK) {
+        printf("Error: File backup did not execute properly. Exiting..");
+        delete_filenames(file_amount, backup_filenames);
+        delete_filenames(file_amount, *(am_filenames));
+        delete_filenames(file_amount, generic_filenames);
+        exit(EXIT_FAILURE);
+    }
+    printf("Done\n");
 
-    printf("Starting pre assembly...\n");
-    result = pre_assemble(as_filename, *am_filename, m_table);
-    rename("test.as.backup", "test.as");
+    printf("Creating .am files... ");
+    for (i = 0;i < file_amount;i++) {
+        if (remove_file_extension(as_filenames[i], generic_filenames + i) != STATUS_OK) {
+            printf("Error: .am file creation for %s did not execute properly.\nExiting...\n", as_filenames[i]);
+            delete_filenames(file_amount, backup_filenames);
+            delete_filenames(file_amount, *(am_filenames));
+            delete_filenames(file_amount, generic_filenames);
+            exit(EXIT_FAILURE);
+        }
 
-
-    switch (result) {
-    case STATUS_OK:
-        printf("Pre-assembly completed successfully.\n");
-        break;
-    case STATUS_ERROR_OPEN_SRC:
-        printf("Error: Could not open source file.\n");
-        break;
-    case STATUS_ERROR_OPEN_DEST:
-        printf("Error: Could not open destination file.\n");
-        break;
-    case STATUS_ERROR_READ:
-        printf("Error: Could not read from source file.\n");
-        break;
-    case STATUS_ERROR_WRITE:
-        printf("Error: Could not write to destination file.\n");
-        break;
-    case STATUS_ERROR_MACRO_REDEFINITION:
-        printf("Error: Macro redefinition detected.\n");
-        break;
-    case STATUS_ERROR_MEMORY_ALLOCATION:
-        printf("Error: Memory allocation failed.\n");
-        break;
-    case STATUS_ERROR_MACRO_NOT_FOUND:
-        printf("Error: Macro not found.\n");
-        break;
-    default:
-        printf("Unknown error.\n");
-        break;
+        *(am_filenames)[i] = create_file_name(generic_filenames[i], ".am");
     }
 
-    free(as_filename);
-    delete_backup_names(argc - 1, backup_filenames);
+    printf("Done\n");
+
+    m_table = create_macro_table();
+    for (i = 0;i < file_amount;i++) {
+
+        printf("Starting pre assembly for file '%s'...\n", as_filenames[i]);
+        result = pre_assemble(as_filenames[i], (*am_filenames)[i], m_table);
+
+
+        switch (result) {
+        case STATUS_OK:
+            printf("Pre-assembly of '%s'completed successfully.\n", as_filenames[i]);
+            break;
+        case STATUS_ERROR_OPEN_SRC:
+            printf("Error: Could not open source file.\n");
+            break;
+        case STATUS_ERROR_OPEN_DEST:
+            printf("Error: Could not open destination file.\n");
+            break;
+        case STATUS_ERROR_READ:
+            printf("Error: Could not read from source file.\n");
+            break;
+        case STATUS_ERROR_WRITE:
+            printf("Error: Could not write to destination file.\n");
+            break;
+        case STATUS_ERROR_MACRO_REDEFINITION:
+            printf("Error: Macro redefinition detected.\n");
+            break;
+        case STATUS_ERROR_MEMORY_ALLOCATION:
+            printf("Error: Memory allocation failed.\n");
+            break;
+        case STATUS_ERROR_MACRO_NOT_FOUND:
+            printf("Error: Macro not found.\n");
+            break;
+        default:
+            printf("Unknown error.\n");
+            break;
+        }
+    }
+
+    for (i = 0;i < file_amount;i++) {
+        remove(as_filenames[i]);
+        rename(backup_filenames[i], strcat(generic_filenames[i], ".as"));
+    }
+
+
+    printf("Output files after pre assembly:\n");
+    for (i = 0;i < file_amount;i++) {
+        printf("File #%lu:\nFilename: %s\n", i, backup_filenames[i]);
+        printf("File contents:\n");
+
+    }
+
+    delete_filenames(file_amount, backup_filenames);
     free(backup_filenames);
+    delete_filenames(file_amount, generic_filenames);
 
     return m_table;
 }

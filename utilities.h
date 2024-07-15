@@ -103,12 +103,11 @@ typedef struct {
 
 /* File Utilities */
 char *create_file_name(char *initial_name, char *extension);
-status remove_extension(char *full_filename);
+status remove_file_extension(char *full_filename, char **generic_filename);
 status copy_file_contents(char *src_filename, char *dest_filename);
 status remove_whitespace(char *filename);
-status backup_files(char ***backup_filenames, int file_count, char *filenames[]);
-status initallize_file_names(char *filename, char **am_filename, char **as_filename);
-void delete_backup_names(size_t num_files, char **backup_names);
+status duplicate_files(char ***backup_filenames, int file_count, char *filenames[], char *extention);
+status delete_filenames(size_t file_amount, char **filenames);
 
 /* Other Utilities */
 label *create_labels_table();

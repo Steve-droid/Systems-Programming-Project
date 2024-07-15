@@ -351,7 +351,7 @@ int *decode_pre_decoded_data_known_arguments_amount(string *pre_decoded, int pre
     /*in case of every other option*/
     for (i = 1; i < pre_decoded_size; i++) {
         post_decoded_size++;
-        post_decoded = (int *)realloc(post_decoded, post_decoded_size + 1);
+        post_decoded = (int *)realloc(post_decoded, (post_decoded_size + 1) * sizeof(int));
         if (post_decoded == NULL) {
             printf("ERROR- ALLOCATION FAILED");
             return NULL;

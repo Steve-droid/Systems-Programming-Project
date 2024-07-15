@@ -16,20 +16,20 @@ int main(int argc, char *argv[])
     macro_table *macroTable = NULL;
     label *label_table = NULL;
     int *decoded_array = NULL;
-    char *am_filename = NULL;
+    char **am_filenames = NULL;
 
     keyword_table = fill_keywords_table();
-    macroTable = fill_macro_table(argc, argv, &am_filename);
+    macroTable = fill_macro_table(argc, argv, &am_filenames);
     print_macro_table(macroTable);
-    label_table = fill_label_table(am_filename, macroTable, keyword_table);
+    label_table = fill_label_table(am_filenames[0], macroTable, keyword_table);
     print_label_table(label_table);
-    decoded_array = decoding(am_filename, label_table, keyword_table);
+    decoded_array = decoding(am_filenames[0], label_table, keyword_table);
     printf("\nOUTPUT AFTER DECODING LABEL ADDRESS:\n\n");
     print_array_in_binary(decoded_array);
 
-    free(am_filename);
-    free(keyword_table);
+    delete_filenames(argc - 1, am_filenames);
     macro_table_destructor(macroTable);
+    free(keyword_table);
     free(label_table);
     free(decoded_array);
 
