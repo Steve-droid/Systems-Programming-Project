@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "macro.h"
-#include "file_util.h"
+#include "utilities.h"
 
 #define as_extension ".as"
 #define am_extension ".am"

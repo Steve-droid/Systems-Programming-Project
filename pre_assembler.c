@@ -186,12 +186,3 @@ macro_table *fill_macro_table(int argc, char *argv[], char **am_filename) {
     return m_table;
 }
 
-
-int main(int argc, char *argv[]) {
-    char *am_filename = NULL;
-    macro_table *m_table;
-    m_table = fill_macro_table(argc, argv, &am_filename);
-    macro_table_destructor(m_table);
-    free(am_filename);
-    return 0;
-}

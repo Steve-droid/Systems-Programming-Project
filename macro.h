@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "file_util.h"
+#include "utilities.h"
 
 
 #define as_extension ".as"
