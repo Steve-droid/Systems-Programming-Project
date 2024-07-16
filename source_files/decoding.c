@@ -35,7 +35,7 @@ void fill_label_table_addresses(int **decoded_table, label *label_table) {
 
     for (k = 0; k < label_table[0].size; k++) {
         counter = FIRST_ADDRESS;
-        for (i = 0; decoded_table[i] != NULL && i < label_table[k].line; i++) {
+        for (i = 0; decoded_table && decoded_table[i] != NULL && i < label_table[k].line; i++) {
             for (j = 0; decoded_table[i][j] != FLAG; j++) {
                 counter++;
             }

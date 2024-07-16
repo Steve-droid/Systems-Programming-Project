@@ -291,7 +291,7 @@ int *decode_pre_decoded_data_unknown_arguments_amount(string *pre_decoded) {
         data_arr_size = 0;
         data_arr = (int *)malloc((data_arr_size + 1) * sizeof(int *)); /* 1 for ending array flag*/
         if (data_arr == NULL) {
-            printf("ERROR-ALOOCATION FAILED");
+            printf("ERROR- ALLOCATION FAILED");
             return NULL;
         }
         data_arr[0] = FLAG;
@@ -300,7 +300,7 @@ int *decode_pre_decoded_data_unknown_arguments_amount(string *pre_decoded) {
             data_arr_size++;
             data_arr = (int *)realloc(data_arr, (data_arr_size + 1) * sizeof(int)); /* 1 for ending array flag*/
             if (data_arr == NULL) {
-                printf("ERROR-ALOOCATION FAILED");
+                printf("ERROR- ALLOCATION FAILED");
                 return NULL;
             }
             data_arr[data_arr_size - 1] = pre_decoded[1].data[i];
@@ -311,7 +311,7 @@ int *decode_pre_decoded_data_unknown_arguments_amount(string *pre_decoded) {
         data_arr_size++;
         data_arr = (int *)realloc(data_arr, (data_arr_size + 1) * sizeof(int)); /* 1 for ending array flag*/
         if (data_arr == NULL) {
-            printf("ERROR-ALOOCATION FAILED");
+            printf("ERROR- ALLOCATION FAILED");
             return NULL;
         }
         data_arr[data_arr_size - 1] = 0; /*String terminator*/
@@ -339,7 +339,7 @@ int *decode_pre_decoded_data_known_arguments_amount(string *pre_decoded, int pre
             post_decoded_size = 2;
             post_decoded = (int *)realloc(post_decoded, (post_decoded_size + 1) * sizeof(int *)); /* 1 for flag of end of array*/
             if (post_decoded == NULL) {
-                printf("ERROR - allocation failed");
+                printf("ERROR- ALLOCATION FAILED");
                 return NULL;
             }
             post_decoded[1] = decode_2_registers_command(pre_decoded[1].data, pre_decoded[2].data);

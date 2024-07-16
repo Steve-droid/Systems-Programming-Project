@@ -35,3 +35,4 @@ int main(int argc, char *argv[])
     free(decoded_array);
 
     return 0;
+}

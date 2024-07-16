@@ -209,7 +209,6 @@ status remove_whitespace(char *filename) {
     return STATUS_OK;
 }
 
-
 status duplicate_files(char ***backup_filenames, int file_count, char *filenames[], char *extention) {
     char *current_filename = filenames[0];
     char *filename_copy = NULL;
@@ -298,8 +297,6 @@ status delete_filenames(size_t file_amount, char **filenames) {
 
     return STATUS_OK;
 }
-
-
 
 /*---------------Other Utilities---------------*/
 void initialize_char_array(char *char_array) {

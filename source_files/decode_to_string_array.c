@@ -20,7 +20,7 @@ int **decode_without_label_addresses(char *am_filename, label *label_table, keyw
     post_decoded_table_size = 0;
     post_decoded_table = (int **)malloc((post_decoded_table_size + 1) * sizeof(int)); /* +1 for NULL terminator*/
     if (post_decoded_table == NULL) {
-        printf("ERROR-ALLOCATION");
+        printf("ERROR- ALLOCATION FAILED");
         return NULL;
     }
     post_decoded_table[0] = NULL;
@@ -29,7 +29,7 @@ int **decode_without_label_addresses(char *am_filename, label *label_table, keyw
 
     file = fopen(am_filename, "r"); /* Open the file for reading*/
     if (file == NULL) { /*PROBLEM-FILE NOT EXIST*/
-        printf("Error- file doesnt open\n");
+        printf("Error- CAN'T OPEN FILE\n");
         free(post_decoded_table);
         return NULL;
     }
@@ -338,7 +338,7 @@ int fill_pre_decoded_unknown_arguments_amount(char *line, int command_number, ke
             }
         }
         if (flag == FALSE) {
-            printf("ERROR- No such a label name");
+            printf("ERROR- No such label name");
             return FALSE;
         }
     }
