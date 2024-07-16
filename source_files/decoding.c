@@ -30,26 +30,28 @@ int *decoding(char *am_filename, label *label_table, keyword *keyword_table) {
     return decoded;
 }
 
-void fill_label_table_addresses(int **decoded_table, label *label_table) {
-    int i, j, k, counter;
+void fill_label_table_addresses(int** decoded_table , label* label_table){
+    int i,j,k,counter;
 
-    for (k = 0; k < label_table[0].size; k++) {
+    for( k = 0 ; k < label_table[0].size ; k++){
         counter = FIRST_ADDRESS;
-        for (i = 0; decoded_table[i] != NULL && i < label_table[k].line; i++) {
-            for (j = 0; decoded_table[i][j] != FLAG; j++) {
+        for( i = 0 ; decoded_table[i] != NULL && i < label_table[k].line ; i++ ){
+            for(j = 0 ; decoded_table[i][j] != FLAG ; j++){
                 counter++;
             }
         }
         label_table[k].address = counter;
+        label_table[k].address = label_table[k].address << 3;
+        label_table[k].address += label_table[k].entry_or_extern == EXTERN ? 1 : 2 ;
     }
 }
 
-void decode_label_addersses(int *decoded, label *label_table) {
-    int i, k;
+void decode_label_addersses(int* decoded , label* label_table){
+    int i,k;
 
-    for (k = 0; k < label_table[0].size; k++) {
-        for (i = 0; decoded[i] != FLAG; i++) {
-            if (label_table[k].key == decoded[i]) {
+    for( k = 0 ; k < label_table[0].size ; k++){
+        for( i = 0 ; decoded[i] != FLAG ; i++ ){
+            if( label_table[k].key == decoded[i]){
                 decoded[i] = label_table[k].address;
             }
         }
