@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "decoding.h"
-#include "decode_to_int_array.h"
-#include "decode_to_string_array.h"
-#include "label_table.h"
+#include "encoding.h"
+#include "encode_int.h"
+#include "encode_string.h"
+#include "symbol_table.h"
 #include "utilities.h"
 
 
@@ -48,7 +48,7 @@ void decode_label_addersses(int *decoded, label *label_table) {
     int i, k;
 
     for (k = 0; k < label_table[0].size; k++) {
-        for (i = 0; decoded[i] != FLAG; i++) {
+        for (i = 0; decoded && decoded[i] != FLAG; i++) {
             if (label_table[k].key == decoded[i]) {
                 decoded[i] = label_table[k].address;
             }

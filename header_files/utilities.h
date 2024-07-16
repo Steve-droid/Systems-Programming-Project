@@ -1,5 +1,5 @@
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef UTILITIES_H
+#define UTILITIES_H
 #define _POSIX_C_SOURCE 200809L
 
 
@@ -13,7 +13,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "macro.h"
-#include "label_table.h"
+#include "symbol_table.h"
 
 #define _POSIX_C_SOURCE 200809L
 #define MAX_LABEL_LENGTH 33 /* max label len is 31 , + 1 for ':' , + 1 for '\0' */
@@ -21,6 +21,11 @@
 #define TRUE 1
 #define FALSE 0
 #define KEYWORD_TABLE_LENGTH 30 /* Amount of keywords (8 registers + 16 commands + 4 directives + 2 macro definition*/
+#define OPERATION_KEYWORDS 16
+#define REGISTER_KEYWORDS 8
+#define DIRECTIVE_KEYWORDS 4
+#define MACRO_KEYWORDS 2
+#define REGISTER_LEN 2
 #define MAX_MACRO_NAME 20
 #define UNDEFINED -1
 #define FLAG -50000
@@ -61,6 +66,7 @@ void print_array_in_binary(int *arr);
 int *convert_to_1D(int **array2D);
 void print_binary(int num);
 keyword *fill_keywords_table();
+void insert_operation_keywords(keyword *keywords_table);
 void print_label_table(label *label_table);
 
 

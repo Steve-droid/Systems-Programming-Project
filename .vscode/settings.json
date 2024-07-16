@@ -5,6 +5,10 @@
         "utilities.h": "c",
         "pre_assembler.h": "c",
         "decoding.h": "c",
-        "label_table.h": "c"
+        "label_table.h": "c",
+        "encode_string.h": "c",
+        "macro.h": "c",
+        "stdio.h": "c",
+        "symbol_table.h": "c"
     }
 }

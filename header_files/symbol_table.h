@@ -1,5 +1,5 @@
-#ifndef LABEL_TABLE_H
-#define LABEL_TABLE_H
+#ifndef SYMBOL_TABLE_H
+#define SYMBOL_TABLE_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +9,7 @@
 
 #define MAX_KEYWORD_LENGTH 8 /* .string + '\0' */
 #define MAX_LABEL_LENGTH 33 /* max label len is 31 , + 1 for ':' , + 1 for '\0' */
-#define FIRST_KEY 40001 /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
+#define FIRST_KEY 1 /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
 
 
 typedef struct {
@@ -55,11 +55,17 @@ typedef enum {
 typedef struct label {
     char name[MAX_LINE_LENGTH];
     size_t key;
-    size_t line;
+    size_t instruction_line;
     size_t address;
     size_t size;
     int entry_or_extern;
 }label;
+
+typedef struct label_table {
+    label **labels;
+    size_t size;
+    size_t capacity;
+}label_table;
 
 typedef enum {
     MOV_OPCODE,    /* 0 */
@@ -82,6 +88,7 @@ typedef enum {
 
 
 /* Declarations */
+keyword *fill_keywords_table();
 label *create_labels_table();
 void fill_label_data_exclude_address(label *any_label, char *line, int line_counter);
 label *fill_label_table(char *am_filename, macro_table *macroTable, keyword *keywords_table);

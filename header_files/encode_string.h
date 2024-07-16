@@ -1,5 +1,5 @@
-#ifndef DECODE_TO_STRING_ARRAY_H
-#define DECODE_TO_STRING_ARRAY_H
+#ifndef ENCODE_STRING_H
+#define ENCODE_STRING_H
 
 #include <stdio.h>
 #include <stdlib.h>

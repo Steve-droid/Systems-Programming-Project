@@ -1,5 +1,5 @@
-#ifndef DECODING_H
-#define DECODING_H
+#ifndef ENCODING_H
+#define ENCODING_H
 
 #include <stdio.h>
 #include <stdlib.h>

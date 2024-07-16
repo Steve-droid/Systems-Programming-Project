@@ -3,10 +3,12 @@
 #include <string.h>
 #include <ctype.h>
 #include "utilities.h"
-#include "decode_to_string_array.h"
-#include "decoding.h"
-#include "label_table.h"
-#include "decode_to_int_array.h"
+#include "symbol_table.h"
+#include "encoding.h"
+#include "symbol_table.h"
+#include "encode_string.h"
+#include "encode_int.h"
+
 
 
 int **decode_without_label_addresses(char *am_filename, label *label_table, keyword *keyword_table) {

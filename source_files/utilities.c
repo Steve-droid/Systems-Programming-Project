@@ -1,8 +1,8 @@
 #include "utilities.h"
-#include "decode_to_int_array.h"
-#include "decoding.h"
-#include "label_table.h"
-#include "decode_to_string_array.h"
+#include "symbol_table.h"
+#include "encoding.h"
+#include "encode_int.h"
+#include "encode_string.h"
 #define ERR -1
 
 
@@ -57,7 +57,6 @@ status remove_file_extension(char *full_filename, char **generic_filename) {
     *extension = '\0'; /*Null terminate the generic filename*/
     return STATUS_OK;
 }
-
 
 status copy_file_contents(char *src_filename, char *dest_filename) {
     FILE *src_file = fopen(src_filename, "r");
@@ -332,7 +331,7 @@ char *pointer_after_label(char *line, label *label_table, int current_line) {
 
     /** Find the first letter after the label name */
     for (i = 0; i < label_table[0].size; i++) {
-        if (label_table[i].line == current_line) {
+        if (label_table[i].instruction_line == current_line) {
             first_letter = 1 + strlen(label_table[i].name);  /** another 1 for ':' */
             break;  /** Exit loop once the label is found */
         }
@@ -567,121 +566,11 @@ void print_label_table(label *label_table) {
 
     for (i = 0; i < label_table[0].size; i++) {
         printf("name: %s \n", label_table[i].name);
-        printf("key: %d \n", label_table[i].key);
-        printf("line: %d \n", label_table[i].line);
-        printf("size: %d \n\n", label_table[i].size);
+        printf("key: %lu \n", label_table[i].key);
+        printf("line: %lu \n", label_table[i].instruction_line);
+        printf("size: %lu \n\n", label_table[i].size);
 
     }
-}
-
-keyword *fill_keywords_table() {
-    keyword *keywords_table = NULL;
-
-    keywords_table = (keyword *)malloc(KEYWORD_TABLE_LENGTH * sizeof(keyword));
-    if (keywords_table == NULL) {
-        printf("ERROR-ALLOCATION FAILED\n");
-        return NULL;
-    }
-
-    /* Register keywords */
-    strcpy(keywords_table[0].name, "r0");
-    keywords_table[0].key = R0;
-    keywords_table[0].length = 2;
-    strcpy(keywords_table[1].name, "r1");
-    keywords_table[1].key = R1;
-    keywords_table[1].length = 2;
-    strcpy(keywords_table[2].name, "r2");
-    keywords_table[2].key = R2;
-    keywords_table[2].length = 2;
-    strcpy(keywords_table[3].name, "r3");
-    keywords_table[3].key = R3;
-    keywords_table[3].length = 2;
-    strcpy(keywords_table[4].name, "r4");
-    keywords_table[4].key = R4;
-    keywords_table[4].length = 2;
-    strcpy(keywords_table[5].name, "r5");
-    keywords_table[5].key = R5;
-    keywords_table[5].length = 2;
-    strcpy(keywords_table[6].name, "r6");
-    keywords_table[6].key = R6;
-    keywords_table[6].length = 2;
-    strcpy(keywords_table[7].name, "r7");
-    keywords_table[7].key = R7;
-    keywords_table[7].length = 2;
-
-    /* Operation keywords */
-    strcpy(keywords_table[8].name, "mov");
-    keywords_table[8].key = MOV;
-    keywords_table[8].length = 3;
-    strcpy(keywords_table[9].name, "cmp");
-    keywords_table[9].key = CMP;
-    keywords_table[9].length = 3;
-    strcpy(keywords_table[10].name, "add");
-    keywords_table[10].key = ADD;
-    keywords_table[10].length = 3;
-    strcpy(keywords_table[11].name, "sub");
-    keywords_table[11].key = SUB;
-    keywords_table[11].length = 3;
-    strcpy(keywords_table[12].name, "lea");
-    keywords_table[12].key = LEA;
-    keywords_table[12].length = 3;
-    strcpy(keywords_table[13].name, "clr");
-    keywords_table[13].key = CLR;
-    keywords_table[13].length = 3;
-    strcpy(keywords_table[14].name, "not");
-    keywords_table[14].key = NOT;
-    keywords_table[14].length = 3;
-    strcpy(keywords_table[15].name, "inc");
-    keywords_table[15].key = INC;
-    keywords_table[15].length = 3;
-    strcpy(keywords_table[16].name, "dec");
-    keywords_table[16].key = DEC;
-    keywords_table[16].length = 3;
-    strcpy(keywords_table[17].name, "jmp");
-    keywords_table[17].key = JMP;
-    keywords_table[17].length = 3;
-    strcpy(keywords_table[18].name, "bne");
-    keywords_table[18].key = BNE;
-    keywords_table[18].length = 3;
-    strcpy(keywords_table[19].name, "red");
-    keywords_table[19].key = RED;
-    keywords_table[19].length = 3;
-    strcpy(keywords_table[20].name, "prn");
-    keywords_table[20].key = PRN;
-    keywords_table[20].length = 3;
-    strcpy(keywords_table[21].name, "jsr");
-    keywords_table[21].key = JSR;
-    keywords_table[21].length = 3;
-    strcpy(keywords_table[22].name, "rts");
-    keywords_table[22].key = RTS;
-    keywords_table[22].length = 3;
-    strcpy(keywords_table[23].name, "stop");
-    keywords_table[23].key = STOP;
-    keywords_table[23].length = 4;
-
-    /* Macro keywords */
-    strcpy(keywords_table[24].name, "macr");
-    keywords_table[24].key = MACR;
-    keywords_table[24].length = 4;
-    strcpy(keywords_table[25].name, "endmacr");
-    keywords_table[25].key = ENDMACR;
-    keywords_table[25].length = 7;
-
-    /* Directive keywords */
-    strcpy(keywords_table[26].name, ".data");
-    keywords_table[26].key = DATA;
-    keywords_table[26].length = 5;
-    strcpy(keywords_table[27].name, ".string");
-    keywords_table[27].key = STRING;
-    keywords_table[27].length = 7;
-    strcpy(keywords_table[28].name, ".entry");
-    keywords_table[28].key = ENTRY;
-    keywords_table[28].length = 6;
-    strcpy(keywords_table[29].name, ".extern");
-    keywords_table[29].key = EXTERN;
-    keywords_table[29].length = 7;
-
-    return keywords_table;
 }
 
 int is_empty_line(char *str) {

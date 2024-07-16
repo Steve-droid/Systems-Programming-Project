@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "decode_to_int_array.h"
-#include "decoding.h"
-#include "label_table.h"
-#include "decode_to_string_array.h"
+#include "encode_int.h"
+#include "encoding.h"
+#include "symbol_table.h"
+#include "encode_string.h"
 
 
 int *decode_pre_decoded(string *pre_decoded, int pre_decoded_size, keyword *keyword_table, int key, label *label_table) {
