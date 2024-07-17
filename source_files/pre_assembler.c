@@ -13,7 +13,7 @@ static bool is_macro_call(char *line, macro_table *table) {
     * 'sscanf' will read the first word from 'line' into 'macro_name'
     */
     sscanf(line, "%s", macro_name);
-    return (find_macro_in_table(table, macro_name) != NULL);
+    return (get_macro(table, macro_name) != NULL);
 }
 
 static status add_macro_to_table(char *macro_name, FILE *as_file, macro_table *table) {
@@ -35,7 +35,7 @@ static status add_macro_to_table(char *macro_name, FILE *as_file, macro_table *t
 
 static status expand_macro(char *macro_name, FILE *am_file, macro_table *table) {
     int i;
-    macro *m = find_macro_in_table(table, macro_name);
+    macro *m = get_macro(table, macro_name);
     if (m == NULL) return STATUS_ERROR_MACRO_NOT_FOUND;
     for (i = 0;i < m->line_count;i++) fprintf(am_file, "%s", m->lines[i]);
     return STATUS_OK;
@@ -100,7 +100,7 @@ status pre_assemble(char *as_filename, char *am_filename, macro_table *m_table) 
              Check if definition is valid.
              If the macro name is found in the macro table, exit on error- redifinition is not allowed.
              */
-            macroname_found_flag = find_macro_in_table(m_table, macro_name);
+            macroname_found_flag = get_macro(m_table, macro_name);
             if (macroname_found_flag != NULL) {
                 printf("Error: macro with the name '%s' is already defined. Exiting...\n", macro_name);
                 fclose(as_file);

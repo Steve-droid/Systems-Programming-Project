@@ -90,7 +90,7 @@ status insert_macro_to_table(macro_table *table, macro *macr) {
  * @return macro* If macro with matching name is found
  * @return NULL if not found
  */
-macro *find_macro_in_table(macro_table *table, char *name) {
+macro *get_macro(macro_table *table, char *name) {
     int index;
     if (table == NULL) return NULL;
 

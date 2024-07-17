@@ -9,6 +9,13 @@
         "encode_string.h": "c",
         "macro.h": "c",
         "stdio.h": "c",
-        "symbol_table.h": "c"
+        "symbol_table.h": "c",
+        "encode_int.h": "c",
+        "common.h": "c",
+        "stddef.h": "c",
+        "label.h": "c",
+        "util.h": "c",
+        "fcntl.h": "c",
+        "lexer.h": "c"
     }
 }

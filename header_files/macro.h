@@ -2,12 +2,8 @@
 #define MACRO_H_
 #define _POSIX_C_SOURCE 200809L
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <err.h>
-#include <errno.h>
+#include "common.h"
+
 
 #define MAX_MACRO_AMOUNT 100
 #define MAX_LINE_LENGTH 80
@@ -16,21 +12,7 @@
 #define MIN_MACRO_AMOUNT 3
 #define MIN_LINE_AMOUNT 3
 
-typedef enum {
-    STATUS_OK,
-    STATUS_ERROR,
-    STATUS_ERROR_OPEN_SRC,
-    STATUS_ERROR_OPEN_DEST,
-    STATUS_ERROR_READ,
-    STATUS_ERROR_WRITE,
-    STATUS_ERROR_INVALID_EXTENSION,
-    STATUS_ERROR_MACRO_REDEFINITION,
-    STATUS_ERROR_MEMORY_ALLOCATION,
-    STATUS_ERROR_MACRO_NOT_FOUND,
-    STATUS_ERROR_MACRO_TABLE_IS_EMPTY,
-    STATUS_ERROR_MACRO_EXPANDS_TO_NOTHING,
-    STATUS_ERROR_WHILE_CREATING_FILENAME
-} status;
+
 
 typedef struct macro {
     char **lines;      /* Vector of strings- the lines that the macro expands to */
@@ -87,7 +69,7 @@ status insert_macro_to_table(macro_table *table, macro *mac);
  * @param name The name of the macro to get
  * @return macro*
  */
-macro *find_macro_in_table(macro_table *table, char *name);
+macro *get_macro(macro_table *table, char *name);
 
 
 /**

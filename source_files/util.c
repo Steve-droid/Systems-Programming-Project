@@ -1,11 +1,4 @@
-#include "utilities.h"
-#include "symbol_table.h"
-#include "encoding.h"
-#include "encode_int.h"
-#include "encode_string.h"
-#define ERR -1
-
-
+#include "util.h"
 
 /*---------------File Utilities---------------*/
 char *create_file_name(char *initial_filename, char *extension) {
@@ -298,6 +291,44 @@ status delete_filenames(size_t file_amount, char **filenames) {
 }
 
 /*---------------Other Utilities---------------*/
+
+int validate_data_numbers(char *str) {
+    int i, minus_or_plus, comma, number;
+    minus_or_plus = comma = number = false;
+
+    for (i = 0; str[i] != '\0' && str[i] != '\n'; i++) {
+        if (str[i] == '-' || str[i] == '+') {
+            if (number == true || minus_or_plus == true) { /*in case of 1,2,3-,4 or 1,+-2,3,4*/
+                return false;
+            }
+            minus_or_plus = true;
+            comma = number = false;
+        }
+        else if (str[i] == ',') {
+            if (minus_or_plus == true) { /*in case of 1,-,2,3 */
+                return false;
+            }
+            comma = true;
+            number = minus_or_plus = false;
+        }
+        else {   /*line[i] == number*/
+            number = true;
+            comma = minus_or_plus = false;
+        }
+    }
+    return true;
+}
+
+
+void str_cpy_until_char(char *destination, const char *source, char x) {
+    int i;
+
+    for (i = 0; !(source[i] == '\0' || source[i] == x); i++) {
+        destination[i] = source[i];
+    }
+    destination[i] = '\0';
+}
+
 void initialize_char_array(char *char_array) {
     int i, array_len;
 
@@ -326,13 +357,13 @@ void remove_prefix_spaces(char *line) {
     }
 }
 
-char *pointer_after_label(char *line, label *label_table, int current_line) {
+char *pointer_after_label(char *line, label_table *_label_table, int current_line) {
     int i, first_letter = 0;
 
     /** Find the first letter after the label name */
-    for (i = 0; i < label_table[0].size; i++) {
-        if (label_table[i].instruction_line == current_line) {
-            first_letter = 1 + strlen(label_table[i].name);  /** another 1 for ':' */
+    for (i = 0; i < _label_table->size; i++) {
+        if (_label_table->labels[i]->instruction_line == current_line) {
+            first_letter = 1 + strlen(_label_table->labels[i]->name);  /** another 1 for ':' */
             break;  /** Exit loop once the label is found */
         }
     }
@@ -354,67 +385,13 @@ int command_number_by_key(keyword *keyword_table, int key) {
     return flag;
 }
 
-int map_addressing_method(char *str, label *label_table) {
-    int i;
 
-    /* case 0 */
-    if (str[0] == '#') {
-        if (str[1] == '\0') {
-            return UNDEFINED;
-        }
-        if (str[1] != '-' && str[1] != '+' && !isdigit(str[1])) {
-            return UNDEFINED;
-        }
-        if (str[1] == '-' || str[1] == '+') {
-            if (!isdigit(str[2])) {
-                return UNDEFINED;
-            }
-        }
-        for (i = 2; i < (int)strlen(str); i++) {
-            if (!isdigit(str[i])) {
-                return UNDEFINED;
-            }
-        }
-        return 0;
-    }
 
-    /* case 1 */
-    for (i = 0; i < label_table[0].size; i++) {
-        if (!strcmp(label_table[i].name, str)) {
-            return 1;
-        }
-    }
-
-    /* case 2 */
-    if (str[0] == '*') {
-        if (str[1] == '\0' || str[1] != 'r') {
-            return UNDEFINED;
-        }
-        if (str[2] == '\0' || str[2] < '0' || str[2] > '7') {
-            return UNDEFINED;
-        }
-        if (str[3] != '\0') {
-            return UNDEFINED;
-        }
-        return 2;
-    }
-
-    /* case 3 */
-
-    if (str[0] == 'r') {
-        if (str[1] == '\0' || str[1] < '0' || str[1] > '7') {
-            return UNDEFINED;
-        }
-        if (str[2] != '\0') {
-            return UNDEFINED;
-        }
-        return 3;
-    }
-
-    /* else */
-    return UNDEFINED;
-}
-
+/**
+ *@brief
+ * @param pre_decoded- array of strings representing a single pre-decoded instruction
+ * @param pre_decoded_size
+ */
 void print_pre_decoded(string *pre_decoded, int pre_decoded_size) {
     int i;
 
@@ -432,20 +409,34 @@ void print_pre_decoded(string *pre_decoded, int pre_decoded_size) {
     }
 }
 
-void int_to_binary_array(int num, int *arr, int from_cell, int to_cell) {
+/**
+ *@brief Create a
+ *
+ * @param num
+ * @param arr
+ * @param from_cell
+ * @param to_cell
+ */
+void int_to_binary_array(int num, int *binary_command, int from_cell, int to_cell) {
     int i;
+
     /** If the number is negative, adjust for two's complement */
     if (num < 0) {
         num += (1 << (to_cell - from_cell + 1));
     }
-
     /** Convert the number to binary and store it in the array */
     for (i = to_cell; i >= from_cell; i--) {
-        arr[i] = num % 2;
+        binary_command[i] = num % 2;
         num /= 2;
     }
 }
 
+/**
+ *@brief Convert a binary array to an integer
+ *
+ * @param array
+ * @return int
+ */
 int binary_array_to_int(int *array) {
     int sign_bit, value, i;
     sign_bit = array[0];
@@ -465,6 +456,13 @@ int binary_array_to_int(int *array) {
     return value;
 }
 
+/**
+ *@brief Get a 2D array of pointers to arrays of integers and convert it to a 1D array
+ * Each cell in the 2D array is a pointer to an array of integers
+ * This function converts the 2D array to a 1D array by copying the integers from the 2D array to the 1D array
+ * @param array2D
+ * @return int*
+ */
 int *convert_to_1D(int **array2D) {
     int total_elements, i, j, index;
     int *array1D = NULL;
@@ -509,6 +507,11 @@ void initialize_int_array(int *arr, int size) {
     }
 }
 
+/**
+ *@brief Get an array of integers and print them in binary
+ *
+ * @param arr
+ */
 void print_array_in_binary(int *arr) {
     int i;
     if (arr == NULL) {
@@ -555,34 +558,16 @@ void print_binary(int num) {
     printf("%s\n", binary);
 }
 
-void print_label_table(label *label_table) {
-    int i;
-
-    printf("LABEL-TABLE:\n");
-    if (label_table == NULL) {
-        printf("Error NULL FILE");
-        return;
-    }
-
-    for (i = 0; i < label_table[0].size; i++) {
-        printf("name: %s \n", label_table[i].name);
-        printf("key: %lu \n", label_table[i].key);
-        printf("line: %lu \n", label_table[i].instruction_line);
-        printf("size: %lu \n\n", label_table[i].size);
-
-    }
-}
-
-int is_empty_line(char *str) {
+bool is_empty_line(char *str) {
     /* Remove the newline character at the end of the line, if there is one */
     str[strcspn(str, "\n")] = '\0';
 
     /* Check if the line is empty */
     if (strlen(str) == 0) {
-        return TRUE; /* Line is empty */
+        return true; /* Line is empty */
     }
 
-    return FALSE; /* Line is not empty */
+    return false; /* Line is not empty */
 }
 
 int char_to_int(char c) {
@@ -604,37 +589,14 @@ int char_to_int(char c) {
     }
 }
 
-void remove_commas_from_str(char *str) {
-    int i, j;
-
-    for (i = 0, j = 0; str[i] != '\0' && str[i] != '\n'; i++) {
-        if (str[i] != ',') {
-            str[j++] = str[i];
-        }
-    }
-    str[j] = '\0';
-}
-
-void shift_left_str(char *str, int steps) {
-    /* Get the length of the string */
-    int length = strlen(str);
-    int i;
-
-    /* If steps are greater than or equal to string length, the result is an empty string */
-    if (steps >= length) {
-        str[0] = '\0';
-        return;
-    }
-
-    /* Loop to shift the characters to the left by 'steps' positions */
-    for (i = 0; i + steps < length; i++) {
-        str[i] = str[i + steps];
-    }
-
-    /* Properly terminate the string */
-    str[i] = '\0';
-}
-
+/**
+ *@brief
+ * Get a string of numbers seperated by commas
+ * Create an array of integers from the string
+ * The array contains the numbers in the string
+ * @param str The string containing the numbers
+ * @return int* The array of integers
+ */
 int *convert_to_int_array(char *str) {
     /* Temporary variables */
     int *result = NULL;
@@ -671,6 +633,11 @@ int *convert_to_int_array(char *str) {
     return result;
 }
 
+/**
+ *@brief Print a 2D array
+ * Print a 2D array of integers
+ * @param arr The 2D array to print
+ */
 void print_2D_array(int **arr) {
     int i, j, counter;
     counter = 99;
