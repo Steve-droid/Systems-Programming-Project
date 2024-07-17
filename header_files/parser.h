@@ -159,4 +159,5 @@ bool validate_destination_argument_addressing(int *binary_command, keyword *keyw
   */
 int get_addressing_method(char *str, label_table *_label_table);
 
+int get_register_number(char *reg);
 #endif

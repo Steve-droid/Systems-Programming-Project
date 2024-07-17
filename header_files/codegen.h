@@ -122,6 +122,4 @@ int calculate_addressing_method_bits(int number, int pos);
 
 
 
-
-
 #endif

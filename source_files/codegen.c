@@ -273,31 +273,21 @@ int calculate_addressing_method_bits(int number, int pos) {
     return result;
 }
 
-/**
- * @brief Determines the register number from a register string.
- *
- * This function parses a register string to extract and return the register number.
- * It searches for the 'r' character and converts the following characters to an integer.
- *
- * @param reg The register string to parse.
- * @return The register number.
- */
-int get_register_number(char *reg);
 
 /**
- *@brief Create a .ob (i.e object) file for every filename
- * The .object file is contains the binary representation of the instructions and data
- * The first line in the .ob file consists of 2 fields:
- * 1. The number of instruction words in the object file- stored in IC
- * 2. The number of data words in the object file- stored in DC
- * The following lines contain 2 fields:
- * 1. The address of the word in the memory- in decimal
- * 2. The word itself- in decimal
- * @param inst_section A struct containing the instruction section and the IC
- * @param data__section A struct containing the data section and the DC
- * @param generic_filename A generic filename to create the object file
- * @param num_of_files The number of files to create
- */
+*@brief Create a .ob (i.e object) file for every filename
+* The .object file is contains the binary representation of the instructions and data
+* The first line in the .ob file consists of 2 fields:
+* 1. The number of instruction words in the object file- stored in IC
+* 2. The number of data words in the object file- stored in DC
+* The following lines contain 2 fields:
+* 1. The address of the word in the memory- in decimal
+* 2. The word itself- in decimal
+* @param inst_section A struct containing the instruction section and the IC
+* @param data__section A struct containing the data section and the DC
+* @param generic_filename A generic filename to create the object file
+* @param num_of_files The number of files to create
+*/
 status create_object_file(instruction_section inst_section, data_section data__section, char *generic_filename) {
     char *object_filename = NULL;
     FILE *object_file = NULL;
