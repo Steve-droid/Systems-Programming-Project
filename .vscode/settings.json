@@ -16,6 +16,12 @@
         "label.h": "c",
         "util.h": "c",
         "fcntl.h": "c",
-        "lexer.h": "c"
-    }
+        "lexer.h": "c",
+        "keyword.h": "c",
+        "parser.h": "c",
+        "text_tools.h": "c"
+    },
+    "github.copilot.editor.enableCodeActions": false,
+    "editor.cursorBlinking": "solid",
+    "terminal.integrated.cursorStyle": "line"
 }

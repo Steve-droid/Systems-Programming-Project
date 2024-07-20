@@ -10,12 +10,21 @@
  * @return label_table*
  */
 label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *keywords_table) {
-    char instruction_buffer[MAX_LINE_LENGTH] = { '\0' }; /* Buffer to hold each line */
+    char *instruction_buffer = NULL; /* Buffer to hold each line */
     char *label_name = NULL;
     label_table *_label_table = NULL;
     size_t lines_in_file = 0;
     FILE *am_file = NULL;
     label *new_label = NULL;
+
+
+    instruction_buffer = (char *)malloc(MAX_LINE_LENGTH * sizeof(char));
+    if (instruction_buffer == NULL) {
+        printf("ERROR- Failed to allocate memory for instruction buffer\n");
+        return NULL;
+    }
+
+    initialize_char_array(instruction_buffer);
 
     /* Open the .am file for reading lines */
     am_file = fopen(am_filename, "r");
@@ -36,7 +45,7 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
 
     lines_in_file = -1; /* lines start from 0*/
 
-    while (fgets(instruction_buffer, sizeof(instruction_buffer), am_file)) { /* Read every line from the .am file */
+    while (fgets(instruction_buffer, MAX_LINE_LENGTH, am_file)) { /* Read every line from the .am file */
         label_name = NULL;
 
         /* Skip empty lines */
@@ -49,7 +58,7 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
         }
 
         lines_in_file++;
-        remove_prefix_spaces(instruction_buffer);
+        instruction_buffer = trim_whitespace(instruction_buffer);
         /* Check if the line contains a label definition. if it does, save the label name */
         label_name = extract_label_name_from_instruction(instruction_buffer);
 
@@ -262,7 +271,8 @@ label *new_empty_label(label **new_label) {
     (*new_label)->instruction_line = 0;
     (*new_label)->address = 0;
     (*new_label)->size = 0;
-    (*new_label)->entry_or_extern = UNDEFINED;
+    (*new_label)->is_entry = false;
+    (*new_label)->is_extern = false;
 
     return *new_label;
 }
@@ -306,7 +316,8 @@ void label_update_fields(label **new_label, char *label_name, int line_counter, 
     (*new_label)->instruction_line = line_counter;
     (*new_label)->address = address;
     (*new_label)->size = 0;
-    (*new_label)->entry_or_extern = UNDEFINED;
+    (*new_label)->is_entry = false;
+    (*new_label)->is_extern = false;
 }
 
 /**
@@ -367,7 +378,7 @@ void assign_label_addresses(int **decoded_table, label_table *_label_table) {
         }
         _label_table->labels[k]->address = counter;
         _label_table->labels[k]->address = _label_table->labels[k]->address << 3;
-        _label_table->labels[k]->address += _label_table->labels[k]->entry_or_extern == EXTERN ? 1 : 2;
+        _label_table->labels[k]->address += _label_table->labels[k]->is_extern ? 1 : 2;
     }
 }
 

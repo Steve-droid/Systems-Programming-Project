@@ -30,8 +30,6 @@
 #define COMMA -50003
 #define UNUSED(x) (void)(x)
 
-
-
  /* File Utilities */
 char *create_file_name(char *initial_name, char *extension);
 status remove_file_extension(char *full_filename, char **generic_filename);
@@ -43,35 +41,31 @@ status delete_filenames(size_t file_amount, char **filenames);
 /* Other Utilities */
 void str_cpy_until_char(char *destination, const char *source, char x);
 int command_number_by_key(keyword *keyword_table, int key);
-int map_addressing_method(char *str, label_table *_label_table);
 int *convert_to_int_array(char *str);
-void int_to_binary_array(int num, int *arr, int from_cell, int to_cell);
+void int_to_binary_array(int num, bin_word *binary_word, int start, int finish);
 int binary_array_to_int(int *array);
 void initialize_char_array(char *char_array);
 bool is_empty_line(char *str);
 void print_2D_array(int **arr);
-char *pointer_after_label(char *line, label_table *_label_table, int current_line);
-void remove_prefix_spaces(char *line);
-void print_pre_decoded(string *pre_decoded, int pre_decoded_size);
+char *trim_whitespace(char *str);
+void print_instruction(inst *_inst);
 void print_array_in_binary(int *arr);
-int *convert_to_1D(int **array2D);
+int *convert_twodim_array_to_onedim(int **two_dim_array);
 void print_binary(int num);
 void print_label_table(label_table *_label_table);
 
-/**
- * @brief Validates the format of a string representing a sequence of numbers for a .data directive.
- *
- * This function checks whether the provided string is a valid sequence of numbers for a .data directive.
- * It ensures that the numbers are properly formatted, with correct handling of signs (+/-) and commas.
- * The function performs the following checks:
- * - Ensures that numbers are properly separated by commas.
- * - Validates the use of plus and minus signs.
- * - Detects common formatting errors such as misplaced signs or commas.
- *
- * @param str The string to validate.
- * @return True if the format is valid, false otherwise.
- */
-int validate_data_numbers(char *str);
+
+void init_buffer_data(buffer_data *data);
+
+void reset_buffer(char *buffer);
+
+status create_buffer_data(buffer_data **data);
+
+void destroy_buffer_data(buffer_data *data);
+
+
+
+
 
 
 

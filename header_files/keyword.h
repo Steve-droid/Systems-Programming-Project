@@ -12,11 +12,11 @@
 
 
 
-/**
- *@brief Creates a table of keywords
- * The function creates a table of keywords and their corresponding keys.
- * @return keyword*
- */
+ /**
+  *@brief Creates a table of keywords
+  * The function creates a table of keywords and their corresponding keys.
+  * @return keyword*
+  */
 keyword *fill_keyword_table();
 
 /**
@@ -44,22 +44,17 @@ keyword *get_keyword_by_key(keyword *keywords_table, int key);
 int get_command_argument_count(int command_name);
 
 /**
- * @brief Identifies and returns the keyword key for a command in the given line of assembly code.
+ * @brief Identifies a command keyword from a given string.
  *
- * This function processes a line of assembly code to identify the command present in the line.
- * It performs the following steps:
- * - Skips any labels and leading spaces in the line.
- * - Extracts the command name from the line.
- * - Compares the extracted command name against the keywords in the keyword table.
- * - Returns the keyword key if a match is found, otherwise returns UNDEFINED.
+ * This function takes a string as input and searches for a matching keyword in the keyword table.
+ * If a match is found, the function returns the keyword. If no match is found, the function returns UNDEFINED_KEYWORD.
  *
- * @param line The line of assembly code to process.
+ * @param _buffer_data The buffer data structure containing the current line of text.
  * @param _label_table The table containing label information.
  * @param keyword_table The table containing keyword information.
- * @param current_line The current line number being processed.
- * @return The keyword key if the command is found, otherwise UNDEFINED.
+ * @return The keyword for the command, or UNDEFINED_KEYWORD if no match is found.
  */
-int identify_command(char *line, label_table *_label_table, keyword *keyword_table, int current_line);
+keyword_name identify_command(buffer_data *_buffer_data, label_table *_label_table, keyword *keyword_table);
 
 /**
  * @brief Retrieves the opcode value for a given command key from the keyword table.

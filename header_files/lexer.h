@@ -22,14 +22,54 @@
 #define LEXER_H
 
 #include "common.h"
+#include "binary.h"
+#include "util.h"
 #include "label.h"
 #include "keyword.h"
-#include "util.h"
-#include "binary.h"
-#include "codegen.h"
+#include "instruction.h"
+#include "text_tools.h"
+#include "asm_error.h"
+
+#define FIRST_FIELD 0
+#define SECOND_FIELD 1
+#define THIRD_FIELD 2
+#define FOURTH_FIELD 3
+#define FIRST_ARG 0
+#define SECOND_ARG 1
 
 
- /* Initiallization of the encoded table of the assembly instructions */
+
+typedef struct syntax_state {
+    int index;
+    char *instruction;
+    char *instruction_args;
+    bool comma;
+    bool whitespace;
+    bool null_terminator;
+    bool new_line;
+    bool minus_sign;
+    bool plus_sign;
+    bool end_of_argument_by_space;
+    bool end_of_argument;
+    bool end_of_string;
+    bool first_quatiotion_mark;
+    bool last_quatiotion_mark;
+    bool digit;
+
+    bool is_data;
+    bool is_string;
+    bool is_entry;
+    bool is_extern;
+} syntax_state;
+
+
+
+
+typedef enum {
+    invalid, valid
+} validation_state;
+
+/* Initiallization of the encoded table of the assembly instructions */
 /**
  *@brief This function handles the encoding of the assembly instructions into binary code.
  *
@@ -38,8 +78,16 @@
  * @param keyword_table
  * @return int*
  */
-int **lex(char *am_filename, label_table *_label_table, keyword *keyword_table);
+inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_table);
+
+addressing_method get_addressing_method(char *sub_inst, label_table *_label_table);
+
+register_name get_register_number(char *register_as_string);
 
 
 
-#endif /* DECODING_H */
+
+
+
+
+#endif 

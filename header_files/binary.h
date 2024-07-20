@@ -1,59 +1,34 @@
 #ifndef BINARY_H
 #define BINARY_H
-
-#include "label.h"
-#include "keyword.h"
-
-#define MAX_BINARY_COMMAND_LENGTH 15
-
-typedef struct {
-    int binary[MAX_BINARY_COMMAND_LENGTH];
-    int length;
-} binary_command;
-
-typedef struct {
-    binary_command **commands;
-    int size;
-} binary_table;
-
-/**
- * @brief Creates a new binary command.
- *
- * @param length The length of the binary command.
- * @return A pointer to the newly created binary command.
- */
-binary_command *create_binary_command(int length);
-
-/**
- * @brief Creates a new binary table.
- *
- * @return A pointer to the newly created binary table.
- */
-binary_table *create_binary_table();
-
-/**
- * @brief Adds a command to the binary table.
- *
- * @param table The binary table.
- * @param cmd The binary command to add.
- */
-void add_command_to_table(binary_table *table, binary_command *cmd);
-
-/**
- * @brief Frees the memory allocated for the binary table.
- *
- * @param table The binary table to free.
- */
-void free_binary_table(binary_table *table);
-
-/**
- * @brief Prints the binary table.
- *
- * @param table The binary table to print.
- */
-void print_binary_table(binary_table *table);
+#include "common.h"
 
 
 
-#endif /* BINARY_H */
+/* Init functions */
+void init_word(bin_word *word);
+void init_inst(bin_inst *instruction);
+void init_table(bin_table *table);
 
+/* Create functions */
+status create_bin_word(bin_inst *_instr);
+status create_bin_inst(bin_table *_bin_table);
+status create_bin_table(bin_table **new_bin_table);
+
+/* Insert functions */
+status insert_bin_word_to_inst(bin_inst *instruction, bin_word *word);
+status insert_bin_inst_to_table(bin_table *table, bin_inst *instruction);
+
+/* Get functions */
+bin_word **get_words(bin_inst *instruction);
+size_t get_num_words(bin_inst *instruction);
+bin_inst **get_bin_inst(bin_table *table);
+size_t get_num_bin_inst(bin_table *table);
+
+/* Destroy functions */
+void destroy_bin_word(bin_word *word);
+void destroy_bin_inst(bin_inst *instruction);
+void destroy_bin_table(bin_table *table);
+
+
+
+#endif

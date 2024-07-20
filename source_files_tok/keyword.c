@@ -1,15 +1,5 @@
 #include "keyword.h"
 
-/**
- *@brief This function is used to fill the keywords table with the operation, directive, and register keywords.
- * Here are the keywords that are filled in the table:
- * 1. Registers: r0, r1, r2, r3, r4, r5, r6, r7.
- * 2. Operation keywords: mov, cmp, add, sub, lea, clr, not, inc, dec, jmp, bne, red, prn, jsr, rts, stop.
- * 3. Directive keywords: .data, .string, .entry, .extern.
- * 4. Macro keywords: macr, endmacr.
- * Each keyword has a key that represents its type, and a length that represents the length of the keyword.
- * @return keyword* A pointer to the filled keywords table.
- */
 keyword *fill_keyword_table() {
     int i;
     char reg_name[3] = { 0 };
@@ -85,13 +75,6 @@ keyword *fill_keyword_table() {
     return keywords_table;
 }
 
-/**
- *@brief This function is used to get a keyword from the keywords table.
- * The function searches for a keyword in the keywords table by its name.
- * @param keywords_table A pointer to the keywords table.
- * @param name The name of the keyword to search for.
- * @return keyword* A pointer to the keyword if found, NULL otherwise.
- */
 keyword *get_keyword_by_name(keyword *keyword_table, char *name) {
     int i;
     for (i = 0; i < KEYWORD_TABLE_LENGTH; i++) {
@@ -102,13 +85,6 @@ keyword *get_keyword_by_name(keyword *keyword_table, char *name) {
     return NULL;
 }
 
-/**
- *@brief This function is used to get a keyword from the keywords table by its key.
- * The function searches for a keyword in the keywords table by its key.
- * @param keywords_table A pointer to the keywords table.
- * @param key The key of the keyword to search for.
- * @return keyword* A pointer to the keyword if found, NULL otherwise.
- */
 keyword *get_keyword_by_key(keyword *keyword_table, int key) {
     int i;
     for (i = 0; i < KEYWORD_TABLE_LENGTH; i++) {
@@ -119,47 +95,51 @@ keyword *get_keyword_by_key(keyword *keyword_table, int key) {
     return NULL;
 }
 
-/**
- * @brief Identifies and returns the keyword key for a command in the given line of assembly code.
- *
- * This function processes a line of assembly code to identify the command present in the line.
- * It performs the following steps:
- * - Skips any labels and leading spaces in the line.
- * - Extracts the command name from the line.
- * - Compares the extracted command name against the keywords in the keyword table.
- * - Returns the keyword key if a match is found, otherwise returns UNDEFINED.
- *
- * @param line The line of assembly code to process.
- * @param _label_table The table containing label information.
- * @param keyword_table The table containing keyword information.
- * @param current_line The current line number being processed.
- * @return The keyword key if the command is found, otherwise UNDEFINED.
- */
-int identify_command(char *line, label_table *_label_table, keyword *keyword_table, int current_line) {
-    int i;
-    char *line_after_label = NULL;
-    char command_name[MAX_LINE_LENGTH];
 
-    /* Get the portion of the line after any labels */
-    line_after_label = pointer_after_label(line, _label_table, current_line);
-    remove_prefix_spaces(line_after_label); /* Skip unnecessary spaces */
+keyword_name identify_command(buffer_data *_buffer_data, label_table *_label_table, keyword *keyword_table) {
+    int i;
+    char *_instruction = NULL;
+    char command_name[MAX_LINE_LENGTH];
+    size_t command_length = strlen(_buffer_data->buffer);
+    bool command_found = false;
+
+
+    if (_buffer_data == NULL || _label_table == NULL || keyword_table == NULL) {
+        printf("Tried to identify command with NULL arguments\n");
+        return UNDEFINED_KEYWORD;
+    }
+
+    _instruction = _buffer_data->buffer;
 
     /* Extract the command name from the line */
-    for (i = 0; line_after_label[i] != '\n' && !isspace(line_after_label[i]); i++) {
-        command_name[i] = line_after_label[i];
+    for (i = 0; i < command_length && _instruction[i] != '\n' && !isspace(_instruction[i]); i++) {
+        command_name[i] = _instruction[i];
     }
+
+    /* Null-terminate the command name */
     command_name[i] = '\0';
 
     /* Compare the extracted command name against the keyword table */
     for (i = 0; i < KEYWORD_TABLE_LENGTH; i++) {
-        if (!strncmp(command_name, keyword_table[i].name, strlen(keyword_table[i].name))) {
+
+        /* Check if the command name is found in the keyword table */
+        command_found = (strncmp(command_name, keyword_table[i].name, strlen(keyword_table[i].name)) == 0);
+
+        if (command_found) {
+
+            /* Check if the command name is too long */
             if (strlen(command_name) > strlen(keyword_table[i].name)) {
-                return UNDEFINED;
+                printf("ERROR- Command name '%s' is too long\n", command_name);
+                return UNDEFINED_KEYWORD;
             }
+
+            /* If the command name is found, return the command key */
             return keyword_table[i].key;
         }
     }
-    return UNDEFINED;
+
+    /* If the command name is not found, return UNDEFINED */
+    return UNDEFINED_KEYWORD;
 }
 
 
@@ -226,17 +206,6 @@ int get_command_opcode(keyword *keyword_table, int key) {
 
     return val;
 }
-
-
-/**
- * @brief Determines the number of arguments required for a given command.
- *
- * This function takes a command name as input and returns the number of arguments that
- * the command requires. The number of arguments is based on predefined command names.
- *
- * @param command_name The name of the command to check.
- * @return The number of arguments required for the command, or special constants like UNKNOWN_NUMBER_OF_ARGUMENTS or UNDEFINED.
- */
 
 int get_command_argument_count(int command_name) {
     switch (command_name) {

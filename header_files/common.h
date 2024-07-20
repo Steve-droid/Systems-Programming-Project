@@ -32,21 +32,7 @@
 #define DIRECTIVE_KEYWORDS 4
 #define MACRO_KEYWORDS 2
 #define REGISTER_LEN 2
-
-
-
-typedef enum {
-    R0, R1, R2, R3, R4, R5, R6, R7,                                                  /* Registers */
-    MOV, CMP, ADD, SUB, LEA, CLR, NOT, INC, DEC, JMP, BNE, RED, PRN, JSR, RTS, STOP, /* Operations */
-    MACR, ENDMACR,                                                                   /* Macros */
-    DATA, STRING, ENTRY, EXTERN                                                      /* Directives */
-} keyword_name;
-
-typedef struct {
-    char name[MAX_KEYWORD_LENGTH];
-    int key;
-    int length;
-}keyword;
+#define MAX_NUMBER_OF_ARGUMENTS 2
 
 typedef enum {
     STATUS_OK,
@@ -61,28 +47,24 @@ typedef enum {
     STATUS_ERROR_MACRO_NOT_FOUND,
     STATUS_ERROR_MACRO_TABLE_IS_EMPTY,
     STATUS_ERROR_MACRO_EXPANDS_TO_NOTHING,
-    STATUS_ERROR_WHILE_CREATING_FILENAME
+    STATUS_ERROR_WHILE_CREATING_FILENAME,
+    ERROR_NULL_TABLE,
+    ERROR_NULL_INSTRUCTION
 } status;
 
+typedef enum addressing_method {
+    UNDEFINED_METHOD = -1, IMMEDIATE, DIRECT, INDIRECT_REGISTER, DIRECT_REGISTER
+} addressing_method;
 
-typedef struct {
-    char data[MAX_LINE_LENGTH];
-}string;
 
-typedef struct label {
-    char name[MAX_LABEL_LENGTH];
-    size_t key;
-    size_t instruction_line;
-    size_t address;
-    size_t size;
-    int entry_or_extern;
-}label;
+typedef enum {
+    UNDEFINED_KEYWORD = -1,
+    R0, R1, R2, R3, R4, R5, R6, R7,                                                  /* Registers */
+    MOV, CMP, ADD, SUB, LEA, CLR, NOT, INC, DEC, JMP, BNE, RED, PRN, JSR, RTS, STOP, /* Operations */
+    MACR, ENDMACR,                                                                   /* Macros */
+    DATA, STRING, ENTRY, EXTERN                                                      /* Directives */
+} keyword_name;
 
-typedef struct label_table {
-    label **labels;
-    size_t size;
-    size_t capacity;
-}label_table;
 
 typedef enum {
     MOV_OPCODE,    /* 0 */
@@ -103,5 +85,85 @@ typedef enum {
     STOP_OPCODE   /* 15 */
 } commands_opcodes;
 
+typedef enum register_name {
+    UNDEFINED_REGISTER = -1, r0, r1, r2, r3, r4, r5, r6, r7
+} register_name;
+
+typedef struct buffer_data {
+    char *buffer;
+    int index;
+    int line_counter;
+    int command_key;
+} buffer_data;
+
+typedef struct {
+    char name[MAX_KEYWORD_LENGTH];
+    int key;
+    int length;
+}keyword;
+
+typedef struct instruction {
+    char **tokens;
+    int cmd_key;
+    size_t num_tokens;
+    size_t capacity;
+    size_t line_number;
+    bool is_dot_data;
+    bool is_dot_string;
+    bool is_entry;
+    bool is_extern;
+} inst;
+typedef struct instruction_table {
+    inst **inst_vec;
+    size_t num_instructions;
+    size_t capacity;
+} inst_table;
+
+
+typedef struct binary_word {
+    int *bits_vec;
+    bool first_in_instruction;
+}bin_word;
+
+typedef struct bin_instruction {
+    bin_word **words;
+    size_t num_words;
+    size_t capacity;
+    int cmd_key;
+}bin_inst;
+
+typedef struct bin_instruction_table {
+    bin_inst **bin_inst_vec;
+    size_t num_inst;
+    size_t capacity;
+}bin_table;
+
+typedef struct {
+    char data[MAX_LINE_LENGTH];
+}string;
+
+typedef struct label {
+    char name[MAX_LABEL_LENGTH];
+    size_t key;
+    size_t instruction_line;
+    size_t address;
+    size_t size;
+    bool is_entry;
+    bool is_extern;
+}label;
+
+typedef struct label_table {
+    label **labels;
+    size_t size;
+    size_t capacity;
+}label_table;
+
+
+typedef struct data_image {
+    int **integer_data;
+    char **string_data;
+    size_t size;
+    size_t capacity;
+}data_image;
 
 #endif

@@ -2,13 +2,13 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS = -Wall -pedantic -ansi -std=c90 -g
+CFLAGS =  -std=c90 -g
 
 # Include directories
 INCLUDES = -I./header_files
 
 # Source directory
-SRCDIR = source_files
+SRCDIR = source_files_tok
 
 # Object directory
 OBJDIR = object_files

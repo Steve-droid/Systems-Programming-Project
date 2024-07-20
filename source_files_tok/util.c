@@ -292,32 +292,7 @@ status delete_filenames(size_t file_amount, char **filenames) {
 
 /*---------------Other Utilities---------------*/
 
-int validate_data_numbers(char *str) {
-    int i, minus_or_plus, comma, number;
-    minus_or_plus = comma = number = false;
 
-    for (i = 0; str[i] != '\0' && str[i] != '\n'; i++) {
-        if (str[i] == '-' || str[i] == '+') {
-            if (number == true || minus_or_plus == true) { /*in case of 1,2,3-,4 or 1,+-2,3,4*/
-                return false;
-            }
-            minus_or_plus = true;
-            comma = number = false;
-        }
-        else if (str[i] == ',') {
-            if (minus_or_plus == true) { /*in case of 1,-,2,3 */
-                return false;
-            }
-            comma = true;
-            number = minus_or_plus = false;
-        }
-        else {   /*line[i] == number*/
-            number = true;
-            comma = minus_or_plus = false;
-        }
-    }
-    return true;
-}
 
 
 void str_cpy_until_char(char *destination, const char *source, char x) {
@@ -330,47 +305,19 @@ void str_cpy_until_char(char *destination, const char *source, char x) {
 }
 
 void initialize_char_array(char *char_array) {
-    int i, array_len;
-
-    array_len = (int)strlen(char_array);
+    int i;
+    int array_len = strlen(char_array);
 
     for (i = 0; i < array_len; i++) {
-        char_array[i] = ' ';
+        char_array[i] = '\0';
     }
 }
 
-void remove_prefix_spaces(char *line) {
-    int i, counter;
-    counter = 0;
 
-    /** Count leading spaces */
-    while (line[counter] != '\0' && isspace((unsigned char)line[counter])) {
-        counter++;
-    }
 
-    /** Shift the rest of the line to the front */
-    if (counter > 0) {
-        for (i = 0; line[i + counter] != '\0'; i++) {
-            line[i] = line[i + counter];
-        }
-        line[i] = '\0';  /** Null-terminate the shifted string */
-    }
-}
 
-char *pointer_after_label(char *line, label_table *_label_table, int current_line) {
-    int i, first_letter = 0;
 
-    /** Find the first letter after the label name */
-    for (i = 0; i < _label_table->size; i++) {
-        if (_label_table->labels[i]->instruction_line == current_line) {
-            first_letter = 1 + strlen(_label_table->labels[i]->name);  /** another 1 for ':' */
-            break;  /** Exit loop once the label is found */
-        }
-    }
 
-    /** Point to the new "array" */
-    return line + first_letter;
-}
 
 int command_number_by_key(keyword *keyword_table, int key) {
     int i, flag;
@@ -385,48 +332,43 @@ int command_number_by_key(keyword *keyword_table, int key) {
     return flag;
 }
 
-
-
 /**
  *@brief
  * @param pre_decoded- array of strings representing a single pre-decoded instruction
  * @param pre_decoded_size
  */
-void print_pre_decoded(string *pre_decoded, int pre_decoded_size) {
-    int i;
-
-    if (pre_decoded_size == UNKNOWN_NUMBER_OF_ARGUMENTS) {
-        pre_decoded_size = 2;
+void print_instruction(inst *_inst) {
+    size_t i;
+    size_t size = 0;
+    static size_t inst_index = 0;
+    if (_inst->num_tokens == UNKNOWN_NUMBER_OF_ARGUMENTS) {
+        size = 2;
     }
 
-    for (i = 0; i < pre_decoded_size; i++) {
-        if (i != pre_decoded_size - 1) {
-            printf("%s___", pre_decoded[i].data);
-        }
-        else {
-            printf("%s\n", pre_decoded[i].data);
-        }
+    size = _inst->num_tokens;
+    printf("\n-----------------------------------\n");
+    printf("Instruction %lu: ", inst_index);
+    for (i = 0; i < size; i++) {
+        printf("%s ", _inst->tokens[i]);
     }
+    printf("\n-----------------------------------\n");
+
+    inst_index++;
 }
 
-/**
- *@brief Create a
- *
- * @param num
- * @param arr
- * @param from_cell
- * @param to_cell
- */
-void int_to_binary_array(int num, int *binary_command, int from_cell, int to_cell) {
-    int i;
+
+
+
+void int_to_binary_array(int num, bin_word *binary_word, int start, int finish) {
+    size_t i;
 
     /** If the number is negative, adjust for two's complement */
     if (num < 0) {
-        num += (1 << (to_cell - from_cell + 1));
+        num += (1 << (finish - start + 1));
     }
     /** Convert the number to binary and store it in the array */
-    for (i = to_cell; i >= from_cell; i--) {
-        binary_command[i] = num % 2;
+    for (i = finish; i >= start; i--) {
+        binary_word->bits_vec[i] = num % 2;
         num /= 2;
     }
 }
@@ -463,41 +405,42 @@ int binary_array_to_int(int *array) {
  * @param array2D
  * @return int*
  */
-int *convert_to_1D(int **array2D) {
-    int total_elements, i, j, index;
-    int *array1D = NULL;
+int *convert_twodim_array_to_onedim(int **two_dim_array) {
+    int elements = 0;
+    int row = 0;
+    int column = 0;
+    int index = 0;
+    int *one_dim_array = NULL;
 
 
-    if (array2D == NULL) {
+    if (two_dim_array == NULL) {
         return NULL;
     }
-    /* Calculate the total number of elements (excluding FLAGs) */
-    total_elements = 0;
-    for (i = 0; array2D[i] != NULL; i++) {
-        for (j = 0; array2D[i][j] != FLAG; j++) {
-            total_elements++;
+    /* Calculate the total number of elements (excluding FLAG terminators) */
+    for (row = 0; two_dim_array[row] != NULL; row++) {
+        for (column = 0; two_dim_array[row][column] != FLAG; column++) {
+            elements++;
         }
     }
 
     /* Allocate memory for the 1D array plus one additional space for the FLAG */
-    array1D = (int *)malloc((total_elements + 1) * sizeof(int));
-    if (array1D == NULL) {
+    one_dim_array = (int *)malloc((elements + 1) * sizeof(int));
+    if (one_dim_array == NULL) {
         printf("ERROR-Memory allocation failed\n");
         return NULL;
     }
 
     /* Copy elements from the 2D array to the 1D array */
-    index = 0;
-    for (i = 0; array2D[i] != NULL; i++) {
-        for (j = 0; array2D[i][j] != FLAG; j++) {
-            array1D[index++] = array2D[i][j];
+    for (row = 0; two_dim_array[row] != NULL; row++) {
+        for (column = 0; two_dim_array[row][column] != FLAG; column++) {
+            one_dim_array[index++] = two_dim_array[row][column];
         }
     }
 
     /* Add the FLAG as the terminator of the 1D array */
-    array1D[index] = FLAG;
+    one_dim_array[index] = FLAG;
 
-    return array1D;
+    return one_dim_array;
 }
 
 void initialize_int_array(int *arr, int size) {
@@ -651,3 +594,56 @@ void print_2D_array(int **arr) {
     }
     printf("END 2D ARRAY\n");
 }
+
+
+
+void init_buffer_data(buffer_data *data) {
+    size_t i;
+
+
+    /* If the buffer is allocated, initialize it */
+    if (data->buffer != NULL) {
+        for (i = 0; i < MAX_LINE_LENGTH; i++) {
+            data->buffer[i] = '\0';
+        }
+    }
+
+    /* Initialize the buffer data */
+    data->index = 0;
+    data->line_counter = -1;
+    data->command_key = UNDEFINED;
+}
+
+void reset_buffer(char *buffer) {
+    size_t i;
+    for (i = 0; i < MAX_LINE_LENGTH; i++) {
+        buffer[i] = '\0';
+    }
+}
+
+status create_buffer_data(buffer_data **data) {
+
+
+    (*data) = (buffer_data *)malloc(sizeof(buffer_data));
+    if (data == NULL) {
+        printf("ERROR- ALLOCATION FAILED");
+        return STATUS_ERROR_MEMORY_ALLOCATION;
+    }
+
+    (*data)->command_key = UNDEFINED;
+    (*data)->index = 0;
+    (*data)->line_counter = -1;
+    (*data)->command_key = UNDEFINED;
+    (*data)->buffer = NULL;
+
+    return STATUS_OK;
+}
+
+
+void destroy_buffer_data(buffer_data *data) {
+    if (data->buffer != NULL) {
+        free(data->buffer);
+    }
+    free(data);
+}
+
