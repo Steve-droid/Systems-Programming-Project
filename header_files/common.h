@@ -34,7 +34,7 @@
 #define DEST 1
 #define FIRST_ADDRESS 100
 #define MAX_LABEL_LENGTH 33 /* max label len is 31 , + 1 for ':' , + 1 for '\0' */
-#define FIRST_KEY 1 /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
+#define FIRST_KEY 100 /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
 #define KEYWORD_TABLE_LENGTH 30 /* Amount of keywords (8 registers + 16 commands + 4 directives + 2 macro definition*/
 #define MAX_KEYWORD_LENGTH 8 /* .string + '\0' */
 #define OPERATION_KEYWORDS 16
@@ -43,11 +43,18 @@
 #define MACRO_KEYWORDS 2
 #define REGISTER_LEN 2
 #define MAX_NUMBER_OF_ARGUMENTS 2
+#define MAX_LABEL_LENGTH 33 /* max label len is 31 , + 1 for ':' , + 1 for '\0' */ /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
+#define MAX_MACRO_NAME 20
+#define UNDEFINED -1
+#define ERR -1
+#define FLAG -50000
+#define PLUS -50001
+#define MINUS -50002
+#define COMMA -50003
 
 typedef enum {
     invalid, valid
 } validation_state;
-
 
 typedef enum {
     STATUS_OK,
@@ -73,6 +80,10 @@ typedef enum {
     CONTAINS_EXTERN_AND_ENTRY,
     NEITHER_EXTERN_NOR_ENTRY,
 } status;
+
+
+
+
 
 typedef enum addressing_method {
     NO_ADDRESSING_METHOD, UNDEFINED_METHOD = -1, IMMEDIATE, DIRECT, INDIRECT_REGISTER, DIRECT_REGISTER
@@ -127,6 +138,7 @@ typedef struct {
 typedef struct instruction {
     char **tokens;
     int cmd_key;
+    int address;
     size_t num_tokens;
     size_t capacity;
     size_t line_number;
@@ -206,6 +218,33 @@ typedef struct data_image {
     size_t num_dot_string;
 } data_image;
 
+typedef struct syntax_state {
+    validation_state _validation_state;
+    status extern_or_entry;
+    int index;
+    int cmd_key;
+    int line_number;
+    inst *_inst;
+    char *buffer;
+    bool continue_reading;
+    bool label_name;
+    bool comma;
+    bool whitespace;
+    bool null_terminator;
+    bool new_line;
+    bool minus_sign;
+    bool plus_sign;
+    bool end_of_argument_by_space;
+    bool end_of_argument;
+    bool end_of_string;
+    bool first_quatiotion_mark;
+    bool last_quatiotion_mark;
+    bool digit;
+    bool is_data;
+    bool is_string;
+    bool is_entry;
+    bool is_extern;
+} syntax_state;
 
 
 

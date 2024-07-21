@@ -17,10 +17,9 @@
 
 #ifndef LABEL_H
 #define LABEL_H
-
 #include "common.h"
+#include "text_util.h"
 #include "macro.h"
-#include "util.h"
 
 
  /**
@@ -72,7 +71,9 @@ int get_command_argument_count(int command_name);
  * @param keyword_table The table containing keyword information.
  * @return The keyword for the command, or UNDEFINED_KEYWORD if no match is found.
  */
-keyword_name identify_command(buffer_data *_buffer_data, label_table *_label_table, keyword *keyword_table);
+
+addressing_method get_addressing_method(char *sub_inst, label_table *_label_table);
+keyword_name identify_command(syntax_state *state, label_table *_label_table, keyword *keyword_table);
 label *new_empty_label(label **new_label);
 label *get_label(label_table *_lable_table, char *label_name);
 label_table *new_empty_label_table(label_table **new_label_table);

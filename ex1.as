@@ -1,5 +1,3 @@
-.entry fn2
-.extern fn1
 MAIN:   add r3, LIST
 LOOP:   prn    #48
 macr m_macr
@@ -18,3 +16,4 @@ STR:    .string "abcd"
 LIST:   .data  6, -9
 .data  -100
 K:      .data  31
+

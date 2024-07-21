@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "util.h"
+#include "text_util.h"
 #include "error.h"
 #include "symbols.h"
 #include "pre_assembler.h"

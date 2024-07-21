@@ -21,7 +21,8 @@
         "parser.h": "c",
         "text_tools.h": "c",
         "stdlib.h": "c",
-        "instruction.h": "c"
+        "instruction.h": "c",
+        "symbols.h": "c"
     },
     "github.copilot.editor.enableCodeActions": false,
     "editor.cursorBlinking": "solid",

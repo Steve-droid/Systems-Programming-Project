@@ -88,6 +88,7 @@ status init_instruction(inst *_inst) {
     _inst->num_tokens = 0;
     _inst->capacity = INITIAL_NUM_TOKENS;
     _inst->cmd_key = UNDEFINED;
+    _inst->address = UNDEFINED;
     _inst->line_number = UNDEFINED;
     _inst->num_dot_data_members = 0;
     _inst->num_dot_string_members = 0;
@@ -240,8 +241,6 @@ int get_num_instructions(inst_table *table) {
 }
 
 
-
-
 void destroy_instruction(inst *instruction) {
     size_t i;
     if (instruction == NULL) return;
@@ -333,6 +332,7 @@ void print_instruction(inst *_inst) {
     printf("Command key: %d\n", _inst->cmd_key);
     printf("Source addressing method: %s\n", addressing_method_src);
     printf("Destination addressing method: %s\n", addressing_method_dest);
+    printf("Number of binary words to generate: ");
 
 
 

@@ -23,10 +23,9 @@
 
 #include "common.h"
 #include "binary.h"
-#include "util.h"
+#include "text_util.h"
 #include "symbols.h"
 #include "instruction.h"
-#include "text_tools.h"
 #include "asm_error.h"
 
 #define FIRST_FIELD 0
@@ -37,45 +36,15 @@
 #define SECOND_ARG 1
 
 
-
-typedef struct syntax_state {
-    int index;
-    char *instruction;
-    char *instruction_args;
-    bool comma;
-    bool whitespace;
-    bool null_terminator;
-    bool new_line;
-    bool minus_sign;
-    bool plus_sign;
-    bool end_of_argument_by_space;
-    bool end_of_argument;
-    bool end_of_string;
-    bool first_quatiotion_mark;
-    bool last_quatiotion_mark;
-    bool digit;
-    bool is_data;
-    bool is_string;
-    bool is_entry;
-    bool is_extern;
-} syntax_state;
-
-
-
-
-
-/* Initiallization of the encoded table of the assembly instructions */
-/**
- *@brief This function handles the encoding of the assembly instructions into binary code.
- *
- * @param am_filename
- * @param _label_table
- * @param keyword_table
- * @return int*
- */
+ /* Initiallization of the encoded table of the assembly instructions */
+ /**
+  *@brief This function handles the encoding of the assembly instructions into binary code.
+  *
+  * @param am_filename
+  * @param _label_table
+  * @param keyword_table
+  * @return int*
+  */
 inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_table);
-
-addressing_method get_addressing_method(char *sub_inst, label_table *_label_table);
-
 
 #endif 

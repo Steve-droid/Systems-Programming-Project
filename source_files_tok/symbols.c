@@ -1,31 +1,6 @@
 #include "symbols.h"
+#define PADDING 2
 
-static char *skip_ent_or_ext(char *_buffer) {
-    size_t i;
-    char *ptr = _buffer;
-
-    if (_buffer == NULL) {
-        printf("ERROR- Trying to skip '.entry' on a null buffer.\n");
-        return NULL;
-    }
-
-    if (strstr(_buffer, ".entry") == NULL && strstr(_buffer, ".extern") == NULL) {
-        return _buffer;
-    }
-
-    if (strncmp(_buffer, ".entry", 6) != 0 && strncmp(_buffer, ".extern", 7) != 0) {
-        printf("Error- '.entry' or '.extern' directive must be at the beginning of the line.\n");
-        return NULL;
-    }
-
-    /* Skip the directive */
-    for (i = 0; i < strlen(_buffer) && !isspace(_buffer[i]); i++) {
-        ptr++;
-    }
-
-    trim_whitespace(ptr);
-    return ptr;
-}
 
 keyword *get_keyword_by_name(keyword *keyword_table, char *name) {
     int i;
@@ -48,20 +23,20 @@ keyword *get_keyword_by_key(keyword *keyword_table, int key) {
 }
 
 
-keyword_name identify_command(buffer_data *_buffer_data, label_table *_label_table, keyword *keyword_table) {
+keyword_name identify_command(syntax_state* state, label_table *_label_table, keyword *keyword_table) {
     int i;
     char *_instruction = NULL;
     char command_name[MAX_LINE_LENGTH] = { 0 };
-    size_t buffer_length = strlen(_buffer_data->buffer);
+    size_t buffer_length = strlen(state->buffer);
     bool command_found = false;
 
 
-    if (_buffer_data == NULL || _label_table == NULL || keyword_table == NULL) {
+    if (state == NULL || _label_table == NULL || keyword_table == NULL) {
         printf("Tried to identify command with NULL arguments\n");
         return UNDEFINED_KEYWORD;
     }
 
-    _instruction = _buffer_data->buffer;
+    _instruction = state->buffer;
 
     /* Extract the command name from the line */
     for (i = 0; i < buffer_length && _instruction[i] != '\n' && !isspace(_instruction[i]); i++) {
@@ -300,7 +275,6 @@ static validation_state label_name_is_valid(label_table *_label_table, char *_bu
 }
 
 
-
 /**
  *@brief Check if a given instruction contains a label definition.
  * If the instruction contains the ':' character, return the string up to the ':' character.
@@ -367,9 +341,10 @@ char *extract_label_name_from_instruction(char *_buffer, status *_entry_or_exter
     }
 
     label_name = _buffer;
+    instruction_copy = NULL;
 
     /* Allocate memory for a copy of the instruction */
-    instruction_copy = (char *)calloc(strlen(_buffer), sizeof(char));
+    instruction_copy = (char *)calloc(strlen(_buffer) * PADDING, sizeof(char));
     if (instruction_copy == NULL) {
         printf("ERROR- Failed to allocate memory for instruction copy.\n");
         return NULL;
@@ -450,6 +425,7 @@ void print_label_table(label_table *_label_table) {
             printf("Directives: %s \n", none);
         }
         printf("Instruction line: %lu \n", _label_table->labels[i]->instruction_line);
+        printf("Address: %lu \n", _label_table->labels[i]->address);
         printf("\n-----------------------------------\n");
 
     }
@@ -584,8 +560,6 @@ void label_table_destroy(label_table **_label_table) {
     free(*_label_table);
     *_label_table = NULL;
 }
-
-void print_label_table(label_table *_label_table);
 
 keyword *fill_keyword_table() {
     int i;
@@ -768,3 +742,63 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
     return _label_table;
 }
 
+addressing_method get_addressing_method(char *sub_inst, label_table *_label_table) {
+    int i;
+
+    /* case 0 */
+    if (sub_inst[0] == '#') {
+        if (sub_inst[1] == '\0') {
+            return UNDEFINED;
+        }
+        if (sub_inst[1] != '-' && sub_inst[1] != '+' && !isdigit(sub_inst[1])) {
+            return UNDEFINED;
+        }
+        if (sub_inst[1] == '-' || sub_inst[1] == '+') {
+            if (!isdigit(sub_inst[2])) {
+                return UNDEFINED;
+            }
+        }
+        for (i = 2; i < (int)strlen(sub_inst); i++) {
+            if (!isdigit(sub_inst[i])) {
+                return UNDEFINED;
+            }
+        }
+        return IMMEDIATE;
+    }
+
+    /* case 1 */
+    for (i = 0; i < _label_table->size; i++) {
+        if (!strcmp(_label_table->labels[i]->name, sub_inst)) {
+            return DIRECT;
+        }
+    }
+
+    /* case 2 */
+    if (sub_inst[0] == '*') {
+        if (sub_inst[1] == '\0' || sub_inst[1] != 'r') {
+            return UNDEFINED_METHOD;
+        }
+        if (sub_inst[2] == '\0' || sub_inst[2] < '0' || sub_inst[2] > '7') {
+            return UNDEFINED_METHOD;
+        }
+        if (sub_inst[3] != '\0') {
+            return UNDEFINED_METHOD;
+        }
+        return INDIRECT_REGISTER;
+    }
+
+    /* case 3 */
+
+    if (sub_inst[0] == 'r') {
+        if (sub_inst[1] == '\0' || sub_inst[1] < '0' || sub_inst[1] > '7') {
+            return UNDEFINED_METHOD;
+        }
+        if (sub_inst[2] != '\0') {
+            return UNDEFINED_METHOD;
+        }
+        return DIRECT_REGISTER;
+    }
+
+    /* else */
+    return UNDEFINED_METHOD;
+}

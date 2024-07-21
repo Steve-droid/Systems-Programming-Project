@@ -50,8 +50,6 @@ int main(int argc, char *argv[]) {
         free(keyword_table);
         exit(EXIT_FAILURE);
     }
-    print_macro_table(m_table);
-
     /* Initialize the label table */
     _label_table = fill_label_table(am_filenames[0], m_table, keyword_table);
     if (_label_table == NULL) {

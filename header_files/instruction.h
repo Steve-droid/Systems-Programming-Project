@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "symbols.h"
-#include "util.h"
+#include "text_util.h"
 #include "parser.h"
 #include "asm_error.h"
 

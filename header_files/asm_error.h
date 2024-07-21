@@ -3,7 +3,6 @@
 
 #include "common.h"
 #include "binary.h"
-#include "util.h"
 #include "instruction.h"
 
 

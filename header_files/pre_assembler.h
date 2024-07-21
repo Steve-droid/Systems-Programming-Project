@@ -4,7 +4,7 @@
 
 #include "common.h"
 #include "macro.h"
-#include "util.h"
+#include "file_util.h"
 
 #define MAX_MACRO_NAME_LENGTH 73
 #define MAX_MACRO_AMOUNT 100

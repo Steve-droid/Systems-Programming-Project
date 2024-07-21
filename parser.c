@@ -5,14 +5,12 @@
 #define FOURTH_FIELD 3
 #define FIRST_ARG 0
 #define SECOND_ARG 1
-
 #define FIRST_TOKEN 0
 #define SECOND_TOKEN 1
 #define THIRD_TOKEN 2
 #define DONT_CONVERT -10
 #define OPCODE_FIRST_BIT 0
 #define OPCODE_LAST_BIT 3
-
 #define WORD_LENGTH 15
 #define INDEX_A 12
 

@@ -42,7 +42,7 @@ $(OBJDIR):
 
 # Clean up
 clean:
-	rm -f $(OBJDIR)/*.o $(EXEC) *.am *.txt
+	rm -f $(OBJDIR)/*.o $(EXEC) *.am 
 	rmdir $(OBJDIR)
 	@echo "Clean complete."
 

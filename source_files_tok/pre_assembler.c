@@ -286,45 +286,11 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
             macro_table_destructor(m_table);
             return NULL;
         }
-
-
     }
 
     for (i = 0;i < file_amount;i++) {
         remove(as_filenames[i]);
         rename(backup_filenames[i], strcat(generic_filenames[i], ".as"));
-    }
-
-    printf("\n-------------------------------------------------------\n");
-    printf("Information about the .am/.as files after pre assembly:\n");
-    printf("-------------------------------------------------------\n");
-    for (i = 0;i < file_amount;i++) {
-        printf("Filename: '%s'\n", generic_filenames[i]);
-        printf("Printing contents of file '%s':\n", generic_filenames[i]);
-        tmp = NULL;
-        tmp = fopen(generic_filenames[i], "r");
-        if (tmp == NULL) {
-            printf("Error opening file %s\n", generic_filenames[i]);
-            continue;
-        }
-        while ((ch = fgetc(tmp)) != EOF) putchar(ch);
-        fclose(tmp);
-        printf("\n-------------------------------------------------------\n");
-        printf("Finished printing contents of file '%s'\n", generic_filenames[i]);
-        printf("-------------------------------------------------------\n");
-        printf("Filename: '%s'\n", *(am_filenames)[i]);
-        printf("Printing contents of file '%s':\n", *(am_filenames)[i]);
-        tmp = NULL;
-        tmp = fopen(*(am_filenames)[i], "r");
-        if (tmp == NULL) {
-            printf("Error opening file %s\n", *(am_filenames)[i]);
-            continue;
-        }
-        while ((ch = fgetc(tmp)) != EOF) putchar(ch);
-        fclose(tmp);
-        printf("\n-------------------------------------------------------\n");
-        printf("Finished printing contents of file '%s'\n", *(am_filenames)[i]);
-        printf("-------------------------------------------------------\n");
     }
 
     delete_filenames(file_amount, backup_filenames);
