@@ -279,12 +279,10 @@ static status generate_tokens(syntax_state *state, keyword *keyword_table, label
 
     /* Check if the command requires an unknown number of arguments */
     if (need_to_assign_data) { /* keep all the arguments in array[1] */
-
         return assign_data(state, _label_table, keyword_table);
     }
 
-    else return assign_args(state, _label_table, keyword_table);
-
+    return assign_args(state, _label_table, keyword_table);
 }
 
 /* Process commands that declare an unknown number of arguments: .data, .string, .entry, .extern */
