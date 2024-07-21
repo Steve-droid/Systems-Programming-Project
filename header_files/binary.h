@@ -2,8 +2,6 @@
 #define BINARY_H
 #include "common.h"
 
-
-
 /* Init functions */
 void init_word(bin_word *word);
 void init_inst(bin_inst *instruction);

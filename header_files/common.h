@@ -1,3 +1,13 @@
+/**
+ *@file common.h Contains the common data structures and constants used throughout the assembler.
+ * @author your name (you@domain.com)
+ * @brief
+ * @version 0.1
+ * @date 2024-07-21
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
 #ifndef COMMON_H
 #define COMMON_H
 
@@ -35,6 +45,11 @@
 #define MAX_NUMBER_OF_ARGUMENTS 2
 
 typedef enum {
+    invalid, valid
+} validation_state;
+
+
+typedef enum {
     STATUS_OK,
     STATUS_ERROR,
     STATUS_ERROR_OPEN_SRC,
@@ -49,11 +64,18 @@ typedef enum {
     STATUS_ERROR_MACRO_EXPANDS_TO_NOTHING,
     STATUS_ERROR_WHILE_CREATING_FILENAME,
     ERROR_NULL_TABLE,
-    ERROR_NULL_INSTRUCTION
+    ERROR_NULL_INSTRUCTION,
+    ERROR_NULL_LABEL,
+    VALID_LABEL,
+    INVALID_LABEL,
+    CONTAINS_EXTERN,
+    CONTAINS_ENTRY,
+    CONTAINS_EXTERN_AND_ENTRY,
+    NEITHER_EXTERN_NOR_ENTRY,
 } status;
 
 typedef enum addressing_method {
-    UNDEFINED_METHOD = -1, IMMEDIATE, DIRECT, INDIRECT_REGISTER, DIRECT_REGISTER
+    NO_ADDRESSING_METHOD, UNDEFINED_METHOD = -1, IMMEDIATE, DIRECT, INDIRECT_REGISTER, DIRECT_REGISTER
 } addressing_method;
 
 
@@ -108,6 +130,11 @@ typedef struct instruction {
     size_t num_tokens;
     size_t capacity;
     size_t line_number;
+    size_t num_dot_data_members;
+    size_t num_dot_string_members;
+    size_t num_words_to_generate;
+    addressing_method src_addressing_method;
+    addressing_method dest_addressing_method;
     bool is_dot_data;
     bool is_dot_string;
     bool is_entry;
@@ -117,6 +144,8 @@ typedef struct instruction_table {
     inst **inst_vec;
     size_t num_instructions;
     size_t capacity;
+    size_t IC;
+    size_t DC;
 } inst_table;
 
 
@@ -136,6 +165,12 @@ typedef struct bin_instruction_table {
     bin_inst **bin_inst_vec;
     size_t num_inst;
     size_t capacity;
+    bin_word **dot_data_words;
+    size_t num_dot_data_words;
+    size_t dot_data_capacity;
+    bin_word **dot_string_words;
+    size_t num_dot_string_words;
+    size_t dot_string_capacity;
 }bin_table;
 
 typedef struct {
@@ -159,11 +194,20 @@ typedef struct label_table {
 }label_table;
 
 
+size_t DC(char *prompt);
+size_t IC(char *prompt);
+
 typedef struct data_image {
-    int **integer_data;
-    char **string_data;
-    size_t size;
-    size_t capacity;
-}data_image;
+    char **data;
+    size_t num_words;
+    char **dot_data;
+    size_t num_dot_data;
+    char **dot_string;
+    size_t num_dot_string;
+} data_image;
+
+
+
+
 
 #endif

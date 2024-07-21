@@ -24,8 +24,7 @@
 #include "common.h"
 #include "binary.h"
 #include "util.h"
-#include "label.h"
-#include "keyword.h"
+#include "symbols.h"
 #include "instruction.h"
 #include "text_tools.h"
 #include "asm_error.h"
@@ -55,7 +54,6 @@ typedef struct syntax_state {
     bool first_quatiotion_mark;
     bool last_quatiotion_mark;
     bool digit;
-
     bool is_data;
     bool is_string;
     bool is_entry;
@@ -65,9 +63,6 @@ typedef struct syntax_state {
 
 
 
-typedef enum {
-    invalid, valid
-} validation_state;
 
 /* Initiallization of the encoded table of the assembly instructions */
 /**
@@ -81,13 +76,6 @@ typedef enum {
 inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_table);
 
 addressing_method get_addressing_method(char *sub_inst, label_table *_label_table);
-
-register_name get_register_number(char *register_as_string);
-
-
-
-
-
 
 
 #endif 

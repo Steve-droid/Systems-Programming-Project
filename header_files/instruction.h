@@ -2,8 +2,7 @@
 #define INSTRUCTION_H
 
 #include "common.h"
-#include "label.h"
-#include "keyword.h"
+#include "symbols.h"
 #include "util.h"
 #include "parser.h"
 #include "asm_error.h"
@@ -35,12 +34,9 @@ int get_num_instructions(inst_table *_inst_table);
 /* Destroy functions */
 void destroy_instruction_table(inst_table *_inst_table);
 void destroy_instruction(inst *_inst);
-void destroy_tokens(inst *_inst);
 
 
-
-
-
-
-
+/* Utility */
+void print_instruction(inst *_inst);
+void print_instruction_table(inst_table *_inst_table);
 #endif

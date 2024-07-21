@@ -19,7 +19,9 @@
         "lexer.h": "c",
         "keyword.h": "c",
         "parser.h": "c",
-        "text_tools.h": "c"
+        "text_tools.h": "c",
+        "stdlib.h": "c",
+        "instruction.h": "c"
     },
     "github.copilot.editor.enableCodeActions": false,
     "editor.cursorBlinking": "solid",

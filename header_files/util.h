@@ -14,7 +14,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "common.h"
-#include "keyword.h"
+#include "symbols.h"
 #include <unistd.h>
 #include <fcntl.h>
 #include <ctype.h>
@@ -40,7 +40,6 @@ status delete_filenames(size_t file_amount, char **filenames);
 
 /* Other Utilities */
 void str_cpy_until_char(char *destination, const char *source, char x);
-int command_number_by_key(keyword *keyword_table, int key);
 int *convert_to_int_array(char *str);
 void int_to_binary_array(int num, bin_word *binary_word, int start, int finish);
 int binary_array_to_int(int *array);
@@ -52,7 +51,7 @@ void print_instruction(inst *_inst);
 void print_array_in_binary(int *arr);
 int *convert_twodim_array_to_onedim(int **two_dim_array);
 void print_binary(int num);
-void print_label_table(label_table *_label_table);
+
 
 
 void init_buffer_data(buffer_data *data);

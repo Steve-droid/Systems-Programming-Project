@@ -34,11 +34,21 @@ char *trim_whitespace(char *str) {
 }
 
 
-char *skip_label_name(buffer_data *_buffer_data, label_table *_label_table) {
+char *skip_label_name(buffer_data *_buffer_data, label_table *_label_table, status *_entry_or_external) {
     int i;
     int offset = 0;
     int current_line = _buffer_data->line_counter;
     char *line = _buffer_data->buffer;
+
+    if (strncmp(line, ".entry", 6) == 0) {
+        *_entry_or_external = CONTAINS_ENTRY;
+        return line;
+    }
+
+    if (strncmp(line, ".extern", 7) == 0) {
+        *_entry_or_external = CONTAINS_EXTERN;
+        return line;
+    }
 
     /** Find the first letter after the label name */
     for (i = 0; i < _label_table->size; i++) {
@@ -50,4 +60,23 @@ char *skip_label_name(buffer_data *_buffer_data, label_table *_label_table) {
 
     /** Point to the new "array" */
     return line + offset;
+}
+
+
+void str_cpy_until_char(char *destination, const char *source, char x) {
+    int i;
+
+    for (i = 0; !(source[i] == '\0' || source[i] == x); i++) {
+        destination[i] = source[i];
+    }
+    destination[i] = '\0';
+}
+
+void initialize_char_array(char *char_array) {
+    int i;
+    int array_len = strlen(char_array);
+
+    for (i = 0; i < array_len; i++) {
+        char_array[i] = '\0';
+    }
 }

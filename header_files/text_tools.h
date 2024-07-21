@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "util.h"
-#include "keyword.h"
+#include "symbols.h"
 #include "lexer.h"
 #include "parser.h"
 #include "instruction.h"
@@ -27,9 +27,11 @@ char *trim_whitespace(char *str);
  * @param current_line The current line number being processed.
  * @return A pointer to the character immediately following the label, or the original line if no label is found.
  */
-char *skip_label_name(buffer_data *_buffer_data, label_table *_label_table);
+char *skip_label_name(buffer_data *_buffer_data, label_table *_label_table, status *_entry_or_external);
 
+void str_cpy_until_char(char *destination, const char *source, char x);
 
+void initialize_char_array(char *char_array);
 
 
 #endif

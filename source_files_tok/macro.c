@@ -63,9 +63,13 @@ macro_table *create_macro_table() {
  * @param macro The macro to insert
  */
 status insert_macro_to_table(macro_table *table, macro *macr) {
+    if (table == NULL) {
+        printf("Trying to insert macro to a NULL table. Exiting...");
+        return STATUS_ERROR;
+    }
 
     if (table->macros == NULL) {
-        table->macros = (macro **)malloc(sizeof(macro *) * INITIAL_MACRO_TABLE_CAPACITY);
+        table->macros = (macro **)calloc(INITIAL_MACRO_TABLE_CAPACITY, sizeof(macro *));
         if (table->macros == NULL) return STATUS_ERROR_MEMORY_ALLOCATION;
         table->capacity = INITIAL_MACRO_TABLE_CAPACITY;
     }
@@ -74,7 +78,10 @@ status insert_macro_to_table(macro_table *table, macro *macr) {
     if (table->macro_count == table->capacity) {
         table->capacity = table->macro_count + 1;
         table->macros = (macro **)realloc(table->macros, table->capacity * sizeof(macro *));
-        if (table->macros == NULL) err(errno, "Failed to allocate memory for macro table");
+        if (table->macros == NULL) {
+            macro_table_destructor(table);
+            return STATUS_ERROR_MEMORY_ALLOCATION;
+        }
     }
 
     table->macros[table->macro_count] = macr;

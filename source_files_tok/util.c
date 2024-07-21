@@ -8,8 +8,11 @@ char *create_file_name(char *initial_filename, char *extension) {
     char *new_filename = NULL;
 
     /* Allocate memory for the new filename */
-    new_filename = (char *)malloc((new_filename_len + 1));
-    if (new_filename == NULL) err(errno, "Memory allocation failed\n");
+    new_filename = (char *)calloc(new_filename_len + 1, sizeof(char));
+    if (new_filename == NULL) {
+        printf("Memory allocation error while creating a new filename for %s\nExiting...\n", initial_filename);
+        return NULL;
+    }
 
     /* Concatenate the initial name and the extension */
     strcpy(new_filename, initial_filename);
@@ -30,7 +33,7 @@ status remove_file_extension(char *full_filename, char **generic_filename) {
 
     full_filename_length = strlen(full_filename);
 
-    *(generic_filename) = (char *)malloc((full_filename_length + 1) * sizeof(char));
+    *(generic_filename) = (char *)calloc((full_filename_length + 1), sizeof(char));
 
     if (*(generic_filename) == NULL) {
         printf("Memory allocation error while creating generic filename for %s\nExiting...\n", full_filename);
@@ -43,7 +46,7 @@ status remove_file_extension(char *full_filename, char **generic_filename) {
 
     if (extension == NULL) {
         printf("Trying to remove extention from a filename with no extention\nExiting...\n");
-        free(extension);
+        free(*generic_filename);
         return STATUS_ERROR_INVALID_EXTENSION;
     }
 
@@ -219,12 +222,12 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
 
         if (current_filename == NULL) {
             printf("Error while backing up argument names. Original filename is NULL. Exiting...");
-            exit(EXIT_FAILURE);
+            return STATUS_ERROR;
         }
 
         current_filename_len = strlen(current_filename);
         filename_copy_len = current_filename_len + strlen(extention) - 1;
-        filename_copy = (char *)malloc(filename_copy_len);
+        filename_copy = (char *)calloc(filename_copy_len * 5, sizeof(char));
         if (filename_copy == NULL) {
             printf("Memory allocation error while creating a backup %s filename", extention);
             return STATUS_ERROR_MEMORY_ALLOCATION;
@@ -239,12 +242,17 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
                 if (*backup_filenames[i] != NULL) free(*backup_filenames[i]);
             }
             printf("Done. Exiting...\n");
-            exit(EXIT_FAILURE);
+            return STATUS_ERROR;
         }
         printf("Done\n");
 
         if (copy_file_contents(current_filename, filename_copy) != STATUS_OK) {
             printf("Error while creating a backup file for %s. Exiting...\n", current_filename);
+            printf("Error while backing up files. Removing created backups...\n");
+            for (i = 0;i < backup_filenames_count;i++) {
+                if (*backup_filenames[i] != NULL) free(*backup_filenames[i]);
+            }
+            printf("Done. Exiting...\n");
             return STATUS_ERROR_WHILE_CREATING_FILENAME;
         }
 
@@ -259,7 +267,7 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
             if (*backup_filenames[i] != NULL) free(*backup_filenames[i]);
         }
         printf("Done.\nExiting...\n");
-        exit(EXIT_FAILURE);
+        return STATUS_ERROR;
     }
 
     return STATUS_OK;
@@ -275,87 +283,17 @@ status delete_filenames(size_t file_amount, char **filenames) {
     printf("Deleting filenames...\n");
     for (i = 0;i < file_amount;i++) {
 
-        if (filenames[i] == NULL) {
-            printf("Error: failed to delete filename number %lu", i);
-            printf("Filename deleted by another part of the program.\n");
-            printf("Exiting...\n");
-            return STATUS_ERROR;
+        if (filenames[i] != NULL) {
+            printf("Deleting filename %s... ", filenames[i]);
+            free(filenames[i]);
+            printf("Done\n");
         }
-
-        printf("Deleting filename %s... ", filenames[i]);
-        free(filenames[i]);
-        printf("Done\n");
     }
 
     return STATUS_OK;
 }
 
 /*---------------Other Utilities---------------*/
-
-
-
-
-void str_cpy_until_char(char *destination, const char *source, char x) {
-    int i;
-
-    for (i = 0; !(source[i] == '\0' || source[i] == x); i++) {
-        destination[i] = source[i];
-    }
-    destination[i] = '\0';
-}
-
-void initialize_char_array(char *char_array) {
-    int i;
-    int array_len = strlen(char_array);
-
-    for (i = 0; i < array_len; i++) {
-        char_array[i] = '\0';
-    }
-}
-
-
-
-
-
-
-
-int command_number_by_key(keyword *keyword_table, int key) {
-    int i, flag;
-
-    flag = UNDEFINED;
-
-    for (i = 0; i < KEYWORD_TABLE_LENGTH; i++) {
-        if (key == keyword_table[i].key) {
-            flag = i;
-        }
-    }
-    return flag;
-}
-
-/**
- *@brief
- * @param pre_decoded- array of strings representing a single pre-decoded instruction
- * @param pre_decoded_size
- */
-void print_instruction(inst *_inst) {
-    size_t i;
-    size_t size = 0;
-    static size_t inst_index = 0;
-    if (_inst->num_tokens == UNKNOWN_NUMBER_OF_ARGUMENTS) {
-        size = 2;
-    }
-
-    size = _inst->num_tokens;
-    printf("\n-----------------------------------\n");
-    printf("Instruction %lu: ", inst_index);
-    for (i = 0; i < size; i++) {
-        printf("%s ", _inst->tokens[i]);
-    }
-    printf("\n-----------------------------------\n");
-
-    inst_index++;
-}
-
 
 
 
@@ -373,12 +311,6 @@ void int_to_binary_array(int num, bin_word *binary_word, int start, int finish) 
     }
 }
 
-/**
- *@brief Convert a binary array to an integer
- *
- * @param array
- * @return int
- */
 int binary_array_to_int(int *array) {
     int sign_bit, value, i;
     sign_bit = array[0];
@@ -398,13 +330,6 @@ int binary_array_to_int(int *array) {
     return value;
 }
 
-/**
- *@brief Get a 2D array of pointers to arrays of integers and convert it to a 1D array
- * Each cell in the 2D array is a pointer to an array of integers
- * This function converts the 2D array to a 1D array by copying the integers from the 2D array to the 1D array
- * @param array2D
- * @return int*
- */
 int *convert_twodim_array_to_onedim(int **two_dim_array) {
     int elements = 0;
     int row = 0;
@@ -450,11 +375,6 @@ void initialize_int_array(int *arr, int size) {
     }
 }
 
-/**
- *@brief Get an array of integers and print them in binary
- *
- * @param arr
- */
 void print_array_in_binary(int *arr) {
     int i;
     if (arr == NULL) {
@@ -576,11 +496,6 @@ int *convert_to_int_array(char *str) {
     return result;
 }
 
-/**
- *@brief Print a 2D array
- * Print a 2D array of integers
- * @param arr The 2D array to print
- */
 void print_2D_array(int **arr) {
     int i, j, counter;
     counter = 99;
@@ -594,8 +509,6 @@ void print_2D_array(int **arr) {
     }
     printf("END 2D ARRAY\n");
 }
-
-
 
 void init_buffer_data(buffer_data *data) {
     size_t i;
@@ -640,10 +553,4 @@ status create_buffer_data(buffer_data **data) {
 }
 
 
-void destroy_buffer_data(buffer_data *data) {
-    if (data->buffer != NULL) {
-        free(data->buffer);
-    }
-    free(data);
-}
 

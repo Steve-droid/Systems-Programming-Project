@@ -1,0 +1,297 @@
+Creating generic filenames...Done
+Backing up original .as files...Copying ex1.as file into ex1.as.bk... Done
+Creating .am files... Done
+Starting pre assembly for file 'ex1.as'...
+Adding macro 'm_macr' to macro table...
+Pre-assembly of 'ex1.as' completed successfully.
+
+-------------------------------------------------------
+Information about the .am/.as files after pre assembly:
+-------------------------------------------------------
+Filename: 'ex1.as'
+Printing contents of file 'ex1.as':
+.entry fn2
+.extern fn1
+MAIN:   add r3, LIST
+LOOP:   prn    #48
+macr m_macr
+cmp    r3, #-6
+bne    END
+endmacr
+lea    STR, r6
+inc    r6
+mov    *r6, K
+sub    r1, r4
+m_macr
+dec    K
+jmp    LOOP
+END:    stop
+STR:    .string "abcd"
+LIST:   .data  6, -9
+.data  -100
+K:      .data  31
+
+-------------------------------------------------------
+Finished printing contents of file 'ex1.as'
+-------------------------------------------------------
+Filename: 'ex1.am'
+Printing contents of file 'ex1.am':
+.entry fn2
+.extern fn1
+MAIN:   add r3, LIST
+LOOP:   prn    #48
+lea    STR, r6
+inc    r6
+mov    *r6, K
+sub    r1, r4
+cmp    r3, #-6
+bne    END
+dec    K
+jmp    LOOP
+END:    stop
+STR:    .string "abcd"
+LIST:   .data  6, -9
+.data  -100
+K:      .data  31
+
+-------------------------------------------------------
+Finished printing contents of file 'ex1.am'
+-------------------------------------------------------
+Deleting filenames...
+Deleting filename ex1.as.bk... Done
+Deleting filenames...
+Deleting filename ex1.as... Done
+
+--------------------------------------------------------------
+Printing macro table...
+
+***Macro name: m_macr***
+
+Macro m_macr: Line #1: cmp    r3, #-6
+
+Macro m_macr: Line #2: bne    END
+
+Finished printing lines for macro m_macr
+--------------------------------------------------------------
+Done printing macro table
+--------------------------------------------------------------
+ex1.am
+
+##################################################
+Label table:
+
+-----------------------------------
+Name: fn2 
+Key: 1 
+Directives:  .entry 
+Instruction line: 0 
+
+-----------------------------------
+Name: fn1 
+Key: 2 
+Directives:  .extern 
+Instruction line: 1 
+
+-----------------------------------
+Name: MAIN 
+Key: 3 
+Directives: No Directives 
+Instruction line: 2 
+
+-----------------------------------
+Name: LOOP 
+Key: 4 
+Directives: No Directives 
+Instruction line: 3 
+
+-----------------------------------
+Name: END 
+Key: 5 
+Directives: No Directives 
+Instruction line: 12 
+
+-----------------------------------
+Name: STR 
+Key: 6 
+Directives: No Directives 
+Instruction line: 13 
+
+-----------------------------------
+Name: LIST 
+Key: 7 
+Directives: No Directives 
+Instruction line: 14 
+
+-----------------------------------
+Name: K 
+Key: 8 
+Directives: No Directives 
+Instruction line: 16 
+
+-----------------------------------
+End of label table
+
+##################################################
+
+#################### Data Image #########################
+
+	Printing data image:
+Data #0: "abcd"
+Data #1: 6, -9
+Data #2: -100
+Data #3: 31
+
+################# End Of Data Image #####################
+
+##################################################
+
+Printing instruction table
+
+##################################################
+Number of instructions: 15
+Capacity: 16
+IC: 15
+DC: 17
+
+##################################################
+	Printing instructions:
+
+##################################################
+		add r3 LIST 
+##################################################
+Line number: 2
+Number of tokens: 3
+Command key: 10
+Source addressing method: DIRECT_REGISTER
+Destination addressing method: IMMEDIATE
+
+##################################################
+		prn #48 
+##################################################
+Line number: 3
+Number of tokens: 2
+Command key: 20
+Source addressing method: IMMEDIATE
+Destination addressing method: IMMEDIATE
+
+##################################################
+		lea STR r6 
+##################################################
+Line number: 4
+Number of tokens: 3
+Command key: 12
+Source addressing method: DIRECT
+Destination addressing method: IMMEDIATE
+
+##################################################
+		inc r6 
+##################################################
+Line number: 5
+Number of tokens: 2
+Command key: 15
+Source addressing method: DIRECT_REGISTER
+Destination addressing method: IMMEDIATE
+
+##################################################
+		mov *r6 K 
+##################################################
+Line number: 6
+Number of tokens: 3
+Command key: 8
+Source addressing method: INDIRECT_REGISTER
+Destination addressing method: IMMEDIATE
+
+##################################################
+		sub r1 r4 
+##################################################
+Line number: 7
+Number of tokens: 3
+Command key: 11
+Source addressing method: DIRECT_REGISTER
+Destination addressing method: IMMEDIATE
+
+##################################################
+		cmp r3 #-6 
+##################################################
+Line number: 8
+Number of tokens: 3
+Command key: 9
+Source addressing method: DIRECT_REGISTER
+Destination addressing method: IMMEDIATE
+
+##################################################
+		bne END 
+##################################################
+Line number: 9
+Number of tokens: 2
+Command key: 18
+Source addressing method: DIRECT
+Destination addressing method: IMMEDIATE
+
+##################################################
+		dec K 
+##################################################
+Line number: 10
+Number of tokens: 2
+Command key: 16
+Source addressing method: DIRECT
+Destination addressing method: IMMEDIATE
+
+##################################################
+		jmp LOOP 
+##################################################
+Line number: 11
+Number of tokens: 2
+Command key: 17
+Source addressing method: DIRECT
+Destination addressing method: IMMEDIATE
+
+##################################################
+		stop 
+##################################################
+Line number: 12
+Number of tokens: 1
+Command key: 23
+Source addressing method: IMMEDIATE
+Destination addressing method: IMMEDIATE
+
+##################################################
+		.string "abcd" 
+##################################################
+Line number: 13
+Number of tokens: 2
+Command key: 27
+Source addressing method: IMMEDIATE
+Destination addressing method: IMMEDIATE
+
+##################################################
+		.data 6, -9 
+##################################################
+Line number: 14
+Number of tokens: 2
+Command key: 26
+Source addressing method: IMMEDIATE
+Destination addressing method: IMMEDIATE
+
+##################################################
+		.data -100 
+##################################################
+Line number: 15
+Number of tokens: 2
+Command key: 26
+Source addressing method: IMMEDIATE
+Destination addressing method: IMMEDIATE
+
+##################################################
+		.data 31 
+##################################################
+Line number: 16
+Number of tokens: 2
+Command key: 26
+Source addressing method: IMMEDIATE
+Destination addressing method: IMMEDIATE
+
+-----------------------------------
+End of instruction table
+Deleting filenames...
+Deleting filename ex1.am... Done

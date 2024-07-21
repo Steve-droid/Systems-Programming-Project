@@ -27,15 +27,110 @@ static status process_args_known_amount(buffer_data *_buffer_data, inst *_inst, 
 static validation_state validate_data_members(char *data_buffer);
 static bool continue_reading(char *instruction_buffer, syntax_state *state);
 static void update_command(syntax_state *state, keyword *keyword_table, int command_key);
-static validation_state validate_known_argument_data(char *str, label_table *_label_table);
-static validation_state validate_addressing_methods(bin_word *binary_command, keyword *keyword_table, int cmd_key);
-static validation_state validate_source_addressing(bin_word *first_bin_word, keyword *keyword_table, int cmd_key);
-static validation_state validate_destination_addressing(bin_word *binary_command, keyword *keyword_table, int cmd_key);
+static validation_state validate_known_argument_data(inst *_inst, int arg_count, char *argument, label_table *_label_table);
 
+data_image *create_data_image(inst_table *_inst_table) {
+    size_t _inst_indx;
+    size_t _token_index;
 
-static void handle_undef_cmd_name(buffer_data *data) {
-    destroy_buffer_data(data);
+    data_image *_data_image = (data_image *)calloc(1, sizeof(data_image));
+    if (_data_image == NULL) {
+        printf("ERROR- Failed to allocate memory for data image\n");
+        return NULL;
+    }
+    _data_image->num_dot_data = _data_image->num_words;
+
+    _data_image->data = (char **)calloc(_data_image->num_dot_data, sizeof(char *));
+
+    _inst_indx = 0;
+    while (_inst_indx < _inst_table->num_instructions) {
+        if (_inst_table->inst_vec[_inst_indx]->is_dot_data) {
+            _data_image->data[_data_image->num_dot_data] = (char *)calloc(MAX_LINE_LENGTH, sizeof(char));
+            strcpy(_data_image->data[_data_image->num_dot_data], _inst_table->inst_vec[_inst_indx]->tokens[1]);
+            _data_image->num_dot_data++;
+        }
+
+        if (_inst_table->inst_vec[_inst_indx]->is_dot_string) {
+            _data_image->data[_data_image->num_dot_data] = (char *)calloc(MAX_LINE_LENGTH, sizeof(char));
+            strcpy(_data_image->data[_data_image->num_dot_data], _inst_table->inst_vec[_inst_indx]->tokens[1]);
+            _data_image->num_dot_data++;
+        }
+
+        _inst_indx++;
+    }
+
+    printf("\n#################### Data Image #########################\n");
+    printf("\n\tPrinting data image:\n");
+    for (_inst_indx = 0; _inst_indx < _data_image->num_dot_data; _inst_indx++) {
+        printf("Data #%lu: %s\n", _inst_indx, _data_image->data[_inst_indx]);
+    }
+    printf("\n################# End Of Data Image #####################\n");
+
+    return _data_image;
+
 }
+
+addressing_method get_addressing_method(char *sub_inst, label_table *_label_table) {
+    int i;
+
+    /* case 0 */
+    if (sub_inst[0] == '#') {
+        if (sub_inst[1] == '\0') {
+            return UNDEFINED;
+        }
+        if (sub_inst[1] != '-' && sub_inst[1] != '+' && !isdigit(sub_inst[1])) {
+            return UNDEFINED;
+        }
+        if (sub_inst[1] == '-' || sub_inst[1] == '+') {
+            if (!isdigit(sub_inst[2])) {
+                return UNDEFINED;
+            }
+        }
+        for (i = 2; i < (int)strlen(sub_inst); i++) {
+            if (!isdigit(sub_inst[i])) {
+                return UNDEFINED;
+            }
+        }
+        return IMMEDIATE;
+    }
+
+    /* case 1 */
+    for (i = 0; i < _label_table->size; i++) {
+        if (!strcmp(_label_table->labels[i]->name, sub_inst)) {
+            return DIRECT;
+        }
+    }
+
+    /* case 2 */
+    if (sub_inst[0] == '*') {
+        if (sub_inst[1] == '\0' || sub_inst[1] != 'r') {
+            return UNDEFINED_METHOD;
+        }
+        if (sub_inst[2] == '\0' || sub_inst[2] < '0' || sub_inst[2] > '7') {
+            return UNDEFINED_METHOD;
+        }
+        if (sub_inst[3] != '\0') {
+            return UNDEFINED_METHOD;
+        }
+        return INDIRECT_REGISTER;
+    }
+
+    /* case 3 */
+
+    if (sub_inst[0] == 'r') {
+        if (sub_inst[1] == '\0' || sub_inst[1] < '0' || sub_inst[1] > '7') {
+            return UNDEFINED_METHOD;
+        }
+        if (sub_inst[2] != '\0') {
+            return UNDEFINED_METHOD;
+        }
+        return DIRECT_REGISTER;
+    }
+
+    /* else */
+    return UNDEFINED_METHOD;
+}
+
 
 syntax_state *initialize_state(syntax_state *data, char *_instruction) {
     data->instruction = _instruction;
@@ -66,25 +161,9 @@ void initialize_command(syntax_state *data) {
     data->is_extern = false;
 }
 
-
-
-
-
-
-/**
- * @brief Performs the first pass of the assembly process.
- *
- * This function reads an assembly-like file, processes each line to identify commands and arguments,
- * and converts them into a pre-decoded and then a binary format. The results are stored in a 2D array.
- *
- * @param am_filename The name of the assembly file to process.
- * @param _label_table The table containing label information.
- * @param keyword_table The table containing keyword information.
- * @return A 2D array containing the binary representation of each command and its arguments.
- */
- /*Decode without label addresses*/
 inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_table) {
     buffer_data *data = NULL;
+    data_image *_data_image = NULL;
     char *buffer = NULL;
     inst *_inst = NULL;
     inst_table *_inst_table = NULL;
@@ -92,6 +171,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
     size_t i;
     status _status = STATUS_ERROR;
     size_t tk_amount_to_allocate = 0;
+    status _entry_or_external = NEITHER_EXTERN_NOR_ENTRY;
 
 
     file = fopen(am_filename, "r");
@@ -122,15 +202,14 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
         return NULL;
     }
 
-
-
-    printf("ASSEMBLY INSTRUCTIONS:\n");
-
     while (fgets(data->buffer, MAX_LINE_LENGTH, file)) { /* Read every line */
         if (create_instruction(&_inst) != STATUS_OK) {
             printf("ERROR- Failed to create an instance of the instruction\n");
             return NULL;
         }
+
+        _status = STATUS_ERROR;
+        _entry_or_external = NEITHER_EXTERN_NOR_ENTRY;
 
         /* Skip empty lines */
         if (is_empty_line(data->buffer)) {
@@ -152,7 +231,11 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
         _inst->line_number = data->line_counter;
 
         /* If the instruction starts with a label definition, skip it */
-        data->buffer = skip_label_name(data, _label_table);
+        data->buffer = skip_label_name(data, _label_table, &_entry_or_external);
+
+        if (_entry_or_external == CONTAINS_ENTRY || _entry_or_external == CONTAINS_EXTERN) {
+            continue;
+        }
 
         /* Skip unnecessary spaces */
         data->buffer = trim_whitespace(data->buffer);
@@ -163,7 +246,10 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
         /* If the command does not exist, exit */
         if (data->command_key == UNDEFINED || data->command_key == UNDEFINED) {
             printf("ERROR- undefined command name\n");
-            handle_undef_cmd_name(data);
+            free(_inst);
+            free(buffer);
+            free(data);
+            destroy_instruction_table(_inst_table);
             return NULL;
         }
         /* If the command key is valid, assign the command key to the instruction */
@@ -180,8 +266,6 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
             return NULL;
         }
 
-        print_instruction(_inst);
-
         /* Insert the instruction to the instruction table */
         if (insert_inst_to_table(_inst_table, _inst) != STATUS_OK) {
             printf("ERROR- Failed to insert instruction to table\n");
@@ -191,8 +275,6 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
             return NULL;
         }
 
-        create_instruction(&_inst);
-
         IC("increment");
 
         /* Reset the buffer */
@@ -200,14 +282,16 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
         data->buffer = buffer;
     }
+    _inst_table->IC = IC("get");
+    _inst_table->DC = DC("get");
 
+    _data_image = create_data_image(_inst_table);
 
-    printf("line counter is: %d\n", data->line_counter);
-    fclose(file); /* Close the file */
+    print_instruction_table(_inst_table);
+
 
     return _inst_table;
 }
-
 
 static status generate_tokens(buffer_data *_buffer_data, inst *_inst, keyword *keyword_table, label_table *_label_table) {
     int cmd_index = 0;
@@ -287,6 +371,7 @@ static status process_args_unknown_amount(buffer_data *_buffer_data, inst *_inst
     int arg_index = 0;
     int command_key = _inst->cmd_key;
     char *line = _buffer_data->buffer;
+    validation_state valid_ent_ext = invalid;
 
     if (_buffer_data == NULL || _inst == NULL || keyword_table == NULL || _label_table == NULL) {
         printf("ERROR- Tried to process unknown amount of arguments with NULL arguments\n");
@@ -337,9 +422,15 @@ static status process_args_unknown_amount(buffer_data *_buffer_data, inst *_inst
 
 
     if (state.is_entry || state.is_extern) {
-        return update_label_table(&state, _buffer_data, _inst, _label_table, keyword_table);
+        valid_ent_ext = update_label_table(&state, _buffer_data, _inst, _label_table, keyword_table);
+        if (valid_ent_ext == invalid) {
+            return STATUS_ERROR;
+        }
     }
-
+    if (state.is_string) {
+        DC("increment");
+        return STATUS_OK;
+    }
     return STATUS_OK;
 
 }
@@ -360,7 +451,6 @@ static bool continue_reading(char *instruction_buffer, syntax_state *state) {
     return true;
 }
 
-/* Process .data command */
 static validation_state process_data_command(syntax_state *state, buffer_data *_buffer_data, inst *_inst, label_table *_label_table) {
     int i = state->index;
     char *line = _buffer_data->buffer;
@@ -409,6 +499,8 @@ static validation_state process_data_command(syntax_state *state, buffer_data *_
             return invalid;
         }
     }
+    _inst->num_dot_data_members++;
+    DC("increment");
     return valid;
 }
 
@@ -456,6 +548,9 @@ static validation_state process_string_command(syntax_state *state, buffer_data 
             }
         }
     }
+
+    _inst->num_dot_string_members++;
+    DC("increment");
     return valid;
 }
 
@@ -487,29 +582,24 @@ static validation_state process_entry_extern_command(syntax_state *state, buffer
     return valid;
 }
 
-static validation_state update_label_table(syntax_state *state, buffer_data *_buffer_data, inst *_inst, label_table *label_table, keyword *keyword_table) {
+static validation_state update_label_table(syntax_state *state, buffer_data *_buffer_data, inst *_inst, label_table *_label_table, keyword *keyword_table) {
     int i;
     bool label_found = false;
+    label *_label = NULL;
     int next = _inst->num_tokens;
     int cmd_key = _inst->cmd_key;
     if (!strcmp(keyword_table[cmd_key].name, ".entry") || !strcmp(keyword_table[cmd_key].name, ".extern")) {
-        for (i = 0; i < label_table->size; i++) {
-            if (!strcmp(_inst->tokens[next - 1], label_table->labels[i]->name)) {
-                if (!strcmp(keyword_table[cmd_key].name, ".entry")) {
-                    if (label_table->labels[i]->is_extern == true) {
-                        printf("ERROR - DEFINED A LABEL BY ENTRY AND EXTERN\n");
-                        return invalid;
-                    }
-                }
-                else { /* extern */
-                    if (label_table->labels[i]->is_entry == true) {
-                        printf("ERROR - DEFINED A LABEL BY ENTRY AND EXTERN\n");
-                        return invalid;
-                    }
-                    label_table->labels[i]->is_extern = true;
-                    label_table->labels[i]->is_entry = false;
-                }
-                label_found = true;
+        for (i = 0; i < _label_table->size; i++) {
+            _label = _label_table->labels[i];
+
+            /* For every entry point, check if the label name exists in the label table */
+            if (_label->is_entry && state->is_entry) {
+                if (label_found = !strcmp(_label->name, _inst->tokens[next])) break;
+            }
+
+            /* For every external point, check if the label name exists in the label table */
+            if (_label->is_extern && state->is_extern) {
+                if (label_found = !strcmp(_label->name, _inst->tokens[next])) break;
             }
         }
         if (label_found == false) {
@@ -622,8 +712,8 @@ static status process_args_known_amount(buffer_data *_buffer_data, inst *_inst, 
         }
 
 
-        if (validate_known_argument_data(_inst->tokens[arg_count], _label_table) != valid) {
-            printf("ERROR- The argument data is not valid");
+        if (validate_known_argument_data(_inst, arg_count, _inst->tokens[arg_count], _label_table) != valid) {
+            printf("ERROR- The argument data '%s' on line %lu is not valid\n", _inst->tokens[arg_count], _inst->line_number);
             return STATUS_ERROR;
         }
     }
@@ -689,7 +779,7 @@ static validation_state validate_data_members(char *data_buffer) {
     return valid;
 }
 
-void update_command(syntax_state *state, keyword *keyword_table, int command_key) {
+static void update_command(syntax_state *state, keyword *keyword_table, int command_key) {
     if (!strcmp(keyword_table[command_key].name, ".data")) {
         state->is_data = true;
     }
@@ -704,217 +794,145 @@ void update_command(syntax_state *state, keyword *keyword_table, int command_key
     }
 }
 
-validation_state validate_known_argument_data(char *str, label_table *_label_table) {
+static validation_state validate_known_argument_data(inst *_inst, int arg_count, char *argument, label_table *_label_table) {
     addressing_method tmp = UNDEFINED_METHOD;
 
-    tmp = get_addressing_method(str, _label_table);
+    tmp = get_addressing_method(argument, _label_table);
 
-    if (tmp == IMMEDIATE || tmp == DIRECT || tmp == INDIRECT_REGISTER || tmp == DIRECT_REGISTER) {
+    if (!(tmp == IMMEDIATE || tmp == DIRECT || tmp == INDIRECT_REGISTER || tmp == DIRECT_REGISTER)) {
+        return invalid;
+    }
+    if (arg_count == 1) {
+        _inst->src_addressing_method = tmp;
+        return valid;
+    }
+    if (arg_count == 2) {
+        _inst->dest_addressing_method = tmp;
         return valid;
     }
 
     return invalid;
 }
 
-static validation_state validate_addressing_methods(bin_word *binary_command, keyword *keyword_table, int cmd_key) {
-    validation_state decision_source = invalid;
-    validation_state decision_destination = invalid;
+// /**/
+// static validation_state validate_addressing_methods(bin_word *binary_command, keyword *keyword_table, int cmd_key) {
+//     validation_state decision_source = invalid;
+//     validation_state decision_destination = invalid;
 
-    decision_source = validate_source_addressing(binary_command, keyword_table, cmd_key);
-    decision_destination = validate_destination_addressing(binary_command, keyword_table, cmd_key);
+//     decision_source = validate_source_addressing(binary_command, keyword_table, cmd_key);
+//     decision_destination = validate_destination_addressing(binary_command, keyword_table, cmd_key);
 
-    return decision_source && decision_destination;
-}
+//     return decision_source && decision_destination;
+// }
 
-static validation_state validate_source_addressing(bin_word *first_bin_word, keyword *keyword_table, int cmd_key) {
-    validation_state decision = invalid;
-    size_t i;
-    switch (command_number_by_key(keyword_table, cmd_key)) {
-        /* case 0 , 1 , 2 , 3 */
-    case MOV:
-    case CMP:
-    case ADD:
-    case SUB:
-        for (i = OPCODE_LEN; i < (OPCODE_LEN + ADDRESSING_METHOD_LEN); i++) {
-            if (first_bin_word->bits_vec[i] == 1) {
-                decision = valid;
-            }
-        }
-        break;
-        /* case 1 */
-    case LEA:
-        if (first_bin_word->bits_vec[OPCODE_LEN + 2] != 1) { /*addresing method 1*/
-            return invalid;
-        }
+// static validation_state validate_source_addressing(inst *_inst, keyword *keyword_table, int cmd_key) {
+//     validation_state decision = invalid;
+//     size_t i;
+//     bin_word *first_bin_word = NULL;
+//     switch (command_number_by_key(keyword_table, cmd_key)) {
+//         /* case 0 , 1 , 2 , 3 */
+//     case MOV:
+//     case CMP:
+//     case ADD:
+//     case SUB:
+//         for (i = OPCODE_LEN; i < (OPCODE_LEN + ADDRESSING_METHOD_LEN); i++) {
+//             if (first_bin_word->bits_vec[i] == 1) {
+//                 decision = valid;
+//             }
+//         }
+//         break;
+//         /* case 1 */
+//     case LEA:
+//         if (first_bin_word->bits_vec[OPCODE_LEN + 2] != 1) { /*addresing method 1*/
+//             return invalid;
+//         }
 
-        decision = valid;
+//         decision = valid;
 
-        for (i = OPCODE_LEN; i < OPCODE_LEN + ADDRESSING_METHOD_LEN; i++) {
-            if ((i != OPCODE_LEN + 2) && (first_bin_word->bits_vec[i] == 1)) {
-                decision = invalid;
-            }
-        }
-        break;
-        /* case - no source */
-    default: /* clr, not, inc, dec, jmp, bne, red, prn, jsr, rts, stop */
-        decision = valid;
-        for (i = OPCODE_LEN; i < OPCODE_LEN + ADDRESSING_METHOD_LEN; i++) {
-            if (first_bin_word->bits_vec[i] == 1) {
-                decision = invalid;
-            }
-        }
-        break;
-    }
-    return decision;
-}
+//         for (i = OPCODE_LEN; i < OPCODE_LEN + ADDRESSING_METHOD_LEN; i++) {
+//             if ((i != OPCODE_LEN + 2) && (first_bin_word->bits_vec[i] == 1)) {
+//                 decision = invalid;
+//             }
+//         }
+//         break;
+//         /* case - no source */
+//     default: /* clr, not, inc, dec, jmp, bne, red, prn, jsr, rts, stop */
+//         decision = valid;
+//         for (i = OPCODE_LEN; i < OPCODE_LEN + ADDRESSING_METHOD_LEN; i++) {
+//             if (first_bin_word->bits_vec[i] == 1) {
+//                 decision = invalid;
+//             }
+//         }
+//         break;
+//     }
+//     return decision;
+// }
 
-static validation_state validate_destination_addressing(bin_word *binary_command, keyword *keyword_table, int cmd_key) {
-    validation_state decision = invalid;
-    size_t i;
+// static validation_state validate_destination_addressing(bin_word *binary_command, keyword *keyword_table, int cmd_key) {
+//     validation_state decision = invalid;
+//     size_t i;
 
-    switch (command_number_by_key(keyword_table, cmd_key)) {
-        /* case 0 , 1 , 2 , 3 */
-    case CMP:
-    case PRN:
-        decision = invalid;
-        for (i = OPCODE_LEN + ADDRESSING_METHOD_LEN; i < OPCODE_LEN + 2 * ADDRESSING_METHOD_LEN; i++) {
-            if (binary_command->bits_vec[i] == 1) {
-                decision = invalid;
-            }
-        }
-        break;
-        /* case 1 , 2 , 3*/
-    case MOV:
-    case ADD:
-    case SUB:
-    case LEA:
-    case CLR:
-    case NOT:
-    case INC:
-    case DEC:
-    case RED:
-        if (binary_command->bits_vec[OPCODE_LEN + ADDRESSING_METHOD_LEN + (3 - 0)] == 1) { /*in case of 0 is on*/
-            return invalid;
-        }
-        decision = invalid;
-        for (i = OPCODE_LEN + ADDRESSING_METHOD_LEN; i < OPCODE_LEN + 2 * ADDRESSING_METHOD_LEN; i++) {
-            if (i != OPCODE_LEN + ADDRESSING_METHOD_LEN + (3 - 0) && binary_command->bits_vec[i] == 1) {
-                decision = valid;
-            }
-        }
-        break;
-        /* case 1 , 2 */
-    case JMP:
-    case BNE:
-    case JSR:
-        /*in case of 1 and 2 is off*/
-        if (binary_command->bits_vec[OPCODE_LEN + ADDRESSING_METHOD_LEN + (3 - 1)] != 1 &&
-            binary_command->bits_vec[OPCODE_LEN + ADDRESSING_METHOD_LEN + (3 - 2)] != 1) {
-            return invalid;
-        }
-        decision = valid;
-        /*in case of 0 or 3 is on*/
-        if (binary_command->bits_vec[OPCODE_LEN + ADDRESSING_METHOD_LEN + (3 - 0)] == 1 ||
-            binary_command->bits_vec[OPCODE_LEN + ADDRESSING_METHOD_LEN + (3 - 3)] == 1) {
-            decision = invalid;
-        }
+//     switch (command_number_by_key(keyword_table, cmd_key)) {
+//         /* case 0 , 1 , 2 , 3 */
+//     case CMP:
+//     case PRN:
+//         decision = invalid;
+//         for (i = OPCODE_LEN + ADDRESSING_METHOD_LEN; i < OPCODE_LEN + 2 * ADDRESSING_METHOD_LEN; i++) {
+//             if (binary_command->bits_vec[i] == 1) {
+//                 decision = invalid;
+//             }
+//         }
+//         break;
+//         /* case 1 , 2 , 3*/
+//     case MOV:
+//     case ADD:
+//     case SUB:
+//     case LEA:
+//     case CLR:
+//     case NOT:
+//     case INC:
+//     case DEC:
+//     case RED:
+//         if (binary_command->bits_vec[OPCODE_LEN + ADDRESSING_METHOD_LEN + (3 - 0)] == 1) { /*in case of 0 is on*/
+//             return invalid;
+//         }
+//         decision = invalid;
+//         for (i = OPCODE_LEN + ADDRESSING_METHOD_LEN; i < OPCODE_LEN + 2 * ADDRESSING_METHOD_LEN; i++) {
+//             if (i != OPCODE_LEN + ADDRESSING_METHOD_LEN + (3 - 0) && binary_command->bits_vec[i] == 1) {
+//                 decision = valid;
+//             }
+//         }
+//         break;
+//         /* case 1 , 2 */
+//     case JMP:
+//     case BNE:
+//     case JSR:
+//         /*in case of 1 and 2 is off*/
+//         if (binary_command->bits_vec[OPCODE_LEN + ADDRESSING_METHOD_LEN + (3 - 1)] != 1 &&
+//             binary_command->bits_vec[OPCODE_LEN + ADDRESSING_METHOD_LEN + (3 - 2)] != 1) {
+//             return invalid;
+//         }
+//         decision = valid;
+//         /*in case of 0 or 3 is on*/
+//         if (binary_command->bits_vec[OPCODE_LEN + ADDRESSING_METHOD_LEN + (3 - 0)] == 1 ||
+//             binary_command->bits_vec[OPCODE_LEN + ADDRESSING_METHOD_LEN + (3 - 3)] == 1) {
+//             decision = invalid;
+//         }
 
-        break;
-        /* case no destination */
-    default: /* rts , stop */
-        decision = valid;
-        for (i = OPCODE_LEN + ADDRESSING_METHOD_LEN; i < OPCODE_LEN + 2 * ADDRESSING_METHOD_LEN; i++) {
-            if (binary_command->bits_vec[i] == 1) {
-                decision = invalid;
-            }
-        }
-        break;
-    }
-    return decision;
-}
+//         break;
+//         /* case no destination */
+//     default: /* rts , stop */
+//         decision = valid;
+//         for (i = OPCODE_LEN + ADDRESSING_METHOD_LEN; i < OPCODE_LEN + 2 * ADDRESSING_METHOD_LEN; i++) {
+//             if (binary_command->bits_vec[i] == 1) {
+//                 decision = invalid;
+//             }
+//         }
+//         break;
+//     }
+//     return decision;
+// }
 
-register_name get_register_number(char *register_as_string) {
-    size_t i;
-    size_t length = strlen(register_as_string);
-    int reg = UNDEFINED_REGISTER;
-
-    /* Find the 'r' character in the string */
-    for (i = 0; i < length && register_as_string[i] != 'r' && register_as_string[i] != '\0'; i++);
-
-    /* If the 'r' character is not found, return an error */
-    if (register_as_string[i] == '\0') return UNDEFINED_REGISTER;
-
-    /* Extract the register number from the string */
-    register_as_string += i + 1;
-    reg = atoi(register_as_string);
-
-    /* Check if the register number is valid */
-    if (reg < R0 || reg > R7) return UNDEFINED_REGISTER;
-
-    return reg;
-}
-
-
-addressing_method get_addressing_method(char *sub_inst, label_table *_label_table) {
-    int i;
-
-    /* case 0 */
-    if (sub_inst[0] == '#') {
-        if (sub_inst[1] == '\0') {
-            return UNDEFINED;
-        }
-        if (sub_inst[1] != '-' && sub_inst[1] != '+' && !isdigit(sub_inst[1])) {
-            return UNDEFINED;
-        }
-        if (sub_inst[1] == '-' || sub_inst[1] == '+') {
-            if (!isdigit(sub_inst[2])) {
-                return UNDEFINED;
-            }
-        }
-        for (i = 2; i < (int)strlen(sub_inst); i++) {
-            if (!isdigit(sub_inst[i])) {
-                return UNDEFINED;
-            }
-        }
-        return IMMEDIATE;
-    }
-
-    /* case 1 */
-    for (i = 0; i < _label_table->size; i++) {
-        if (!strcmp(_label_table->labels[i]->name, sub_inst)) {
-            return DIRECT;
-        }
-    }
-
-    /* case 2 */
-    if (sub_inst[0] == '*') {
-        if (sub_inst[1] == '\0' || sub_inst[1] != 'r') {
-            return UNDEFINED_METHOD;
-        }
-        if (sub_inst[2] == '\0' || sub_inst[2] < '0' || sub_inst[2] > '7') {
-            return UNDEFINED_METHOD;
-        }
-        if (sub_inst[3] != '\0') {
-            return UNDEFINED_METHOD;
-        }
-        return INDIRECT_REGISTER;
-    }
-
-    /* case 3 */
-
-    if (sub_inst[0] == 'r') {
-        if (sub_inst[1] == '\0' || sub_inst[1] < '0' || sub_inst[1] > '7') {
-            return UNDEFINED_METHOD;
-        }
-        if (sub_inst[2] != '\0') {
-            return UNDEFINED_METHOD;
-        }
-        return DIRECT_REGISTER;
-    }
-
-    /* else */
-    return UNDEFINED_METHOD;
-}
 
 
 

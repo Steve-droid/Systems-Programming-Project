@@ -22,12 +22,11 @@
 #define PARSER_H
 
 #include "common.h"
-#include "label.h"
-#include "keyword.h"
-#include "util.h"
-#include "lexer.h"
+#include "binary.h"
+#include "instruction.h"
 
-int *proccess_assembly_code(char *am_filename, label_table *_label_table, keyword *keyword_table);
+
+bin_table *parse(inst_table *_inst_table, label_table *_label_table, keyword *keyword_table);
 
 
 #endif

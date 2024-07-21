@@ -2,7 +2,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS =  -std=c90 -g
+CFLAGS =   -g
 
 # Include directories
 INCLUDES = -I./header_files
