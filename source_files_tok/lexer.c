@@ -278,7 +278,7 @@ static status generate_tokens(syntax_state *state, keyword *keyword_table, label
     }
 
     /* Check if the command requires an unknown number of arguments */
-    if (_tok_amount_to_allocate == UNKNOWN_NUMBER_OF_ARGUMENTS) { /* keep all the arguments in array[1] */
+    if (need_to_assign_data) { /* keep all the arguments in array[1] */
 
         return assign_data(state, _label_table, keyword_table);
     }
