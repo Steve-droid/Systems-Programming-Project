@@ -79,7 +79,7 @@ status insert_macro_to_table(macro_table *table, macro *macr) {
         table->capacity = table->macro_count + 1;
         table->macros = (macro **)realloc(table->macros, table->capacity * sizeof(macro *));
         if (table->macros == NULL) {
-            macro_table_destructor(table);
+            macro_table_destructor(&table);
             return STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -126,13 +126,17 @@ macro_table *get_macro_table() {
  *
  * @param macro The macro to destroy
  */
-void macro_destructor(macro *mac) {
+void macro_destructor(macro **mac) {
     int index;
 
-    for (index = 0;index < mac->line_count;index++) free(mac->lines[index]);
-    free(mac->lines);
-    free(mac->name);
-    free(mac);
+    for (index = 0;index < (*mac)->line_count;index++) {
+        free((*mac)->lines[index]);
+        (*mac)->lines[index] = NULL;
+    }
+    free((*mac)->lines);
+    free((*mac)->name);
+    free((*mac));
+    *mac = NULL;
 }
 
 /**
@@ -140,13 +144,14 @@ void macro_destructor(macro *mac) {
  *
  * @param table The macro table to destroy
  */
-void macro_table_destructor(macro_table *table) {
+void macro_table_destructor(macro_table **table) {
     int i;
-    for (i = 0; i < table->macro_count; i++) {
-        macro_destructor(table->macros[i]);
+    for (i = 0; i < (*table)->macro_count; i++) {
+        macro_destructor(&((*table)->macros[i]));
     }
-    free(table->macros);
-    free(table);
+    free((*table)->macros);
+    free((*table));
+    *table = NULL;
 }
 
 status print_macro_lines(macro *mac) {

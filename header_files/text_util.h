@@ -20,9 +20,9 @@ void update_command(syntax_state *state, keyword *keyword_table, int command_key
 
 bool continue_reading(char *instruction_buffer, syntax_state *state);
 
-void reset_buffer(char *buffer);
-
 void reset_syntax_state(syntax_state *state);
+
+void destroy_syntax_state(syntax_state **state);
 
 /*Operations on characters and pointers*/
 char *trim_whitespace(char *str);

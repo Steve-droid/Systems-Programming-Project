@@ -40,12 +40,6 @@ status create_macro(char *macro_name, macro **new_macro);
 
 status insert_line_to_macro(macro *mac, char *line);
 
-/**
- * @brief Destroy a macro object
- *
- * @param macro The macro to destroy
- */
-void macro_destructor(macro *macro);
 
 /**
  * @brief Create a new macro table object
@@ -85,7 +79,15 @@ macro_table *get_macro_table();
  *
  * @param table The macro table to destroy
  */
-void macro_table_destructor(macro_table *table);
+void macro_table_destructor(macro_table **table);
+
+/**
+ * @brief Destroy a macro object
+ *
+ * @param macro The macro to destroy
+ */
+void macro_destructor(macro **macro);
+
 
 status print_macro_lines(macro *mac);
 

@@ -6,7 +6,7 @@ size_t DC(char *prompt)
 
     if (!strcmp(prompt, "get"))
         return DC;
-    else if (!strcmp(prompt, "increment")) {
+    if (!strcmp(prompt, "increment")) {
         DC++;
     }
     return DC;
@@ -18,7 +18,7 @@ size_t IC(char *prompt)
 
     if (!strcmp(prompt, "get"))
         return IC;
-    else if (!strcmp(prompt, "increment")) {
+    if (!strcmp(prompt, "increment")) {
         IC++;
     }
     return IC;
@@ -46,20 +46,20 @@ int main(int argc, char *argv[]) {
     m_table = fill_macro_table(argc, argv, &am_filenames);
     if (m_table == NULL) {
         printf("Error while filling macro table. Exiting...\n");
-        delete_filenames(argc - 1, am_filenames);
-        free(keyword_table);
+        delete_filenames(argc - 1, &am_filenames);
+        destroy_keyword_table(&keyword_table);
         exit(EXIT_FAILURE);
     }
     /* Initialize the label table */
     _label_table = fill_label_table(am_filenames[0], m_table, keyword_table);
     if (_label_table == NULL) {
         printf("Error while filling label table. Exiting...\n");
-        delete_filenames(argc - 1, am_filenames);
-        macro_table_destructor(m_table);
-        free(keyword_table);
-        free(_label_table);
+        delete_filenames(argc - 1, &am_filenames);
+        destroy_keyword_table(&keyword_table);
+        macro_table_destructor(&m_table);
         exit(EXIT_FAILURE);
     }
+    printf("Label table before assigning addresses:\n");
     print_label_table(_label_table);
 
     /* Process the assembly code */
@@ -67,12 +67,10 @@ int main(int argc, char *argv[]) {
 
     if (_inst_table == NULL) {
         printf("Error while lexing the assembly code. Exiting...\n");
-        delete_filenames(argc - 1, am_filenames);
-        macro_table_destructor(m_table);
-        label_table_destroy(&_label_table);
-        free(keyword_table);
-        free(_label_table);
-        free(_inst_table);
+        delete_filenames(argc - 1, &am_filenames);
+        destroy_keyword_table(&keyword_table);
+        destroy_label_table(&_label_table);
+        macro_table_destructor(&m_table);
         exit(EXIT_FAILURE);
     }
 
@@ -93,12 +91,10 @@ int main(int argc, char *argv[]) {
 */
 
 /* Free allocated memory */
-    delete_filenames(argc - 1, am_filenames);
-    label_table_destroy(&_label_table);
-    destroy_instruction_table(_inst_table);
-    macro_table_destructor(m_table);
-    free(keyword_table);
-    free(_label_table);
-
+    delete_filenames(argc - 1, &am_filenames);
+    destroy_keyword_table(&keyword_table);
+    destroy_label_table(&_label_table);
+    macro_table_destructor(&m_table);
+    destroy_instruction_table(&_inst_table);
     return 0;
 }

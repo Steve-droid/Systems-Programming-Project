@@ -31,7 +31,7 @@ static status add_macro_to_table(char *macro_name, FILE *as_file, macro_table *t
 
     printf("Adding macro '%s' to macro table...\n", macro_name);
     if (insert_macro_to_table(table, new_macro) != STATUS_OK) {
-        macro_destructor(new_macro);
+        macro_destructor(&new_macro);
         return STATUS_ERROR;
     }
 
@@ -92,7 +92,7 @@ status pre_assemble(char *as_filename, char *am_filename, macro_table *m_table) 
                 fclose(am_file);
                 free(as_filename);
                 free(am_filename);
-                macro_table_destructor(m_table);
+                macro_table_destructor(&m_table);
                 return STATUS_ERROR;
             }
         }
@@ -109,7 +109,7 @@ status pre_assemble(char *as_filename, char *am_filename, macro_table *m_table) 
             macroname_found_flag = get_macro(m_table, macro_name);
             if (macroname_found_flag != NULL) {
                 printf("Error: macro with the name '%s' is already defined. Exiting...\n", macro_name);
-                macro_table_destructor(m_table);
+                macro_table_destructor(&m_table);
                 fclose(as_file);
                 fclose(am_file);
                 free(as_filename);
@@ -122,7 +122,7 @@ status pre_assemble(char *as_filename, char *am_filename, macro_table *m_table) 
 
             if (result != STATUS_OK) {
                 printf("Error while adding macro: %s to macro table. Exiting...\n", macro_name);
-                macro_table_destructor(m_table);
+                macro_table_destructor(&m_table);
                 fclose(as_file);
                 fclose(am_file);
                 free(as_filename);
@@ -162,31 +162,31 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
     }
 
     backup_filenames = (char **)calloc(file_amount, sizeof(char *));
-    if (backup_filenames == NULL) err(errno, "Memory allocation error while creating backup file names");
-
-    *(am_filenames) = (char **)calloc(file_amount, sizeof(char *));
     if (backup_filenames == NULL) {
-        free(backup_filenames);
+        delete_filenames(file_amount, am_filenames);
+        return NULL;
+    }
+    *(am_filenames) = (char **)calloc(file_amount, sizeof(char *));
+    if (*(am_filenames) == NULL) {
+        delete_filenames(file_amount, &backup_filenames);
+        delete_filenames(file_amount, am_filenames);
         return NULL;
     }
 
     generic_filenames = (char **)calloc(file_amount, sizeof(char *));
-    if (backup_filenames == NULL) {
-        free(backup_filenames);
-        free(*(am_filenames));
+    if (generic_filenames == NULL) {
+        delete_filenames(file_amount, &backup_filenames);
+        delete_filenames(file_amount, am_filenames);
         return NULL;
     }
 
     printf("Creating generic filenames...");
     for (i = 0;i < file_amount;i++) {
-        if (remove_file_extension(as_filenames[i], generic_filenames + i) != STATUS_OK) {
+        if (remove_file_extension((&as_filenames[i]), (&generic_filenames[i])) != STATUS_OK) {
             printf("Error while creating generic filenames. Exiting...");
-            delete_filenames(file_amount, backup_filenames);
-            delete_filenames(file_amount, *(am_filenames));
-            delete_filenames(file_amount, generic_filenames);
-            free(generic_filenames);
-            free(backup_filenames);
-            free(*(am_filenames));
+            delete_filenames(file_amount, &backup_filenames);
+            delete_filenames(file_amount, am_filenames);
+            delete_filenames(file_amount, &generic_filenames);
             return NULL;
         }
     }
@@ -195,25 +195,19 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
     printf("Backing up original .as files...");
     if (duplicate_files(&backup_filenames, file_amount, as_filenames, ".bk") != STATUS_OK) {
         printf("Error: File backup did not execute properly. Exiting..");
-        delete_filenames(file_amount, backup_filenames);
-        delete_filenames(file_amount, *(am_filenames));
-        delete_filenames(file_amount, generic_filenames);
-        free(generic_filenames);
-        free(backup_filenames);
-        free(*(am_filenames));
+        delete_filenames(file_amount, &backup_filenames);
+        delete_filenames(file_amount, am_filenames);
+        delete_filenames(file_amount, &generic_filenames);
         return NULL;
     }
 
     printf("Creating .am files... ");
     for (i = 0;i < file_amount;i++) {
-        if (remove_file_extension(as_filenames[i], generic_filenames + i) != STATUS_OK) {
+        if (remove_file_extension((&as_filenames[i]), generic_filenames + i) != STATUS_OK) {
             printf("Error: .am file creation for %s did not execute properly.\nExiting...\n", as_filenames[i]);
-            delete_filenames(file_amount, backup_filenames);
-            delete_filenames(file_amount, *(am_filenames));
-            delete_filenames(file_amount, generic_filenames);
-            free(generic_filenames);
-            free(backup_filenames);
-            free(*(am_filenames));
+            delete_filenames(file_amount, &backup_filenames);
+            delete_filenames(file_amount, am_filenames);
+            delete_filenames(file_amount, &generic_filenames);
             return NULL;
         }
 
@@ -221,12 +215,9 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
 
         if (*(am_filenames)[i] == NULL) {
             printf("Error: .am file creation for %s did not execute properly.\nExiting...\n", as_filenames[i]);
-            delete_filenames(file_amount, backup_filenames);
-            delete_filenames(file_amount, *(am_filenames));
-            delete_filenames(file_amount, generic_filenames);
-            free(generic_filenames);
-            free(backup_filenames);
-            free(*(am_filenames));
+            delete_filenames(file_amount, &backup_filenames);
+            delete_filenames(file_amount, am_filenames);
+            delete_filenames(file_amount, &generic_filenames);
             return NULL;
         }
     }
@@ -236,12 +227,9 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
     m_table = create_macro_table();
     if (m_table == NULL) {
         printf("Error: Could not create macro table. Exiting...\n");
-        delete_filenames(file_amount, backup_filenames);
-        delete_filenames(file_amount, *(am_filenames));
-        delete_filenames(file_amount, generic_filenames);
-        free(generic_filenames);
-        free(backup_filenames);
-        free(*(am_filenames));
+        delete_filenames(file_amount, &backup_filenames);
+        delete_filenames(file_amount, am_filenames);
+        delete_filenames(file_amount, &generic_filenames);
         return NULL;
     }
     for (i = 0;i < file_amount;i++) {
@@ -277,13 +265,10 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
             break;
         default:
             printf("Unknown error.\n");
-            delete_filenames(file_amount, backup_filenames);
-            delete_filenames(file_amount, *(am_filenames));
-            delete_filenames(file_amount, generic_filenames);
-            free(backup_filenames);
-            free(generic_filenames);
-            free(*(am_filenames));
-            macro_table_destructor(m_table);
+            delete_filenames(file_amount, &backup_filenames);
+            delete_filenames(file_amount, am_filenames);
+            delete_filenames(file_amount, &generic_filenames);
+            macro_table_destructor(&m_table);
             return NULL;
         }
     }
@@ -293,11 +278,8 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
         rename(backup_filenames[i], strcat(generic_filenames[i], ".as"));
     }
 
-    delete_filenames(file_amount, backup_filenames);
-    delete_filenames(file_amount, generic_filenames);
-    free(generic_filenames);
-    free(backup_filenames);
-
+    delete_filenames(file_amount, &backup_filenames);
+    delete_filenames(file_amount, &generic_filenames);
 
     return m_table;
 }

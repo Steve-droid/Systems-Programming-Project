@@ -32,10 +32,10 @@
 
  /* File Utilities */
 char *create_file_name(char *initial_name, char *extension);
-status remove_file_extension(char *full_filename, char **generic_filename);
+status remove_file_extension(char **full_filename, char **generic_filename);
 status copy_file_contents(char *src_filename, char *dest_filename);
 status remove_whitespace(char *filename);
 status duplicate_files(char ***backup_filenames, int file_count, char *filenames[], char *extention);
-status delete_filenames(size_t file_amount, char **filenames);
+status delete_filenames(size_t file_amount, char ***filenames);
 
 #endif

@@ -7,7 +7,7 @@
 #include "parser.h"
 #include "asm_error.h"
 
-#define INITIAL_NUM_TOKENS 15
+#define INITIAL_NUM_TOKENS 3
 
 
 /* Create functions */
@@ -32,11 +32,11 @@ inst **get_instructions(inst_table *_inst_table);
 int get_num_instructions(inst_table *_inst_table);
 
 /* Destroy functions */
-void destroy_instruction_table(inst_table *_inst_table);
-void destroy_instruction(inst *_inst);
+void destroy_instruction_table(inst_table **_inst_table);
+void destroy_instruction(inst **_inst);
 
 
 /* Utility */
-void print_instruction(inst *_inst);
-void print_instruction_table(inst_table *_inst_table);
+void print_instruction(inst *_inst, label_table *_label_table);
+void print_instruction_table(inst_table *_inst_table, label_table *_label_table);
 #endif

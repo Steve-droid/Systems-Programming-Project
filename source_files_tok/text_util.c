@@ -2,13 +2,26 @@
 
 /* Syntax State Utility */
 syntax_state *create_syntax_state() {
+    size_t i;
     syntax_state *state = (syntax_state *)malloc(sizeof(syntax_state));
     if (state == NULL) return NULL;
 
+    char *buffer = (char *)calloc(MAX_LINE_LENGTH, sizeof(char));
+    if (buffer == NULL) {
+        free(state);
+        state = NULL;
+        return NULL;
+    }
+
+    state->index = -1;
+    state->continue_reading = false;
+    state->_validation_state = invalid;
+    state->extern_or_entry = NEITHER_EXTERN_NOR_ENTRY;
+    state->buffer = buffer;
     state->line_number = -1;
     state->_inst = NULL;
-    state->buffer = NULL;
     state->label_name = false;
+    state->label_key = -1;
     state->comma = false;
     state->whitespace = false;
     state->null_terminator = false;
@@ -33,11 +46,13 @@ void reset_syntax_state(syntax_state *state) {
     for (i = 0;i < MAX_LINE_LENGTH;i++) {
         state->buffer[i] = '\0';
     }
+    state->index = -1;
     state->_validation_state = invalid;
     state->extern_or_entry = NEITHER_EXTERN_NOR_ENTRY;
     state->_inst = NULL;
     state->continue_reading = false;
     state->label_name = false;
+    state->label_key = -1;
     state->comma = false;
     state->whitespace = false;
     state->null_terminator = false;
@@ -56,18 +71,24 @@ void reset_syntax_state(syntax_state *state) {
     state->is_extern = false;
 }
 
-void reset_buffer(char *buffer) {
-    size_t i;
-    for (i = 0; i < MAX_LINE_LENGTH; i++) {
-        buffer[i] = '\0';
-    }
-}
-
 void initialize_command(syntax_state *data) {
     data->is_data = false;
     data->is_string = false;
     data->is_entry = false;
     data->is_extern = false;
+}
+
+void destroy_syntax_state(syntax_state **state) {
+    if (state == NULL || (*state) == NULL)
+        return;
+
+    if ((*state)->buffer) {
+        free((*state)->buffer);
+        (*state)->buffer = NULL;
+    }
+
+    free((*state));
+    (*state) = NULL;
 }
 
 void update_command(syntax_state *state, keyword *keyword_table, int command_key) {
@@ -200,6 +221,8 @@ void skip_label_name(syntax_state *state, label_table *_label_table) {
     /** Find the first letter after the label name */
     for (i = 0; i < _label_table->size; i++) {
         if (_label_table->labels[i]->instruction_line == current_line) {
+            state->label_name = true;
+            state->label_key = _label_table->labels[i]->key;
             offset = 1 + strlen(_label_table->labels[i]->name);  /** another 1 for ':' */
             break;  /** Exit loop once the label is found */
         }
@@ -318,10 +341,10 @@ int char_to_int(char c) {
     if (isdigit(c)) {
         return c - '0';
     }
-    else if (c == '+') {
+    if (c == '+') {
         return PLUS;
     }
-    else if (c == '-') {
+    if (c == '-') {
         return MINUS;
     }
     else if (c == ',') {

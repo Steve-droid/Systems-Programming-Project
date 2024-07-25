@@ -21,32 +21,55 @@ char *create_file_name(char *initial_filename, char *extension) {
     return new_filename;
 }
 
-status remove_file_extension(char *full_filename, char **generic_filename) {
+status remove_file_extension(char **full_filename, char **generic_filename) {
 
     size_t full_filename_length = 0;
     char *extension = NULL;
 
-    if (full_filename == NULL) {
+    if (full_filename == NULL || (*full_filename) == NULL) {
         printf("Trying to remove extention from an empty filename\nExiting...\n");
+        if (generic_filename) {
+            free(*generic_filename);
+            (*generic_filename) = NULL;
+        }
+
+        if (full_filename) {
+            free(*full_filename);
+            (*full_filename) = NULL;
+        }
         return STATUS_ERROR_INVALID_EXTENSION;
     }
 
-    full_filename_length = strlen(full_filename);
+    if (generic_filename == NULL) {
+        printf("Trying to remove extention from an empty filename\nExiting...\n");
+        if (generic_filename) {
+            free(*generic_filename);
+            (*generic_filename) = NULL;
+        }
+
+        return STATUS_ERROR_INVALID_EXTENSION;
+    }
+
+
+    full_filename_length = strlen((*full_filename));
 
     *(generic_filename) = (char *)calloc((full_filename_length + 1), sizeof(char));
 
     if (*(generic_filename) == NULL) {
-        printf("Memory allocation error while creating generic filename for %s\nExiting...\n", full_filename);
+        printf("Memory allocation error while creating generic filename for %s\nExiting...\n", (*full_filename));
         return STATUS_ERROR_INVALID_EXTENSION;
     }
 
-    strcpy(*(generic_filename), full_filename);
+    strcpy((*generic_filename), (*full_filename));
     extension = strstr(*(generic_filename), ".");
 
 
     if (extension == NULL) {
         printf("Trying to remove extention from a filename with no extention\nExiting...\n");
+        free(*full_filename);
         free(*generic_filename);
+        (*full_filename) = NULL;
+        (*generic_filename) = NULL;
         return STATUS_ERROR_INVALID_EXTENSION;
     }
 
@@ -252,6 +275,8 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
             for (i = 0;i < backup_filenames_count;i++) {
                 if (*backup_filenames[i] != NULL) free(*backup_filenames[i]);
             }
+            free(filename_copy);
+
             printf("Done. Exiting...\n");
             return STATUS_ERROR_WHILE_CREATING_FILENAME;
         }
@@ -273,7 +298,7 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
     return STATUS_OK;
 }
 
-status delete_filenames(size_t file_amount, char **filenames) {
+status delete_filenames(size_t file_amount, char ***filenames) {
     size_t i;
     if (filenames == NULL) {
         printf("ERROR: Attempted to free filenames but filename array is empty. Exiting...");
@@ -283,12 +308,17 @@ status delete_filenames(size_t file_amount, char **filenames) {
     printf("Deleting filenames...\n");
     for (i = 0;i < file_amount;i++) {
 
-        if (filenames[i] != NULL) {
-            printf("Deleting filename %s... ", filenames[i]);
-            free(filenames[i]);
+        if ((*filenames) && (*filenames)[i] != NULL) {
+            printf("Deleting filename %s... ", (*filenames)[i]);
+            free((*filenames)[i]);
+            (*filenames)[i] = NULL;
             printf("Done\n");
         }
     }
+
+    free((*filenames));
+
+    (*filenames) = NULL;
 
     return STATUS_OK;
 }

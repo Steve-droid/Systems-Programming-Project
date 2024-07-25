@@ -34,7 +34,7 @@
 #define DEST 1
 #define FIRST_ADDRESS 100
 #define MAX_LABEL_LENGTH 33 /* max label len is 31 , + 1 for ':' , + 1 for '\0' */
-#define FIRST_KEY 100 /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
+#define FIRST_KEY 1 /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
 #define KEYWORD_TABLE_LENGTH 30 /* Amount of keywords (8 registers + 16 commands + 4 directives + 2 macro definition*/
 #define MAX_KEYWORD_LENGTH 8 /* .string + '\0' */
 #define OPERATION_KEYWORDS 16
@@ -86,7 +86,7 @@ typedef enum {
 
 
 typedef enum addressing_method {
-    NO_ADDRESSING_METHOD, UNDEFINED_METHOD = -1, IMMEDIATE, DIRECT, INDIRECT_REGISTER, DIRECT_REGISTER
+    NO_ADDRESSING_METHOD = -2, UNDEFINED_METHOD = -1, IMMEDIATE = 1, DIRECT, INDIRECT_REGISTER, DIRECT_REGISTER
 } addressing_method;
 
 
@@ -138,6 +138,7 @@ typedef struct {
 typedef struct instruction {
     char **tokens;
     int cmd_key;
+    int label_key;
     int address;
     size_t num_tokens;
     size_t capacity;
@@ -147,6 +148,10 @@ typedef struct instruction {
     size_t num_words_to_generate;
     addressing_method src_addressing_method;
     addressing_method dest_addressing_method;
+    char immediate_label_name_src[MAX_LINE_LENGTH];
+    char immediate_label_name_dest[MAX_LINE_LENGTH];
+    int immediate_label_key_src;
+    int immediate_label_key_dest;
     bool is_dot_data;
     bool is_dot_string;
     bool is_entry;
@@ -191,7 +196,7 @@ typedef struct {
 
 typedef struct label {
     char name[MAX_LABEL_LENGTH];
-    size_t key;
+    int key;
     size_t instruction_line;
     size_t address;
     size_t size;
@@ -226,6 +231,8 @@ typedef struct syntax_state {
     int line_number;
     inst *_inst;
     char *buffer;
+    int label_key;
+
     bool continue_reading;
     bool label_name;
     bool comma;

@@ -76,14 +76,19 @@ addressing_method get_addressing_method(char *sub_inst, label_table *_label_tabl
 keyword_name identify_command(syntax_state *state, label_table *_label_table, keyword *keyword_table);
 label *new_empty_label(label **new_label);
 label *get_label(label_table *_lable_table, char *label_name);
+label *get_label_by_key(label_table *_label_table, int key);
 label_table *new_empty_label_table(label_table **new_label_table);
 label_table *insert_label(label_table *table, label *_lable);
 void label_update_fields(label **new_label, char *label_name, int line_counter, status _entry_or_external, int address);
 void print_label_table(label_table *_label_table);
 int command_number_by_key(keyword *keyword_table, int key);
 int get_command_opcode(keyword *keyword_table, int key);
-char *extract_label_name_from_instruction(char *_buffer, status *_entry_or_external);
-void label_table_destroy(label_table **_label_table);
-void label_destroy(label **_label);
+char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_external);
 register_name get_register_number(char *register_as_string);
+
+
+void destroy_label_table(label_table **_label_table);
+void destroy_label(label **_label);
+validation_state label_name_is_valid(label_table *_label_table, char *_buffer, keyword *keywords_table, macro_table *_macro_table, status *entry_or_ext);
+void destroy_keyword_table(keyword **_keyword_table);
 #endif 

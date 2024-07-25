@@ -26,5 +26,9 @@
     },
     "github.copilot.editor.enableCodeActions": false,
     "editor.cursorBlinking": "solid",
-    "terminal.integrated.cursorStyle": "line"
+    "terminal.integrated.cursorStyle": "line",
+    "C_Cpp.default.cStandard": "c99",
+    "C_Cpp.default.intelliSenseMode": "linux-gcc-x86",
+    "terminal.integrated.suggest.enabled": false,
+    "editor.cursorSurroundingLines": 1
 }
