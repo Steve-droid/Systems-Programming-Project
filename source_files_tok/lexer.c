@@ -18,6 +18,7 @@
 #define FIRST_BIT 0
 #define CMD_NAME 0
 #define MAX_CMD_ARG_AMOUNT 3
+#define UNSET -1
 
 
 static status generate_tokens(syntax_state *state, keyword *keyword_table, label_table *_label_table);
@@ -186,16 +187,14 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 			return NULL;
 		}
 
-		IC("increment");
-
 		state->buffer = buffer_without_offset;
 
 		reset_syntax_state(state);
 	}
 
 
-	_inst_table->IC = IC("get");
-	_inst_table->DC = DC("get");
+	_inst_table->IC = IC("get", 0);
+	_inst_table->DC = DC("get", 0);
 
 	if (assign_addresses(_inst_table, _label_table, keyword_table) != STATUS_OK) {
 		printf("ERROR- Failed to insert instruction to table\n");
@@ -241,11 +240,8 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 static status generate_tokens(syntax_state *state, keyword *_keyword_table, label_table *_label_table) {
 	int cmd_index = 0;
 	int command_length = 0;
-	int opcode = UNDEFINED;
 	size_t i = 0;
 	int _tok_amount_to_allocate = 0;
-	bool need_to_assign_data = false;
-	bool need_to_assign_args = false;
 
 	if (state == NULL || state->buffer == NULL || state->_inst == NULL || _keyword_table == NULL || _label_table == NULL) {
 		return STATUS_OK; /* No arguments to process */
@@ -255,10 +251,12 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 	cmd_index = command_number_by_key(_keyword_table, state->cmd_key);
 
 	/* Check if the command exists */
-	if (cmd_index == UNDEFINED) {
-		printf("ERROR- Command not found\n");
+	if (cmd_index == UNDEFINED_KEYWORD) {
+		printf("Error- Command not found\n");
 		return UNDEFINED;
 	}
+
+
 
 	/* Get the number of arguments required for the command */
 	_tok_amount_to_allocate = get_command_argument_count(state->cmd_key);
@@ -272,9 +270,13 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 			}
 		}
 
+		state->_inst->opcode = get_command_opcode(_keyword_table, state->cmd_key);
+		if (state->_inst->opcode < 0 || state->_inst->opcode>15) {
+			printf("Error- Command opcode not found\n");
+			return UNDEFINED;
+		}
 
-		/* Indicate that the instruction needs to handle a fixed number of arguments */
-		need_to_assign_args = true;
+		state->_inst->bin_opcode = state->_inst->opcode;
 
 	}
 	else {
@@ -284,9 +286,6 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 				return STATUS_ERROR;
 			}
 		}
-
-		/* Indicate that the instruction needs to handle  .data or .string  */
-		need_to_assign_data = true;
 
 	}
 
@@ -330,11 +329,9 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 
 /* Process commands that declare an unknown number of arguments: .data, .string, .entry, .extern */
 static status assign_data(syntax_state *state, label_table *_label_table, keyword *keyword_table) {
-	int arg_index = 0;
 	int command_key = state->cmd_key;
 	char *line = state->buffer;
 	validation_state valid_ent_ext = invalid;
-	int num_of_tokens = 0;
 	char *temp = NULL;
 	char *token = NULL;
 	int char_indx = 0;
@@ -392,31 +389,37 @@ static status assign_data(syntax_state *state, label_table *_label_table, keywor
 		while (token != NULL) {
 			state->_inst->num_dot_data_members++;
 			state->_inst->num_words_to_generate++;
-			DC("increment");
+			DC("increment", 1);
+			IC("increment", 1);
 			token = strtok(NULL, ", ");
 		}
 
 		free(temp);
+		temp = NULL;
 	}
 
 	if (state->is_string) {
+		temp = NULL;
 		temp = strdup(state->_inst->tokens[1]);
 		char_indx = 0;
 		copy_indx = 1;
 		while (temp != NULL && temp[copy_indx] != '\"' && temp[copy_indx] != '\0') {
 			state->_inst->tokens[1][char_indx] = temp[copy_indx];
-			state->_inst->num_dot_data_members++;
+			state->_inst->num_dot_string_members++;
 			state->_inst->num_words_to_generate++;
-			DC("increment");
+			DC("increment", 1);
+			IC("increment", 1);
 			copy_indx++;
 			char_indx++;
 		}
 
 		state->_inst->tokens[1][char_indx] = '\0';
-		state->_inst->num_dot_data_members++;
+		state->_inst->num_dot_string_members++;
 		state->_inst->num_words_to_generate++;
-		DC("increment");
+		DC("increment", 1);
+		IC("increment", 1);
 		free(temp);
+		temp = NULL;
 	}
 
 	if (state->is_entry || state->is_extern) {
@@ -538,6 +541,8 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 			printf("ERROR- The argument '%s' on line %d has an invalid addressing method\n", state->_inst->tokens[arg_count], state->line_number);
 			return STATUS_ERROR;
 		}
+
+		IC("increment", state->_inst->num_words_to_generate);
 	}
 
 
@@ -548,6 +553,8 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 			if (dest_reg == DIRECT_REGISTER || dest_reg == INDIRECT_REGISTER)
 				state->_inst->num_words_to_generate = 2;
 	}
+
+
 
 	/*
 	If we reached this point, all arguments have been successfully processed, but might not have a valid addressing method
@@ -579,7 +586,6 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 static validation_state process_data_command(syntax_state *state, label_table *_label_table) {
 	int i = state->index;
 	char *line = state->buffer;
-	int arg_index = 0;
 	size_t next = state->_inst->num_tokens - 1;
 
 	if (isspace(line[i]) && !(state->comma)) {
@@ -632,7 +638,6 @@ static validation_state process_data_command(syntax_state *state, label_table *_
 static validation_state process_string_command(syntax_state *state, label_table *_label_table) {
 	int i = state->index;
 	int token_index = 1;
-	size_t line_len = strlen(state->buffer);
 	char *line = state->buffer;
 	if (i == 0) {
 		if (line[0] == '\"') {
@@ -714,6 +719,8 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	bool valid_label_name = false;
 	bool found_label_with_matching_name = false;
 	label *tmp_label = NULL;
+	char *tmp_ptr = NULL;
+	int tmp_val = 0;;
 
 	if (state->_inst->src_addressing_method != NO_ADDRESSING_METHOD) contains_src_addressing = true;
 	if (state->_inst->dest_addressing_method != NO_ADDRESSING_METHOD) contains_dest_addressing = true;
@@ -729,8 +736,6 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 		printf("Error on line: #%lu: Invalid addressing method.\n", state->_inst->line_number);
 		return invalid;
 	}
-
-
 
 	/*Get the number that represents the command in the current instruction*/
 	command = command_number_by_key(keyword_table, state->cmd_key);
@@ -885,6 +890,61 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 		return invalid;
 	}
 
+	if (_addressing_method == IMMEDIATE) {
+		tmp_ptr = strchr(argument, '#');
+		tmp_val = atoi(tmp_ptr + 1);
+
+		switch (command) {
+		case PRN:
+			if (state->_inst->immediate_val_dest != UNDEFINED) {
+				break;
+			}
+			state->_inst->immediate_val_dest = tmp_val;
+			break;
+
+		case MOV:
+		case ADD:
+		case SUB:
+			if (state->_inst->immediate_val_src != UNDEFINED) {
+				break;
+			}
+			state->_inst->immediate_val_src = tmp_val;
+			break;
+
+		case CMP:
+			if (state->_inst->src_addressing_method != IMMEDIATE && state->_inst->dest_addressing_method == IMMEDIATE) {
+				if (state->_inst->immediate_val_dest == UNDEFINED) {
+					state->_inst->immediate_val_dest = tmp_val;
+				}
+				break;
+			}
+
+			if (state->_inst->src_addressing_method == IMMEDIATE && state->_inst->dest_addressing_method != IMMEDIATE) {
+				if (state->_inst->immediate_val_src == UNDEFINED) {
+					state->_inst->immediate_val_src = tmp_val;
+				}
+				break;
+			}
+
+			if ((state->_inst->src_addressing_method == IMMEDIATE && state->_inst->dest_addressing_method == IMMEDIATE)) {
+				if (state->_inst->immediate_val_src == UNDEFINED) {
+					state->_inst->immediate_val_src = tmp_val;
+					break;
+				}
+
+				if (state->_inst->immediate_val_dest == UNDEFINED) {
+					state->_inst->immediate_val_dest = tmp_val;
+					break;
+				}
+			}
+
+		default:
+			tmp_ptr = NULL;
+			tmp_val = 0;
+		}
+
+	}
+
 	if (_addressing_method == DIRECT) {
 		if (validate_label_name(state, _label_table, keyword_table) != valid) {
 			printf("Error on line: #%lu: ", state->_inst->line_number);
@@ -902,24 +962,130 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 
 		if (found_label_with_matching_name) {
 			if (state->_inst->src_addressing_method == DIRECT) {
-				if (state->_inst->immediate_label_key_src == -1) {
-					state->_inst->immediate_label_key_src = tmp_label->key;
-					strcpy(state->_inst->immediate_label_name_src, tmp_label->name);
+				if (state->_inst->direct_label_key_src == -1) {
+					state->_inst->direct_label_key_src = tmp_label->key;
+					strcpy(state->_inst->direct_label_name_src, tmp_label->name);
 				}
 			}
 			if (state->_inst->dest_addressing_method == DIRECT) {
-				if (state->_inst->immediate_label_key_dest == -1) {
-					state->_inst->immediate_label_key_dest = tmp_label->key;
-					strcpy(state->_inst->immediate_label_name_dest, tmp_label->name);
+				if (state->_inst->direct_label_key_dest == -1) {
+					state->_inst->direct_label_key_dest = tmp_label->key;
+					strcpy(state->_inst->direct_label_name_dest, tmp_label->name);
 				}
 			}
 
 		}
 	}
 
+	if (_addressing_method == INDIRECT_REGISTER) {
+		tmp_ptr = strstr(argument, "r") + 1;
+		tmp_val = atoi(tmp_ptr);
+
+
+		switch (command) {
+		case MOV:
+		case CMP:
+		case ADD:
+		case SUB:
+			if (state->_inst->src_addressing_method != INDIRECT_REGISTER && state->_inst->dest_addressing_method == INDIRECT_REGISTER) {
+				if (state->_inst->indirect_reg_num_dest == UNSET) {
+					state->_inst->indirect_reg_num_dest = tmp_val;
+				}
+				break;
+			}
+
+			if (state->_inst->src_addressing_method == INDIRECT_REGISTER && state->_inst->dest_addressing_method != INDIRECT_REGISTER) {
+				if (state->_inst->indirect_reg_num_src == UNSET) {
+					state->_inst->indirect_reg_num_src = tmp_val;
+				}
+				break;
+			}
+
+			if ((state->_inst->src_addressing_method == INDIRECT_REGISTER && state->_inst->dest_addressing_method == INDIRECT_REGISTER)) {
+				if (state->_inst->indirect_reg_num_src == UNSET) {
+					state->_inst->indirect_reg_num_src = tmp_val;
+					break;
+				}
+
+				if (state->_inst->indirect_reg_num_dest == UNSET) {
+					state->_inst->indirect_reg_num_dest = tmp_val;
+					break;
+				}
+			}
+
+
+		case LEA:
+		case CLR:
+		case NOT:
+		case INC:
+		case DEC:
+		case JMP:
+		case BNE:
+		case RED:
+		case PRN:
+		case JSR:
+			if (state->_inst->indirect_reg_num_dest == UNDEFINED) {
+				state->_inst->indirect_reg_num_dest = tmp_val;
+			}
+			break;
+		}
+	}
+
+	if (_addressing_method == DIRECT_REGISTER) {
+		tmp_ptr = NULL;
+		tmp_val = UNSET;
+
+		tmp_ptr = strchr(argument, 'r') + 1;
+		tmp_val = atoi(tmp_ptr);
+
+		switch (command) {
+		case MOV:
+		case CMP:
+		case ADD:
+		case SUB:
+			if (state->_inst->src_addressing_method != DIRECT_REGISTER && state->_inst->dest_addressing_method == DIRECT_REGISTER) {
+				if (state->_inst->direct_reg_num_dest == UNSET) {
+					state->_inst->direct_reg_num_dest = tmp_val;
+				}
+				break;
+			}
+
+			if (state->_inst->src_addressing_method == DIRECT_REGISTER && state->_inst->dest_addressing_method != DIRECT_REGISTER) {
+				if (state->_inst->direct_reg_num_src == UNSET) {
+					state->_inst->direct_reg_num_src = tmp_val;
+				}
+				break;
+			}
+
+			if ((state->_inst->src_addressing_method == DIRECT_REGISTER && state->_inst->dest_addressing_method == DIRECT_REGISTER)) {
+				if (state->_inst->direct_reg_num_src == UNSET) {
+					state->_inst->direct_reg_num_src = tmp_val;
+					break;
+				}
+
+				if (state->_inst->direct_reg_num_dest == UNSET) {
+					state->_inst->direct_reg_num_dest = tmp_val;
+					break;
+				}
+
+				break;
+			}
+
+		case LEA:
+		case CLR:
+		case NOT:
+		case INC:
+		case DEC:
+		case RED:
+		case PRN:
+			if (state->_inst->direct_reg_num_dest == UNDEFINED) {
+				state->_inst->direct_reg_num_dest = tmp_val;
+			}
+			break;
+		}
+
+	}
 	return valid;
-
-
 }
 
 static validation_state validate_label_name(syntax_state *state, label_table *_label_table, keyword *keyword_table) {
@@ -992,8 +1158,6 @@ static status assign_addresses(inst_table *_inst_table, label_table *_label_tabl
 	int label_key = 0;
 	label *tmp_label = NULL;
 	inst *tmp_inst = NULL;
-	int i = 0;
-	bool found_label = false;
 
 	if (_inst_table == NULL | _label_table == NULL || _keyword_table == NULL) {
 		return STATUS_ERROR;
@@ -1012,6 +1176,7 @@ static status assign_addresses(inst_table *_inst_table, label_table *_label_tabl
 				}
 			}
 			words_generated += tmp_inst->num_words_to_generate;
+			tmp_inst->bin_address = tmp_inst->address;
 			tmp_inst = NULL;
 			tmp_label = NULL;
 			inst_index++;

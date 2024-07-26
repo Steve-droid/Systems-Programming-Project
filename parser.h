@@ -26,7 +26,6 @@
 #include "instruction.h"
 
 
-bin_table *parse(inst_table *_inst_table, label_table *_label_table, keyword *keyword_table);
 
 
 #endif

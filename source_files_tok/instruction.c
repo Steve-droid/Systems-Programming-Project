@@ -1,12 +1,8 @@
 #include "instruction.h"
 #define MAX_TOKEN_SIZE 25
 #define INITIAL_CAPACITY 20
+#define UNSET -1
 
-/* Error handling functions */
-static void generic_memory_error(void *allocated_data) {
-    free(allocated_data);
-    printf("Error: Memory allocation error\n");
-}
 
 static void table_memory_error(inst_table *_inst_table, inst *_inst) {
     destroy_instruction(&_inst);
@@ -49,27 +45,60 @@ status create_instruction(inst **new_instruction) {
     /* Set the default values */
     _inst->num_tokens = 0;
     _inst->capacity = INITIAL_NUM_TOKENS;
-    _inst->cmd_key = UNDEFINED;
-    _inst->address = UNDEFINED;
-    _inst->line_number = UNDEFINED;
+    _inst->num_words_to_generate = 0;
+    _inst->opcode = UNSET;
+    _inst->cmd_key = UNSET;
+    _inst->address = UNSET;
+    _inst->line_number = UNSET;
+    _inst->label_key = UNSET;
+
+    /* Directibe parameters */
     _inst->num_dot_data_members = 0;
     _inst->num_dot_string_members = 0;
-    _inst->num_words_to_generate = 0;
     _inst->is_dot_data = false;
     _inst->is_dot_string = false;
     _inst->is_entry = false;
     _inst->is_extern = false;
+
+    /* Operation parameters */
     _inst->src_addressing_method = NO_ADDRESSING_METHOD;
     _inst->dest_addressing_method = NO_ADDRESSING_METHOD;
+
+
+    /* For immediate addressing */
+    _inst->immediate_val_src = UNDEFINED;
+    _inst->immediate_val_dest = UNDEFINED;
+
+
+    /* For direct addressing */
     for (i = 0;i < MAX_LINE_LENGTH;i++) {
-        _inst->immediate_label_name_src[i] = '\0';
+        _inst->direct_label_name_src[i] = '\0';
     }
     for (i = 0;i < MAX_LINE_LENGTH;i++) {
-        _inst->immediate_label_name_dest[i] = '\0';
+        _inst->direct_label_name_dest[i] = '\0';
     }
-    _inst->label_key = 0;
-    _inst->immediate_label_key_src = -1;
-    _inst->immediate_label_key_dest = -1;
+    _inst->direct_label_key_src = UNSET;
+    _inst->direct_label_key_dest = UNSET;
+    _inst->direct_label_address_src = UNSET;
+    _inst->direct_label_address_dest = UNSET;
+
+    /* For indirect register addressing */
+    _inst->indirect_reg_num_src = UNSET;
+    _inst->indirect_reg_num_dest = UNSET;
+
+    /* For direct register addressing */
+    _inst->direct_reg_num_src = UNSET;
+    _inst->direct_reg_num_dest = UNSET;
+
+
+    /* Binary representation parameters */
+    _inst->binary_word_vec = NULL;
+    _inst->bin_ARE = 0;
+    _inst->bin_opcode = 0;
+    _inst->bin_src_method = 0;
+    _inst->bin_dest_method = 0;
+    _inst->bin_address = 0;
+
 
     *new_instruction = _inst;
     return STATUS_OK;
@@ -96,7 +125,6 @@ status create_empty_token(inst *instruction) {
 
 status create_instruction_table(inst_table **new_instruction_table) {
     inst_table *new_table = NULL;
-    size_t i = 0;
 
     /* Allocate memory for the new instruction table */
     new_table = (inst_table *)calloc(1, sizeof(inst_table));
@@ -118,49 +146,6 @@ status create_instruction_table(inst_table **new_instruction_table) {
 
 
     *new_instruction_table = new_table;
-
-    return STATUS_OK;
-}
-
-status init_instruction(inst *_inst) {
-    size_t i;
-    _inst->num_tokens = 0;
-    _inst->capacity = INITIAL_NUM_TOKENS;
-    _inst->cmd_key = UNDEFINED;
-    _inst->address = UNDEFINED;
-    _inst->line_number = UNDEFINED;
-    _inst->num_dot_data_members = 0;
-    _inst->num_dot_string_members = 0;
-    _inst->num_words_to_generate = 0;
-    _inst->is_dot_data = false;
-    _inst->is_dot_string = false;
-    _inst->is_entry = false;
-    _inst->is_extern = false;
-    _inst->src_addressing_method = NO_ADDRESSING_METHOD;
-    _inst->dest_addressing_method = NO_ADDRESSING_METHOD;
-    for (i = 0;i < MAX_LINE_LENGTH;i++) {
-        _inst->immediate_label_name_src[i] = '\0';
-    }
-    for (i = 0;i < MAX_LINE_LENGTH;i++) {
-        _inst->immediate_label_name_dest[i] = '\0';
-    }
-    _inst->immediate_label_key_src = -1;
-    _inst->immediate_label_key_dest = -1;
-
-    return STATUS_OK;
-}
-
-status init_instruction_table(inst_table *_inst_table) {
-    size_t i;
-    _inst_table->num_instructions = 0;
-    _inst_table->capacity = INITIAL_CAPACITY;
-    _inst_table->inst_vec = (inst **)calloc(_inst_table->capacity, sizeof(inst *));
-    if (_inst_table->inst_vec == NULL) {
-        printf("Error while allocating memory for instruction table. Exiting...\n");
-        return STATUS_ERROR_MEMORY_ALLOCATION;
-    }
-
-    for (i = 0; i < _inst_table->capacity; i++) _inst_table->inst_vec[i] = NULL;
 
     return STATUS_OK;
 }
@@ -227,7 +212,6 @@ status insert_inst_to_table(inst_table *_inst_table, inst *instruction) {
 
 }
 
-
 /* Get functions */
 char **get_tokens(inst *instruction) {
     if (instruction == NULL) {
@@ -280,15 +264,12 @@ int get_num_instructions(inst_table *table) {
     return table->num_instructions;
 }
 
-
 void destroy_instruction(inst **_inst) {
     size_t i;
-    size_t amount = 0;
     if (_inst == NULL || *_inst == NULL) {
         return;
     }
 
-    amount = INITIAL_NUM_TOKENS;
 
     for (i = 0; i < (*_inst)->num_tokens; i++) {
         free((*_inst)->tokens[i]);
@@ -318,6 +299,13 @@ void destroy_instruction_table(inst_table **_inst_table) {
     (*_inst_table)->inst_vec = NULL;
     free((*_inst_table));
     (*_inst_table) = NULL;
+}
+
+void print_bits(unsigned value, int num_bits) {
+    int i;
+    for (i = num_bits - 1; i >= 0; i--) {
+        printf("%u", (value >> i) & 1);
+    }
 }
 
 void print_instruction(inst *_inst, label_table *_label_table) {
@@ -370,59 +358,100 @@ void print_instruction(inst *_inst, label_table *_label_table) {
 
 
     size = _inst->num_tokens;
-    printf("\n##################################################\n");
-    printf("\t\t");
+    printf("\n\t***\t");
     for (i = 0; i < size; i++) {
         printf("%s ", _inst->tokens[i]);
     }
-    printf("\n##################################################\n");
-    printf("Line number: %ld\n", _inst->line_number);
-    printf("Number of tokens: %ld\n", _inst->num_tokens);
-    printf("Command key: %d\n", _inst->cmd_key);
-    if (_inst->label_key != 0) {
+    printf("\t***");
+    printf("\n\nGeneral Information:\n");
+    printf("\t\tLine number: %ld\n", _inst->line_number);
+    printf("\t\tNumber of tokens: %ld\n", _inst->num_tokens);
+    printf("\t\tCommand key: %d\n", _inst->cmd_key);
+    if (_inst->opcode != UNSET) {
+        printf("\t\tOpcode: ");
+        print_bits(_inst->bin_opcode, 4);
+        printf("\n");
+    }
+
+    printf("\t\tNumber of binary words to generate: %lu\n", _inst->num_words_to_generate);
+    printf("\t\tAddress: %d\n", _inst->address);
+
+    if (_inst->label_key != UNSET) {
         tmp_label = get_label_by_key(_label_table, _inst->label_key);
-        printf("Instruction is defined by the following label:\n");
-        printf("Label name: '%s', Label key: %d\n", tmp_label->name, _inst->label_key);
+        printf("\t\tInstruction is defined by the following label:\n");
+        printf("\t\tLabel name: '%s', Label key: %d\n", tmp_label->name, _inst->label_key);
     }
-    printf("Source addressing method: %s\n", addressing_method_src);
-    if (_inst->immediate_label_key_src != -1) {
-        printf("Direct label key for source operand: %d\n", _inst->immediate_label_key_src);
-        printf("Direct label name for source operand: %s\n", _inst->immediate_label_name_src);
-    }
-    printf("Destination addressing method: %s\n", addressing_method_dest);
-    if (_inst->immediate_label_key_dest != -1) {
-        printf("Direct label key for destination operand: %d\n", _inst->immediate_label_key_dest);
-        printf("Direct label name for destination operand: %s\n", _inst->immediate_label_name_dest);
-    }
-    printf("Number of binary words to generate: %lu\n", _inst->num_words_to_generate);
-    printf("Address: %d\n", _inst->address);
 
+    if (_inst->src_addressing_method != NO_ADDRESSING_METHOD) {
+        printf("\nSource Operand Information:\n");
+        printf("\t\tSource operand addressing method --> %s\n", addressing_method_src);
+    }
 
+    if (_inst->immediate_val_src != UNDEFINED) {
+        printf("\t\tImmediate Addressing --> value of source operand --> %d\n", _inst->immediate_val_src);
+    }
+
+    if (_inst->direct_label_key_src != UNSET) {
+        printf("\t\tDirect Addressing --> label key for source operand: %d\n", _inst->direct_label_key_src);
+        printf("\t\tDirect Addressing --> label name for source operand: %s\n", _inst->direct_label_name_src);
+    }
+
+    if (_inst->indirect_reg_num_src != UNSET) {
+        printf("\t\tIndirect Register Addressing --> source register number --> %d\n", _inst->indirect_reg_num_src);
+    }
+
+    if (_inst->direct_reg_num_src != UNSET) {
+        printf("\t\tDirect Regsiter Addressing --> source register number --> %d\n", _inst->direct_reg_num_src);
+    }
+
+    if (_inst->dest_addressing_method != NO_ADDRESSING_METHOD) {
+        printf("\nDestination Operand Information:\n");
+        printf("\t\tDestination operand addressing method --> %s\n", addressing_method_dest);
+    }
+
+    if (_inst->immediate_val_dest != UNDEFINED) {
+        printf("\t\tImmediate Addressing --> value of destination operand --> %d\n", _inst->immediate_val_dest);
+    }
+
+    if (_inst->direct_label_key_dest != UNSET) {
+        printf("\t\tDirect Addressing --> label key for destination operand --> %d\n", _inst->direct_label_key_dest);
+        printf("\t\tDirect Addressing --> label name for destination operand --> %s\n", _inst->direct_label_name_dest);
+    }
+
+    if (_inst->indirect_reg_num_dest != UNSET) {
+        printf("\t\tIndirect Register Addressing --> destination register number --> %d\n", _inst->indirect_reg_num_dest);
+    }
+
+    if (_inst->direct_reg_num_dest != UNSET) {
+        printf("\t\tDirect Regsiter Addressing --> destination register number --> %d\n", _inst->direct_reg_num_dest);
+    }
+    printf("---------------------------------------------------------\n");
 
 }
 
 void print_instruction_table(inst_table *_inst_table, label_table *_label_table) {
     size_t i;
-    size_t size = 0;
     if (_inst_table == NULL) {
         printf("Error: Trying to print NULL instruction table\n");
         return;
     }
-    printf("\n##################################################\n");
+    printf("\n---------------------------------------------------------\n");
     printf("\nPrinting instruction table\n");
-    printf("\n##################################################\n");
+    printf("\n---------------------------------------------------------\n");
     printf("Number of instructions: %ld\n", _inst_table->num_instructions);
     printf("Capacity: %ld\n", _inst_table->capacity);
     printf("IC: %ld\n", _inst_table->IC);
     printf("DC: %ld\n", _inst_table->DC);
-    printf("\n##################################################\n");
-    printf("\tPrinting instructions:\n");
+    printf("\n---------------------------------------------------------\n");
+    printf("Printing instructions:");
+    printf("\n---------------------------------------------------------\n");
+
 
     for (i = 0; i < _inst_table->num_instructions; i++) {
         print_instruction(_inst_table->inst_vec[i], _label_table);
     }
 
-    printf("\n-----------------------------------\n");
+    printf("\n---------------------------------------------------------\n");
     printf("End of instruction table\n");
 }
 

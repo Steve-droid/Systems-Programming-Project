@@ -1,11 +1,8 @@
 /**
- *@file common.h Contains the common data structures and constants used throughout the assembler.
- * @author your name (you@domain.com)
- * @brief
- * @version 0.1
+ *@file common.h
+ * @brief Contains the common data structures and constants used throughout the assembler.
  * @date 2024-07-21
  *
- * @copyright Copyright (c) 2024
  *
  */
 #ifndef COMMON_H
@@ -20,6 +17,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <err.h>
+#include <stdint-gcc.h>
 
 #define MAX_LINE_LENGTH 80
 #define UNKNOWN_NUMBER_OF_ARGUMENTS -2
@@ -52,6 +50,7 @@
 #define MINUS -50002
 #define COMMA -50003
 
+ /*---Enums---*/
 typedef enum {
     invalid, valid
 } validation_state;
@@ -78,15 +77,12 @@ typedef enum {
     CONTAINS_EXTERN,
     CONTAINS_ENTRY,
     CONTAINS_EXTERN_AND_ENTRY,
-    NEITHER_EXTERN_NOR_ENTRY,
+    NEITHER_EXTERN_NOR_ENTRY
 } status;
 
 
-
-
-
 typedef enum addressing_method {
-    NO_ADDRESSING_METHOD = -2, UNDEFINED_METHOD = -1, IMMEDIATE = 1, DIRECT, INDIRECT_REGISTER, DIRECT_REGISTER
+    NO_ADDRESSING_METHOD = -2, UNDEFINED_METHOD = -1, IMMEDIATE = 0, DIRECT, INDIRECT_REGISTER, DIRECT_REGISTER
 } addressing_method;
 
 
@@ -100,62 +96,124 @@ typedef enum {
 
 
 typedef enum {
-    MOV_OPCODE,    /* 0 */
-    CMP_OPCODE,    /* 1 */
-    ADD_OPCODE,    /* 2 */
-    SUB_OPCODE,    /* 3 */
-    LEA_OPCODE,    /* 4 */
-    CLR_OPCODE,    /* 5 */
-    NOT_OPCODE,    /* 6 */
-    INC_OPCODE,    /* 7 */
-    DEC_OPCODE,    /* 8 */
-    JMP_OPCODE,    /* 9 */
-    BNE_OPCODE,    /* 10 */
-    RED_OPCODE,    /* 11 */
-    PRN_OPCODE,    /* 12 */
-    JSR_OPCODE,    /* 13 */
-    RTS_OPCODE,    /* 14 */
-    STOP_OPCODE   /* 15 */
+    UNSET_OPCODE = -1,
+    MOV_OPCODE = 0,    /* 0-> 0000 */
+    CMP_OPCODE,    /* 1-> 0001 */
+    ADD_OPCODE,    /* 2-> 0010 */
+    SUB_OPCODE,    /* 3-> 0011 */
+    LEA_OPCODE,    /* 4-> 0100 */
+    CLR_OPCODE,    /* 5-> 0101 */
+    NOT_OPCODE,    /* 6-> 0110 */
+    INC_OPCODE,    /* 7-> 0111 */
+    DEC_OPCODE,    /* 8-> 1000 */
+    JMP_OPCODE,    /* 9-> 1001 */
+    BNE_OPCODE,    /* 10->1010 */
+    RED_OPCODE,    /* 11->1011 */
+    PRN_OPCODE,    /* 12->1100 */
+    JSR_OPCODE,    /* 13->1101 */
+    RTS_OPCODE,    /* 14->1110 */
+    STOP_OPCODE    /* 15->1111 */
 } commands_opcodes;
 
 typedef enum register_name {
     UNDEFINED_REGISTER = -1, r0, r1, r2, r3, r4, r5, r6, r7
 } register_name;
 
-typedef struct buffer_data {
-    char *buffer;
-    int index;
-    int line_counter;
-    int command_key;
-} buffer_data;
-
+/*---Data Structres---*/
 typedef struct {
     char name[MAX_KEYWORD_LENGTH];
     int key;
     int length;
 }keyword;
 
+/**
+ * struct instruction - Represents an assembly instruction or directive.
+ *
+ * @tokens: An array of strings representing tokens in the instruction.
+ *          - For .data/.string directives:
+ *            - tokens[0]: Directive name (e.g., ".data", ".string").
+ *            - tokens[1]: Data as a single string (e.g., integers or characters).
+ *          - For operations:
+ *            - tokens[0]: Command name (e.g., add, mov).
+ *            - tokens[1]: First argument, if it exists.
+ *            - tokens[2]: Second argument, if it exists.
+ * @cmd_key: An integer key representing the command (operation).
+ * @label_key: An integer key representing the label.
+ * @address: The memory address associated with this instruction.
+ * @num_tokens: The number of tokens in the tokens array.
+ * @capacity: The capacity of the tokens array (for dynamic memory management).
+ * @line_number: The line number in the source code where this instruction appears.
+ * @num_words_to_generate: The number of words this instruction will generate in machine code.
+ * @num_dot_data_members: The number of members in a .data directive.
+ * @num_dot_string_members: The number of characters in a .string directive.
+ * @src_addressing_method: The addressing method for the source operand.
+ * @dest_addressing_method: The addressing method for the destination operand.
+ * @direct_label_name_src: The direct label name for the source operand (if used).
+ * @direct_label_name_dest: The direct label name for the destination operand (if used).
+ * @direct_label_key_src: The key for the direct label source operand.
+ * @direct_label_key_dest: The key for the direct label destination operand.
+ * @is_dot_data: A boolean indicating if this instruction is a .data directive.
+ * @is_dot_string: A boolean indicating if this instruction is a .string directive.
+ * @is_entry: A boolean indicating if this instruction is an entry point.
+ * @is_extern: A boolean indicating if this instruction is an external reference.
+ */
 typedef struct instruction {
+
+    /* General instruction parameters */
     char **tokens;
+    size_t num_tokens;
+    size_t capacity;
+    size_t num_words_to_generate;
+    commands_opcodes opcode;
     int cmd_key;
     int label_key;
     int address;
-    size_t num_tokens;
-    size_t capacity;
     size_t line_number;
+
+    /* Directive parameters */
     size_t num_dot_data_members;
     size_t num_dot_string_members;
-    size_t num_words_to_generate;
-    addressing_method src_addressing_method;
-    addressing_method dest_addressing_method;
-    char immediate_label_name_src[MAX_LINE_LENGTH];
-    char immediate_label_name_dest[MAX_LINE_LENGTH];
-    int immediate_label_key_src;
-    int immediate_label_key_dest;
     bool is_dot_data;
     bool is_dot_string;
     bool is_entry;
     bool is_extern;
+
+    /* Operations parameters */
+    addressing_method src_addressing_method;
+    addressing_method dest_addressing_method;
+
+
+    /* For immediate addressing */
+    int immediate_val_src;
+    int immediate_val_dest;
+
+
+    /* For direct addressing */
+    int direct_label_key_src;
+    int direct_label_key_dest;
+    char direct_label_name_src[MAX_LINE_LENGTH];
+    char direct_label_name_dest[MAX_LINE_LENGTH];
+    int direct_label_address_src;
+    int direct_label_address_dest;
+
+    /* For indirect register addressing */
+    int indirect_reg_num_src;
+    int indirect_reg_num_dest;
+
+
+    /* For direct register addressing */
+    int direct_reg_num_src;
+    int direct_reg_num_dest;
+
+
+    /* Binary representation parameters */
+    uint16_t *binary_word_vec;
+    unsigned bin_ARE : 3;
+    unsigned bin_opcode : 4;
+    unsigned bin_src_method : 4;
+    unsigned bin_dest_method : 4;
+    unsigned bin_address : 15;
+
 } inst;
 typedef struct instruction_table {
     inst **inst_vec;
@@ -178,21 +236,6 @@ typedef struct bin_instruction {
     int cmd_key;
 }bin_inst;
 
-typedef struct bin_instruction_table {
-    bin_inst **bin_inst_vec;
-    size_t num_inst;
-    size_t capacity;
-    bin_word **dot_data_words;
-    size_t num_dot_data_words;
-    size_t dot_data_capacity;
-    bin_word **dot_string_words;
-    size_t num_dot_string_words;
-    size_t dot_string_capacity;
-}bin_table;
-
-typedef struct {
-    char data[MAX_LINE_LENGTH];
-}string;
 
 typedef struct label {
     char name[MAX_LABEL_LENGTH];
@@ -211,8 +254,8 @@ typedef struct label_table {
 }label_table;
 
 
-size_t DC(char *prompt);
-size_t IC(char *prompt);
+size_t DC(char *prompt, size_t amount);
+size_t IC(char *prompt, size_t amount);
 
 typedef struct data_image {
     char **data;

@@ -4,7 +4,6 @@
 #include "common.h"
 #include "symbols.h"
 #include "text_util.h"
-#include "parser.h"
 #include "asm_error.h"
 
 #define INITIAL_NUM_TOKENS 3

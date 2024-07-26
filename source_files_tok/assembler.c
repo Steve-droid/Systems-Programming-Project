@@ -1,26 +1,27 @@
 #include "assembler.h"
 
-size_t DC(char *prompt)
+size_t DC(char *prompt, size_t amount)
 {
     static size_t DC = 0;
 
     if (!strcmp(prompt, "get"))
         return DC;
     if (!strcmp(prompt, "increment")) {
-        DC++;
+        DC += amount;
     }
     return DC;
 }
 
-size_t IC(char *prompt)
+size_t IC(char *prompt, size_t amount)
 {
-    static size_t IC = 0;
+    static size_t IC = 100;
 
     if (!strcmp(prompt, "get"))
         return IC;
     if (!strcmp(prompt, "increment")) {
-        IC++;
+        IC += amount;
     }
+
     return IC;
 }
 
@@ -32,7 +33,6 @@ int main(int argc, char *argv[]) {
     macro_table *m_table = NULL;
     label_table *_label_table = NULL;
     inst_table *_inst_table = NULL;
-    bin_table *_bin_table = NULL;
     char **am_filenames = NULL;
 
     /*Initialize the keyword table*/
@@ -59,10 +59,8 @@ int main(int argc, char *argv[]) {
         macro_table_destructor(&m_table);
         exit(EXIT_FAILURE);
     }
-    printf("Label table before assigning addresses:\n");
-    print_label_table(_label_table);
 
-    /* Process the assembly code */
+    /* Lex the assembly code */
     _inst_table = lex(am_filenames[0], _label_table, keyword_table);
 
     if (_inst_table == NULL) {

@@ -260,6 +260,7 @@ validation_state label_name_is_valid(label_table *_label_table, char *_buffer, k
 }
 
 char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_external) {
+    size_t chars_copied = 0;
     char *label_name = NULL;
     char *copy_of_label_name = NULL;
     char *instruction_copy = NULL;
@@ -269,7 +270,7 @@ char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_exte
     bool contains_extern = false;
     int label_name_len = 0;
     *_entry_or_external = NEITHER_EXTERN_NOR_ENTRY;
-    size_t chars_copied = 0;
+
 
     /*Check if the line contains the .entry or .extern directive */
     if (strstr(*(_buffer), ".entry") != NULL) {
@@ -508,6 +509,8 @@ label *get_label_by_key(label_table *_label_table, int key) {
             return _label_table->labels[i];
         }
     }
+
+    return NULL;
 
 }
 
@@ -781,7 +784,6 @@ addressing_method get_addressing_method(char *sub_inst, label_table *_label_tabl
 }
 
 void destroy_keyword_table(keyword **_keyword_table) {
-    int i;
     if (_keyword_table == NULL || (*_keyword_table) == NULL) return;
 
     free(*_keyword_table);

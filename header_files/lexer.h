@@ -22,7 +22,6 @@
 #define LEXER_H
 
 #include "common.h"
-#include "binary.h"
 #include "text_util.h"
 #include "symbols.h"
 #include "instruction.h"

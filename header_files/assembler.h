@@ -9,7 +9,6 @@
 #include "pre_assembler.h"
 #include "lexer.h"
 #include "instruction.h"
-#include "binary.h"
 #include "asm_error.h"
 
 

@@ -9,51 +9,6 @@ Deleting filename ex1.as.bk... Done
 Deleting filenames...
 Deleting filename ex1.as... Done
 ex1.am
-Label table before assigning addresses:
-
-##################################################
-Label table:
-
------------------------------------
-Name: MAIN 
-Key: 1 
-Directives: No Directives 
-Instruction line: 0 
-
------------------------------------
-Name: LOOP 
-Key: 2 
-Directives: No Directives 
-Instruction line: 1 
-
------------------------------------
-Name: END 
-Key: 3 
-Directives: No Directives 
-Instruction line: 10 
-
------------------------------------
-Name: STR 
-Key: 4 
-Directives: No Directives 
-Instruction line: 11 
-
------------------------------------
-Name: LIST 
-Key: 5 
-Directives: No Directives 
-Instruction line: 12 
-
------------------------------------
-Name: K 
-Key: 6 
-Directives: No Directives 
-Instruction line: 14 
-
------------------------------------
-End of label table
-
-##################################################
 
 #################### Data Image #########################
 #0: abcd
@@ -63,209 +18,260 @@ End of label table
 
 ################# End Of Data Image #####################
 
-##################################################
+---------------------------------------------------------
 
 Printing instruction table
 
-##################################################
+---------------------------------------------------------
 Number of instructions: 15
 Capacity: 20
-IC: 15
+IC: 134
 DC: 9
 
-##################################################
-	Printing instructions:
+---------------------------------------------------------
+Printing instructions:
+---------------------------------------------------------
 
-##################################################
-		add r3 LIST 
-##################################################
-Line number: 0
-Number of tokens: 3
-Command key: 10
-Instruction is defined by the following label:
-Label name: 'MAIN', Label key: 1
-Source addressing method: DIRECT_REGISTER
-Destination addressing method: DIRECT
-Direct label key for destination operand: 5
-Direct label name for destination operand: LIST
-Number of binary words to generate: 3
-Address: 100
+	***	add r3 LIST 	***
 
-##################################################
-		prn #48 
-##################################################
-Line number: 1
-Number of tokens: 2
-Command key: 20
-Instruction is defined by the following label:
-Label name: 'LOOP', Label key: 2
-Source addressing method: NO_ADDRESSING_METHOD
-Destination addressing method: IMMEDIATE
-Number of binary words to generate: 2
-Address: 103
+General Information:
+		Line number: 0
+		Number of tokens: 3
+		Command key: 10
+		Opcode: 0010
+		Number of binary words to generate: 3
+		Address: 100
+		Instruction is defined by the following label:
+		Label name: 'MAIN', Label key: 1
 
-##################################################
-		lea STR r6 
-##################################################
-Line number: 2
-Number of tokens: 3
-Command key: 12
-Source addressing method: DIRECT
-Direct label key for source operand: 4
-Direct label name for source operand: STR
-Destination addressing method: DIRECT_REGISTER
-Number of binary words to generate: 3
-Address: 105
+Source Operand Information:
+		Source operand addressing method --> DIRECT_REGISTER
+		Direct Regsiter Addressing --> source register number --> 3
 
-##################################################
-		inc r6 
-##################################################
-Line number: 3
-Number of tokens: 2
-Command key: 15
-Source addressing method: NO_ADDRESSING_METHOD
-Destination addressing method: DIRECT_REGISTER
-Number of binary words to generate: 2
-Address: 108
+Destination Operand Information:
+		Destination operand addressing method --> DIRECT
+		Direct Addressing --> label key for destination operand --> 5
+		Direct Addressing --> label name for destination operand --> LIST
+---------------------------------------------------------
 
-##################################################
-		mov *r6 K 
-##################################################
-Line number: 4
-Number of tokens: 3
-Command key: 8
-Source addressing method: INDIRECT_REGISTER
-Destination addressing method: DIRECT
-Direct label key for destination operand: 6
-Direct label name for destination operand: K
-Number of binary words to generate: 3
-Address: 110
+	***	prn #48 	***
 
-##################################################
-		sub r1 r4 
-##################################################
-Line number: 5
-Number of tokens: 3
-Command key: 11
-Source addressing method: DIRECT_REGISTER
-Destination addressing method: DIRECT_REGISTER
-Number of binary words to generate: 2
-Address: 113
+General Information:
+		Line number: 1
+		Number of tokens: 2
+		Command key: 20
+		Opcode: 1100
+		Number of binary words to generate: 2
+		Address: 103
+		Instruction is defined by the following label:
+		Label name: 'LOOP', Label key: 2
 
-##################################################
-		cmp r3 #-6 
-##################################################
-Line number: 6
-Number of tokens: 3
-Command key: 9
-Source addressing method: DIRECT_REGISTER
-Destination addressing method: IMMEDIATE
-Number of binary words to generate: 3
-Address: 115
+Destination Operand Information:
+		Destination operand addressing method --> IMMEDIATE
+		Immediate Addressing --> value of destination operand --> 48
+---------------------------------------------------------
 
-##################################################
-		bne END 
-##################################################
-Line number: 7
-Number of tokens: 2
-Command key: 18
-Source addressing method: NO_ADDRESSING_METHOD
-Destination addressing method: DIRECT
-Direct label key for destination operand: 3
-Direct label name for destination operand: END
-Number of binary words to generate: 2
-Address: 118
+	***	lea STR r6 	***
 
-##################################################
-		dec K 
-##################################################
-Line number: 8
-Number of tokens: 2
-Command key: 16
-Source addressing method: NO_ADDRESSING_METHOD
-Destination addressing method: DIRECT
-Direct label key for destination operand: 6
-Direct label name for destination operand: K
-Number of binary words to generate: 2
-Address: 120
+General Information:
+		Line number: 2
+		Number of tokens: 3
+		Command key: 12
+		Opcode: 0100
+		Number of binary words to generate: 3
+		Address: 105
 
-##################################################
-		jmp LOOP 
-##################################################
-Line number: 9
-Number of tokens: 2
-Command key: 17
-Source addressing method: NO_ADDRESSING_METHOD
-Destination addressing method: DIRECT
-Direct label key for destination operand: 2
-Direct label name for destination operand: LOOP
-Number of binary words to generate: 2
-Address: 122
+Source Operand Information:
+		Source operand addressing method --> DIRECT
+		Direct Addressing --> label key for source operand: 4
+		Direct Addressing --> label name for source operand: STR
 
-##################################################
-		stop 
-##################################################
-Line number: 10
-Number of tokens: 1
-Command key: 23
-Instruction is defined by the following label:
-Label name: 'END', Label key: 3
-Source addressing method: NO_ADDRESSING_METHOD
-Destination addressing method: NO_ADDRESSING_METHOD
-Number of binary words to generate: 1
-Address: 124
+Destination Operand Information:
+		Destination operand addressing method --> DIRECT_REGISTER
+		Direct Regsiter Addressing --> destination register number --> 6
+---------------------------------------------------------
 
-##################################################
-		.string abcd 
-##################################################
-Line number: 11
-Number of tokens: 2
-Command key: 27
-Instruction is defined by the following label:
-Label name: 'STR', Label key: 4
-Source addressing method: NO_ADDRESSING_METHOD
-Destination addressing method: NO_ADDRESSING_METHOD
-Number of binary words to generate: 5
-Address: 125
+	***	inc r6 	***
 
-##################################################
-		.data 6, -9 
-##################################################
-Line number: 12
-Number of tokens: 2
-Command key: 26
-Instruction is defined by the following label:
-Label name: 'LIST', Label key: 5
-Source addressing method: NO_ADDRESSING_METHOD
-Destination addressing method: NO_ADDRESSING_METHOD
-Number of binary words to generate: 2
-Address: 130
+General Information:
+		Line number: 3
+		Number of tokens: 2
+		Command key: 15
+		Opcode: 0111
+		Number of binary words to generate: 2
+		Address: 108
 
-##################################################
-		.data -100 
-##################################################
-Line number: 13
-Number of tokens: 2
-Command key: 26
-Source addressing method: NO_ADDRESSING_METHOD
-Destination addressing method: NO_ADDRESSING_METHOD
-Number of binary words to generate: 1
-Address: 132
+Destination Operand Information:
+		Destination operand addressing method --> DIRECT_REGISTER
+		Direct Regsiter Addressing --> destination register number --> 6
+---------------------------------------------------------
 
-##################################################
-		.data 31 
-##################################################
-Line number: 14
-Number of tokens: 2
-Command key: 26
-Instruction is defined by the following label:
-Label name: 'K', Label key: 6
-Source addressing method: NO_ADDRESSING_METHOD
-Destination addressing method: NO_ADDRESSING_METHOD
-Number of binary words to generate: 1
-Address: 133
+	***	mov *r6 K 	***
 
------------------------------------
+General Information:
+		Line number: 4
+		Number of tokens: 3
+		Command key: 8
+		Opcode: 0000
+		Number of binary words to generate: 3
+		Address: 110
+
+Source Operand Information:
+		Source operand addressing method --> INDIRECT_REGISTER
+		Indirect Register Addressing --> source register number --> 6
+
+Destination Operand Information:
+		Destination operand addressing method --> DIRECT
+		Direct Addressing --> label key for destination operand --> 6
+		Direct Addressing --> label name for destination operand --> K
+---------------------------------------------------------
+
+	***	sub r1 r4 	***
+
+General Information:
+		Line number: 5
+		Number of tokens: 3
+		Command key: 11
+		Opcode: 0011
+		Number of binary words to generate: 2
+		Address: 113
+
+Source Operand Information:
+		Source operand addressing method --> DIRECT_REGISTER
+		Direct Regsiter Addressing --> source register number --> 1
+
+Destination Operand Information:
+		Destination operand addressing method --> DIRECT_REGISTER
+		Direct Regsiter Addressing --> destination register number --> 4
+---------------------------------------------------------
+
+	***	cmp r3 #-6 	***
+
+General Information:
+		Line number: 6
+		Number of tokens: 3
+		Command key: 9
+		Opcode: 0001
+		Number of binary words to generate: 3
+		Address: 115
+
+Source Operand Information:
+		Source operand addressing method --> DIRECT_REGISTER
+		Direct Regsiter Addressing --> source register number --> 3
+
+Destination Operand Information:
+		Destination operand addressing method --> IMMEDIATE
+		Immediate Addressing --> value of destination operand --> -6
+---------------------------------------------------------
+
+	***	bne END 	***
+
+General Information:
+		Line number: 7
+		Number of tokens: 2
+		Command key: 18
+		Opcode: 1010
+		Number of binary words to generate: 2
+		Address: 118
+
+Destination Operand Information:
+		Destination operand addressing method --> DIRECT
+		Direct Addressing --> label key for destination operand --> 3
+		Direct Addressing --> label name for destination operand --> END
+---------------------------------------------------------
+
+	***	dec K 	***
+
+General Information:
+		Line number: 8
+		Number of tokens: 2
+		Command key: 16
+		Opcode: 1000
+		Number of binary words to generate: 2
+		Address: 120
+
+Destination Operand Information:
+		Destination operand addressing method --> DIRECT
+		Direct Addressing --> label key for destination operand --> 6
+		Direct Addressing --> label name for destination operand --> K
+---------------------------------------------------------
+
+	***	jmp LOOP 	***
+
+General Information:
+		Line number: 9
+		Number of tokens: 2
+		Command key: 17
+		Opcode: 1001
+		Number of binary words to generate: 2
+		Address: 122
+
+Destination Operand Information:
+		Destination operand addressing method --> DIRECT
+		Direct Addressing --> label key for destination operand --> 2
+		Direct Addressing --> label name for destination operand --> LOOP
+---------------------------------------------------------
+
+	***	stop 	***
+
+General Information:
+		Line number: 10
+		Number of tokens: 1
+		Command key: 23
+		Opcode: 1111
+		Number of binary words to generate: 1
+		Address: 124
+		Instruction is defined by the following label:
+		Label name: 'END', Label key: 3
+---------------------------------------------------------
+
+	***	.string abcd 	***
+
+General Information:
+		Line number: 11
+		Number of tokens: 2
+		Command key: 27
+		Number of binary words to generate: 5
+		Address: 125
+		Instruction is defined by the following label:
+		Label name: 'STR', Label key: 4
+---------------------------------------------------------
+
+	***	.data 6, -9 	***
+
+General Information:
+		Line number: 12
+		Number of tokens: 2
+		Command key: 26
+		Number of binary words to generate: 2
+		Address: 130
+		Instruction is defined by the following label:
+		Label name: 'LIST', Label key: 5
+---------------------------------------------------------
+
+	***	.data -100 	***
+
+General Information:
+		Line number: 13
+		Number of tokens: 2
+		Command key: 26
+		Number of binary words to generate: 1
+		Address: 132
+---------------------------------------------------------
+
+	***	.data 31 	***
+
+General Information:
+		Line number: 14
+		Number of tokens: 2
+		Command key: 26
+		Number of binary words to generate: 1
+		Address: 133
+		Instruction is defined by the following label:
+		Label name: 'K', Label key: 6
+---------------------------------------------------------
+
+---------------------------------------------------------
 End of instruction table
 
 ##################################################

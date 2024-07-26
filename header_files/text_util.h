@@ -5,9 +5,7 @@
 #include "text_util.h"
 #include "symbols.h"
 #include "lexer.h"
-#include "parser.h"
 #include "instruction.h"
-#include "binary.h"
 
 
 

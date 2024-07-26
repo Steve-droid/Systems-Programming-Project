@@ -2,11 +2,13 @@
 
 /* Syntax State Utility */
 syntax_state *create_syntax_state() {
-    size_t i;
+    char *buffer = NULL;
     syntax_state *state = (syntax_state *)malloc(sizeof(syntax_state));
-    if (state == NULL) return NULL;
 
-    char *buffer = (char *)calloc(MAX_LINE_LENGTH, sizeof(char));
+    if (state == NULL)
+        return NULL;
+
+    buffer = (char *)calloc(MAX_LINE_LENGTH, sizeof(char));
     if (buffer == NULL) {
         free(state);
         state = NULL;
