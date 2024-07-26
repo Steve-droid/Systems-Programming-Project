@@ -192,6 +192,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		reset_syntax_state(state);
 	}
 
+	fclose(file);
 
 	_inst_table->IC = IC("get", 0);
 	_inst_table->DC = DC("get", 0);

@@ -374,6 +374,10 @@ char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_exte
     /* Free the instruction copy buffer */
     free(instruction_copy);
 
+    instruction_copy = NULL;
+    instruction_copy_ptr = NULL;
+    instruction_copy_ptr2 = NULL;
+
     /* If we reached this point, the instruction does not contain a label definition */
     return NULL;
 }
@@ -644,7 +648,6 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
     lines_in_file = -1; /* lines start from 0*/
 
     while (fgets(instruction_buffer, MAX_LINE_LENGTH, am_file)) { /* Read every line from the .am file */
-        label_name = NULL;
         entry_or_external = NEITHER_EXTERN_NOR_ENTRY;
 
         /* Skip empty lines */
@@ -664,10 +667,13 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
 
         if (instruction_buffer == NULL) {
             printf("Cannot continue filling the label table. Exiting...\n");
+            free(label_name);
+            label_name = NULL;
             destroy_label_table(&_label_table);
             destroy_keyword_table(&keywords_table);
             free(instruction_buffer);
             fclose(am_file);
+            return NULL;
         }
 
         /* If the line does not contain a label definition, continue to the next line */
@@ -684,6 +690,8 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
             destroy_label_table(&_label_table);
             destroy_keyword_table(&keywords_table);
             free(instruction_buffer);
+            free(label_name);
+            label_name = NULL;
             fclose(am_file);
             return NULL;
         }
@@ -697,6 +705,8 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
             destroy_keyword_table(&keywords_table);
             macro_table_destructor(&m_table);
             free(instruction_buffer);
+            free(label_name);
+            label_name = NULL;
             fclose(am_file);
             return NULL;
         }
@@ -711,13 +721,22 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
             destroy_keyword_table(&keywords_table);
             macro_table_destructor(&m_table);
             free(instruction_buffer);
+            free(label_name);
+            label_name = NULL;
             fclose(am_file);
             return NULL;
         }
 
+        free(label_name);
+        label_name = NULL;
+
     }
 
+
     free(instruction_buffer);
+    instruction_buffer = NULL;
+    free(label_name);
+    label_name = NULL;
     fclose(am_file);
     return _label_table;
 }

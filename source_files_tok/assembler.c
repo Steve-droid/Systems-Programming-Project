@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     keyword_table = fill_keyword_table();
     if (keyword_table == NULL) {
         printf("Error while filling keyword table. Exiting...\n");
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     /*Initialize the macro table*/
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
         printf("Error while filling macro table. Exiting...\n");
         delete_filenames(argc - 1, &am_filenames);
         destroy_keyword_table(&keyword_table);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
     /* Initialize the label table */
     _label_table = fill_label_table(am_filenames[0], m_table, keyword_table);
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
         delete_filenames(argc - 1, &am_filenames);
         destroy_keyword_table(&keyword_table);
         macro_table_destructor(&m_table);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     /* Lex the assembly code */
@@ -69,30 +69,14 @@ int main(int argc, char *argv[]) {
         destroy_keyword_table(&keyword_table);
         destroy_label_table(&_label_table);
         macro_table_destructor(&m_table);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
-    /* _bin_table = parse(_inst_table, _label_table, keyword_table);
 
-    if (_bin_table == NULL) {
-        printf("Error while parsing the assembly code. Exiting...\n");
-        delete_filenames(argc - 1, am_filenames);
-        macro_table_destructor(m_table);
-        label_table_destroy(&_label_table);
-        destroy_instruction_table(_inst_table);
-        free(keyword_table);
-        free(_label_table);
-        free(_inst_table);
-        free(_bin_table);
-        exit(EXIT_FAILURE);
-    }
-*/
-
-/* Free allocated memory */
     delete_filenames(argc - 1, &am_filenames);
     destroy_keyword_table(&keyword_table);
     destroy_label_table(&_label_table);
     macro_table_destructor(&m_table);
     destroy_instruction_table(&_inst_table);
-    return 0;
+    return EXIT_SUCCESS;
 }

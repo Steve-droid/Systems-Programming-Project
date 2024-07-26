@@ -149,9 +149,9 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
     status result = STATUS_ERROR;
     size_t i = 0;
     size_t file_amount = argc - 1;
-    char **as_filenames = argv + 1;
+    char **as_filenames = NULL;
     char **backup_filenames = NULL;
-    char **generic_filenames = NULL;
+    char **generic_filenames = argv + 1;
     char ch = '\0';
     FILE *tmp = NULL;
 
@@ -161,63 +161,77 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
         return NULL;
     }
 
+    as_filenames = (char **)calloc(file_amount, sizeof(char *));
+    if (as_filenames == NULL) {
+        generic_filenames = NULL;
+        return NULL;
+    }
+
     backup_filenames = (char **)calloc(file_amount, sizeof(char *));
     if (backup_filenames == NULL) {
-        delete_filenames(file_amount, am_filenames);
+        delete_filenames(file_amount, &as_filenames);
+        as_filenames = NULL;
+        generic_filenames = NULL;
         return NULL;
     }
+
     *(am_filenames) = (char **)calloc(file_amount, sizeof(char *));
     if (*(am_filenames) == NULL) {
+        delete_filenames(file_amount, &as_filenames);
         delete_filenames(file_amount, &backup_filenames);
         delete_filenames(file_amount, am_filenames);
+        generic_filenames = NULL;
+        as_filenames = NULL;
+        backup_filenames = NULL;
         return NULL;
     }
 
-    generic_filenames = (char **)calloc(file_amount, sizeof(char *));
-    if (generic_filenames == NULL) {
-        delete_filenames(file_amount, &backup_filenames);
-        delete_filenames(file_amount, am_filenames);
-        return NULL;
-    }
-
-    printf("Creating generic filenames...");
+    printf("Creating .as files... ");
     for (i = 0;i < file_amount;i++) {
-        if (remove_file_extension((&as_filenames[i]), (&generic_filenames[i])) != STATUS_OK) {
-            printf("Error while creating generic filenames. Exiting...");
+
+        as_filenames[i] = create_file_name(generic_filenames[i], ".as");
+
+        if (as_filenames[i] == NULL) {
+            printf("Error: .as file creation for %s did not execute properly.\nExiting...\n", generic_filenames[i]);
+            delete_filenames(file_amount, &as_filenames);
             delete_filenames(file_amount, &backup_filenames);
             delete_filenames(file_amount, am_filenames);
-            delete_filenames(file_amount, &generic_filenames);
+            generic_filenames = NULL;
+            as_filenames = NULL;
+            backup_filenames = NULL;
             return NULL;
         }
     }
+
     printf("Done\n");
+
 
     printf("Backing up original .as files...");
     if (duplicate_files(&backup_filenames, file_amount, as_filenames, ".bk") != STATUS_OK) {
         printf("Error: File backup did not execute properly. Exiting..");
+        delete_filenames(file_amount, &as_filenames);
         delete_filenames(file_amount, &backup_filenames);
         delete_filenames(file_amount, am_filenames);
-        delete_filenames(file_amount, &generic_filenames);
+        generic_filenames = NULL;
+        as_filenames = NULL;
+        backup_filenames = NULL;
         return NULL;
     }
 
+
     printf("Creating .am files... ");
     for (i = 0;i < file_amount;i++) {
-        if (remove_file_extension((&as_filenames[i]), generic_filenames + i) != STATUS_OK) {
-            printf("Error: .am file creation for %s did not execute properly.\nExiting...\n", as_filenames[i]);
-            delete_filenames(file_amount, &backup_filenames);
-            delete_filenames(file_amount, am_filenames);
-            delete_filenames(file_amount, &generic_filenames);
-            return NULL;
-        }
 
         *(am_filenames)[i] = create_file_name(generic_filenames[i], ".am");
 
         if (*(am_filenames)[i] == NULL) {
-            printf("Error: .am file creation for %s did not execute properly.\nExiting...\n", as_filenames[i]);
+            printf("Error: .am file creation for the file '%s.as' did not execute properly.\nExiting...\n", generic_filenames[i]);
+            delete_filenames(file_amount, &as_filenames);
             delete_filenames(file_amount, &backup_filenames);
             delete_filenames(file_amount, am_filenames);
-            delete_filenames(file_amount, &generic_filenames);
+            generic_filenames = NULL;
+            as_filenames = NULL;
+            backup_filenames = NULL;
             return NULL;
         }
     }
@@ -227,9 +241,12 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
     m_table = create_macro_table();
     if (m_table == NULL) {
         printf("Error: Could not create macro table. Exiting...\n");
+        delete_filenames(file_amount, &as_filenames);
         delete_filenames(file_amount, &backup_filenames);
         delete_filenames(file_amount, am_filenames);
-        delete_filenames(file_amount, &generic_filenames);
+        generic_filenames = NULL;
+        as_filenames = NULL;
+        backup_filenames = NULL;
         return NULL;
     }
     for (i = 0;i < file_amount;i++) {
@@ -265,9 +282,12 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
             break;
         default:
             printf("Unknown error.\n");
+            delete_filenames(file_amount, &as_filenames);
             delete_filenames(file_amount, &backup_filenames);
             delete_filenames(file_amount, am_filenames);
-            delete_filenames(file_amount, &generic_filenames);
+            generic_filenames = NULL;
+            as_filenames = NULL;
+            backup_filenames = NULL;
             macro_table_destructor(&m_table);
             return NULL;
         }
@@ -278,9 +298,11 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
         rename(backup_filenames[i], strcat(generic_filenames[i], ".as"));
     }
 
+    delete_filenames(file_amount, &as_filenames);
     delete_filenames(file_amount, &backup_filenames);
-    delete_filenames(file_amount, &generic_filenames);
-
+    generic_filenames = NULL;
+    as_filenames = NULL;
+    backup_filenames = NULL;
     return m_table;
 }
 

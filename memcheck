@@ -9,4 +9,5 @@ fi
 input_file=$1
 
 # Run valgrind with the specified options and input file, then pipe the output to ccze for color highlighting
-valgrind --leak-check=full --track-origins=yes ./assembler "$input_file" 2>&1 | ccze -A
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./assembler "$input_file" 2>&1 | ccze -A
+

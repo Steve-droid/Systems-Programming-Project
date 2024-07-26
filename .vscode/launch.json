@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/assembler",
-            "args": ["ex1.as"],
+            "args": ["ex1"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

@@ -1,13 +1,13 @@
-Creating generic filenames...Done
+Creating .as files... Done
 Backing up original .as files...Copying ex1.as file into ex1.as.bk... Done
 Creating .am files... Done
 Starting pre assembly for file 'ex1.as'...
 Adding macro 'm_macr' to macro table...
 Pre-assembly of 'ex1.as' completed successfully.
 Deleting filenames...
-Deleting filename ex1.as.bk... Done
-Deleting filenames...
 Deleting filename ex1.as... Done
+Deleting filenames...
+Deleting filename ex1.as.bk... Done
 ex1.am
 
 #################### Data Image #########################
