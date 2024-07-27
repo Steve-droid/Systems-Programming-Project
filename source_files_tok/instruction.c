@@ -269,6 +269,9 @@ void destroy_instruction(inst **_inst) {
         return;
     }
 
+    free((*_inst)->binary_word_vec);
+    (*_inst)->binary_word_vec = NULL;
+
 
     for (i = 0; i < (*_inst)->num_tokens; i++) {
         free((*_inst)->tokens[i]);
@@ -434,9 +437,9 @@ void print_instruction_table(inst_table *_inst_table, label_table *_label_table)
         printf("Error: Trying to print NULL instruction table\n");
         return;
     }
-    printf("\n---------------------------------------------------------\n");
-    printf("\nPrinting instruction table\n");
-    printf("\n---------------------------------------------------------\n");
+    printf("\n######################################################\n");
+    printf("Printing instruction table:");
+    printf("\n######################################################\n");
     printf("Number of instructions: %ld\n", _inst_table->num_instructions);
     printf("Capacity: %ld\n", _inst_table->capacity);
     printf("IC: %ld\n", _inst_table->IC);
@@ -449,9 +452,10 @@ void print_instruction_table(inst_table *_inst_table, label_table *_label_table)
     for (i = 0; i < _inst_table->num_instructions; i++) {
         print_instruction(_inst_table->inst_vec[i], _label_table);
     }
+    printf("\n######################################################\n");
+    printf("End of instruction table");
+    printf("\n######################################################\n\n\n");
 
-    printf("\n---------------------------------------------------------\n");
-    printf("End of instruction table\n");
 }
 
 

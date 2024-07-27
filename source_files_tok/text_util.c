@@ -408,7 +408,14 @@ void print_2D_array(int **arr) {
     printf("END 2D ARRAY\n");
 }
 
-void print_binary(int num) {
+
+void print_binary(uint16_t word) {
+    for (int i = 14; i >= 0; i--) {
+        printf("%u", (word >> i) & 1);
+    }
+    printf("\n");
+}
+void print_binary_2(int num) {
     int i;
     unsigned int mask;
     unsigned int u_num;
@@ -425,11 +432,6 @@ void print_binary(int num) {
         u_num = (unsigned int)num;
     }
     /** Check if the number is greater than or equal to FIRST_KEY and print it if so */
-
-    if (num >= FIRST_KEY) {
-        printf("%d\n", num);
-        return;
-    }
 
     /** Create the binary string */
     for (i = 0; i < 15; i++) {

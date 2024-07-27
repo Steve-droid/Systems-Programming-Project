@@ -22,9 +22,10 @@
 #define PARSER_H
 
 #include "common.h"
-#include "binary.h"
 #include "instruction.h"
 
+
+status parse(inst_table *_inst_table, label_table *_label_table, keyword *keyword_table);
 
 
 

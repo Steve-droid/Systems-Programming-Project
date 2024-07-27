@@ -40,7 +40,7 @@ bool is_empty_line(char *str);
 void print_2D_array(int **arr);
 void print_array_in_binary(int *arr);
 int *convert_twodim_array_to_onedim(int **two_dim_array);
-void print_binary(int num);
+void print_binary(uint16_t num);
 
 
 #endif

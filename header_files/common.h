@@ -208,11 +208,11 @@ typedef struct instruction {
 
     /* Binary representation parameters */
     uint16_t *binary_word_vec;
-    unsigned bin_ARE : 3;
-    unsigned bin_opcode : 4;
-    unsigned bin_src_method : 4;
-    unsigned bin_dest_method : 4;
-    unsigned bin_address : 15;
+    uint16_t bin_ARE;
+    uint16_t bin_opcode;
+    uint16_t bin_src_method;
+    uint16_t bin_dest_method;
+    uint16_t bin_address;
 
 } inst;
 typedef struct instruction_table {

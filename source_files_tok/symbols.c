@@ -387,10 +387,9 @@ void print_label_table(label_table *_label_table) {
         printf("ERROR- Trying to print a NULL label table.\n");
         return;
     }
-    printf("\n##################################################\n");
-    printf("Label table:\n");
-
-    printf("\n-----------------------------------\n");
+    printf("\n######################################################\n");
+    printf("Printing Label Table:");
+    printf("\n######################################################\n");
 
     for (i = 0; i < _label_table->size; i++) {
         printf("Name: %s \n", _label_table->labels[i]->name);
@@ -411,8 +410,11 @@ void print_label_table(label_table *_label_table) {
         printf("\n-----------------------------------\n");
 
     }
-    printf("End of label table\n");
-    printf("\n##################################################\n");
+    printf("\n######################################################\n");
+    printf("End Of Label Table");
+    printf("\n######################################################\n\n\n");
+
+
 }
 
 label_table *new_empty_label_table(label_table **new_label_table) {

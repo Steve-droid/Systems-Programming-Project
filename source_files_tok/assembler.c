@@ -71,11 +71,15 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
+    if (parse(_inst_table, _label_table, keyword_table) != STATUS_OK) {
+        printf("Error while parsing the assembly code. Exiting...\n");
+        delete_filenames(argc - 1, &am_filenames);
+        macro_table_destructor(&m_table);
+        destroy_keyword_table(&keyword_table);
+        destroy_label_table(&_label_table);
+        destroy_instruction_table(&_inst_table);
+        return EXIT_FAILURE;
+    }
 
-    delete_filenames(argc - 1, &am_filenames);
-    destroy_keyword_table(&keyword_table);
-    destroy_label_table(&_label_table);
-    macro_table_destructor(&m_table);
-    destroy_instruction_table(&_inst_table);
     return EXIT_SUCCESS;
 }

@@ -10,6 +10,7 @@
 #include "lexer.h"
 #include "instruction.h"
 #include "asm_error.h"
+#include "parser.h"
 
 
 

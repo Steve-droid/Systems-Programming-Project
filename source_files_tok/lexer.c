@@ -1185,6 +1185,29 @@ static status assign_addresses(inst_table *_inst_table, label_table *_label_tabl
 		}
 	}
 
+
+	for (inst_index = 0;inst_index < _inst_table->num_instructions;inst_index++) {
+		tmp_inst = _inst_table->inst_vec[inst_index];
+		if (tmp_inst->src_addressing_method == DIRECT) {
+			label_key = tmp_inst->direct_label_key_src;
+			tmp_label = get_label_by_key(_label_table, label_key);
+			tmp_inst->direct_label_address_src = tmp_label->address;
+
+			tmp_label = NULL;
+			label_key = UNSET;
+		}
+
+		if (tmp_inst->dest_addressing_method == DIRECT) {
+			label_key = tmp_inst->direct_label_key_dest;
+			tmp_label = get_label_by_key(_label_table, label_key);
+			tmp_inst->direct_label_address_dest = tmp_label->address;
+			tmp_label = NULL;
+			label_key = UNSET;
+		}
+
+	}
+
+
 	return STATUS_OK;
 }
 
