@@ -100,6 +100,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 	/* Create an instance of an instruction table */
 	if (create_instruction_table(&_inst_table) != STATUS_OK) {
 		printf("ERROR- Failed to create an instance of the instruction table\n");
+		fclose(file);
 		destroy_label_table(&_label_table);
 		destroy_label_table(&_label_table);
 		destroy_keyword_table(&keyword_table);
@@ -113,6 +114,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 	while (fgets(state->buffer, MAX_LINE_LENGTH, file)) { /* Read every line */
 		if (create_instruction(&state->_inst) != STATUS_OK) {
 			printf("ERROR- Failed to create an instance of the instruction\n");
+			fclose(file);
 			destroy_label_table(&_label_table);
 			destroy_keyword_table(&keyword_table);
 			destroy_instruction_table(&_inst_table);
@@ -144,9 +146,6 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		/* If the instruction starts with a label definition, skip it */
 		skip_label_name(state, _label_table);
 
-		if (state->extern_or_entry == CONTAINS_ENTRY || state->extern_or_entry == CONTAINS_EXTERN) {
-			continue;
-		}
 
 		/* Skip unnecessary spaces */
 		state->buffer = trim_whitespace(state->buffer);
@@ -156,10 +155,12 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 		/* If the command does not exist, exit */
 		if (state->cmd_key == UNDEFINED) {
+			fclose(file);
+			reset_syntax_state(state);
+			destroy_syntax_state(&state);
 			destroy_label_table(&_label_table);
 			destroy_keyword_table(&keyword_table);
 			destroy_instruction_table(&_inst_table);
-			destroy_syntax_state(&state);
 			return NULL;
 		}
 		/* If the command key is valid, assign the command key to the instruction */
@@ -170,6 +171,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 		if (generate_tokens(state, keyword_table, _label_table) != STATUS_OK) {
 			printf("ERROR- Failed to generate tokens\n");
+			fclose(file);
 			destroy_label_table(&_label_table);
 			destroy_keyword_table(&keyword_table);
 			destroy_instruction_table(&_inst_table);
@@ -180,6 +182,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		/* Insert the instruction to the instruction table */
 		if (insert_inst_to_table(_inst_table, state->_inst) != STATUS_OK) {
 			printf("ERROR- Failed to insert instruction to table\n");
+			fclose(file);
 			destroy_label_table(&_label_table);
 			destroy_keyword_table(&keyword_table);
 			destroy_instruction_table(&_inst_table);
@@ -193,6 +196,9 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 	}
 
 	fclose(file);
+
+	reset_syntax_state(state);
+	destroy_syntax_state(&state);
 
 	_inst_table->IC = IC("get", 0);
 	_inst_table->DC = DC("get", 0);
@@ -221,7 +227,6 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 	print_label_table(_label_table);
 
-	destroy_syntax_state(&state);
 
 	for (i = 0;i < _data_image->num_dot_data;i++) {
 		_data_image->data[i] = NULL;
@@ -1102,12 +1107,12 @@ static validation_state validate_label_name(syntax_state *state, label_table *_l
 
 			/* For every entry point, check if the label name exists in the label table */
 			if (_label->is_entry && state->is_entry) {
-				if (label_found = !strcmp(_label->name, state->_inst->tokens[next])) break;
+				if (label_found = !strcmp(_label->name, state->buffer)) break;
 			}
 
 			/* For every external point, check if the label name exists in the label table */
 			if (_label->is_extern && state->is_extern) {
-				if (label_found = !strcmp(_label->name, state->_inst->tokens[next])) break;
+				if (label_found = !strcmp(_label->name, state->buffer)) break;
 			}
 		}
 		if (label_found == false) {

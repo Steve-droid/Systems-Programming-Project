@@ -54,7 +54,6 @@ int main(int argc, char *argv[]) {
     if (_label_table == NULL) {
         printf("Error while filling label table. Exiting...\n");
         delete_filenames(argc - 1, &am_filenames);
-        destroy_keyword_table(&keyword_table);
         macro_table_destructor(&m_table);
         return EXIT_FAILURE;
     }
@@ -64,6 +63,7 @@ int main(int argc, char *argv[]) {
 
     if (_inst_table == NULL) {
         printf("Error while lexing the assembly code. Exiting...\n");
+        destroy_instruction_table(&_inst_table);
         delete_filenames(argc - 1, &am_filenames);
         destroy_keyword_table(&keyword_table);
         destroy_label_table(&_label_table);
@@ -80,6 +80,10 @@ int main(int argc, char *argv[]) {
         destroy_instruction_table(&_inst_table);
         return EXIT_FAILURE;
     }
+
+    delete_filenames(argc - 1, &am_filenames);
+    macro_table_destructor(&m_table);
+
 
     return EXIT_SUCCESS;
 }
