@@ -26,7 +26,6 @@ size_t IC(char *prompt, size_t amount)
 }
 
 
-
 int main(int argc, char *argv[]) {
 
     keyword *keyword_table = NULL;

@@ -171,7 +171,6 @@ status print_macro_lines(macro *mac) {
 
 }
 
-
 status print_macro_table(macro_table *table) {
     macro *current_macro;
     int index;

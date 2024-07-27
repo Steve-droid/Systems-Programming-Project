@@ -20,7 +20,6 @@
 #define MAX_CMD_ARG_AMOUNT 3
 #define UNSET -1
 
-
 static status generate_tokens(syntax_state *state, keyword *keyword_table, label_table *_label_table);
 static status assign_data(syntax_state *state, label_table *_label_table, keyword *keyword_table);
 static status assign_args(syntax_state *state, label_table *_label_table, keyword *keyword_table);
@@ -110,6 +109,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 	}
 
 	reset_syntax_state(state);
+
 	while (fgets(state->buffer, MAX_LINE_LENGTH, file)) { /* Read every line */
 		if (create_instruction(&state->_inst) != STATUS_OK) {
 			printf("ERROR- Failed to create an instance of the instruction\n");
@@ -453,7 +453,8 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 
 
 	arg_index = 0;
-	/*loop for every argument*/
+
+	/* Check each argument- look for syntax errors */
 	for (arg_count = 1; arg_count < state->_inst->num_tokens; arg_count++) {
 		arg_index = 0;
 		arg_len = 0;
@@ -558,7 +559,7 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 
 
 	/*
-	If we reached this point, all arguments have been successfully processed, but might not have a valid addressing method
+	If we reached this point, all arguments for the specific command (i.e operation) have been successfully processed.
 	Check if there are any additional arguments after the last one
 	*/
 
@@ -1186,30 +1187,4 @@ static status assign_addresses(inst_table *_inst_table, label_table *_label_tabl
 
 	return STATUS_OK;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -201,6 +201,7 @@ char *skip_ent_or_ext(char *_buffer) {
     trim_whitespace(ptr);
     return ptr;
 }
+
 void skip_label_name(syntax_state *state, label_table *_label_table) {
 
     int i;
@@ -325,8 +326,6 @@ void print_array_in_binary(int *arr) {
     printf("\n");
 }
 
-
-
 bool is_empty_line(char *str) {
     /* Remove the newline character at the end of the line, if there is one */
     str[strcspn(str, "\n")] = '\0';
@@ -394,8 +393,6 @@ int *convert_to_int_array(char *str) {
     return result;
 }
 
-
-
 /*Print utils*/
 void print_2D_array(int **arr) {
     int i, j, counter;
@@ -443,43 +440,3 @@ void print_binary(int num) {
     /** Print the resulting binary string */
     printf("%s\n", binary);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

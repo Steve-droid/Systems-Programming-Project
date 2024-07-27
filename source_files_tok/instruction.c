@@ -10,7 +10,6 @@ static void table_memory_error(inst_table *_inst_table, inst *_inst) {
     printf("Error: Memory allocation error\n");
 }
 
-
 /* Create functions */
 status create_instruction(inst **new_instruction) {
     inst *_inst = NULL;

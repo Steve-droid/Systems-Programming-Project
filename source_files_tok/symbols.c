@@ -1,7 +1,6 @@
 #include "symbols.h"
 #define PADDING 2
 
-
 keyword *get_keyword_by_name(keyword *keyword_table, char *name) {
     int i;
     for (i = 0; i < KEYWORD_TABLE_LENGTH; i++) {
@@ -21,7 +20,6 @@ keyword *get_keyword_by_key(keyword *keyword_table, int key) {
     }
     return NULL;
 }
-
 
 keyword_name identify_command(syntax_state *state, label_table *_label_table, keyword *keyword_table) {
     int i;
@@ -68,7 +66,6 @@ keyword_name identify_command(syntax_state *state, label_table *_label_table, ke
     /* If the command name is not found, return UNDEFINED */
     return UNDEFINED_KEYWORD;
 }
-
 
 int get_command_opcode(keyword *keyword_table, int key) {
     int val;
@@ -207,7 +204,6 @@ register_name get_register_number(char *register_as_string) {
 
     return reg;
 }
-
 
 validation_state label_name_is_valid(label_table *_label_table, char *_buffer, keyword *keywords_table, macro_table *_macro_table, status *entry_or_ext) {
     int i;
@@ -382,7 +378,6 @@ char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_exte
     return NULL;
 }
 
-
 void print_label_table(label_table *_label_table) {
     int i;
     char entry[] = " .entry";
@@ -420,7 +415,6 @@ void print_label_table(label_table *_label_table) {
     printf("\n##################################################\n");
 }
 
-
 label_table *new_empty_label_table(label_table **new_label_table) {
     if (!(*new_label_table = (label_table *)malloc(sizeof(label_table)))) {
         return NULL;
@@ -434,7 +428,6 @@ label_table *new_empty_label_table(label_table **new_label_table) {
     }
     return *new_label_table;
 }
-
 
 label *new_empty_label(label **new_label) {
     if (!(*new_label = (label *)malloc(sizeof(label)))) {

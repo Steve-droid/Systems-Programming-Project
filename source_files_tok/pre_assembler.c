@@ -46,7 +46,7 @@ static status expand_macro(char *macro_name, FILE *am_file, macro_table *table) 
     return STATUS_OK;
 }
 
-status pre_assemble(char *as_filename, char *am_filename, macro_table *m_table) {
+static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_table) {
     FILE *as_file = NULL, *am_file = NULL;
     char line[BUFSIZ] = { '\0' };
     char first_word[MAX_LINE_LENGTH] = { '\0' };
@@ -141,8 +141,6 @@ status pre_assemble(char *as_filename, char *am_filename, macro_table *m_table) 
     return STATUS_OK;
 
 }
-
-
 
 macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
     macro_table *m_table = NULL;
