@@ -8,7 +8,7 @@ CFLAGS =   -g
 INCLUDES = -I./header_files
 
 # Source directory
-SRCDIR = source_files_tok
+SRCDIR = source_files
 
 # Object directory
 OBJDIR = object_files
