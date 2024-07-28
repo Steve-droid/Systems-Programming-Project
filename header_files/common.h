@@ -169,6 +169,10 @@ typedef struct instruction {
     int label_key;
     int address;
     size_t line_number;
+    bool is_src_entry;
+    bool is_src_extern;
+    bool is_dest_entry;
+    bool is_dest_extern;
 
     /* Directive parameters */
     size_t num_dot_data_members;
@@ -292,6 +296,10 @@ typedef struct syntax_state {
     bool digit;
     bool is_data;
     bool is_string;
+    bool is_src_entry;
+    bool is_src_extern;
+    bool is_dest_entry;
+    bool is_dest_extern;
     bool is_entry;
     bool is_extern;
 } syntax_state;

@@ -66,7 +66,6 @@ int main(int argc, char *argv[]) {
         destroy_instruction_table(&_inst_table);
         delete_filenames(argc - 1, &am_filenames);
         destroy_keyword_table(&keyword_table);
-        destroy_label_table(&_label_table);
         macro_table_destructor(&m_table);
         return EXIT_FAILURE;
     }

@@ -102,7 +102,6 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		printf("ERROR- Failed to create an instance of the instruction table\n");
 		fclose(file);
 		destroy_label_table(&_label_table);
-		destroy_label_table(&_label_table);
 		destroy_keyword_table(&keyword_table);
 		destroy_instruction_table(&_inst_table);
 		destroy_syntax_state(&state);
@@ -158,6 +157,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 			fclose(file);
 			reset_syntax_state(state);
 			destroy_syntax_state(&state);
+			buffer_without_offset = NULL;
 			destroy_label_table(&_label_table);
 			destroy_keyword_table(&keyword_table);
 			destroy_instruction_table(&_inst_table);
@@ -172,10 +172,12 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		if (generate_tokens(state, keyword_table, _label_table) != STATUS_OK) {
 			printf("ERROR- Failed to generate tokens\n");
 			fclose(file);
+			destroy_instruction_table(&_inst_table);
+			state->buffer = buffer_without_offset;
+			buffer_without_offset = NULL;
+			destroy_syntax_state(&state);
 			destroy_label_table(&_label_table);
 			destroy_keyword_table(&keyword_table);
-			destroy_instruction_table(&_inst_table);
-			destroy_syntax_state(&state);
 			return NULL;
 		}
 
@@ -223,9 +225,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		return NULL;
 	}
 
-	print_instruction_table(_inst_table, _label_table);
 
-	print_label_table(_label_table);
 
 
 	for (i = 0;i < _data_image->num_dot_data;i++) {
@@ -972,12 +972,16 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 				if (state->_inst->direct_label_key_src == -1) {
 					state->_inst->direct_label_key_src = tmp_label->key;
 					strcpy(state->_inst->direct_label_name_src, tmp_label->name);
+					if (tmp_label->is_entry) state->_inst->is_src_entry = true;
+					else if (tmp_label->is_extern) state->_inst->is_src_extern = true;
 				}
 			}
 			if (state->_inst->dest_addressing_method == DIRECT) {
 				if (state->_inst->direct_label_key_dest == -1) {
 					state->_inst->direct_label_key_dest = tmp_label->key;
 					strcpy(state->_inst->direct_label_name_dest, tmp_label->name);
+					if (tmp_label->is_entry) state->_inst->is_dest_entry = true;
+					else if (tmp_label->is_extern) state->_inst->is_dest_extern = true;
 				}
 			}
 

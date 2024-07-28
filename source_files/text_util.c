@@ -320,7 +320,7 @@ void print_array_in_binary(int *arr) {
     }
 
     for (i = 0; arr[i] != FLAG; i++) {
-        print_binary(arr[i]);
+        print_binary_2(arr[i]);
     }
 
     printf("\n");
@@ -409,11 +409,34 @@ void print_2D_array(int **arr) {
 }
 
 
-void print_binary(uint16_t word) {
+void print_octal(uint16_t number, FILE *file_ptr) {
+    static int address = 100;
+    char octal[6]; // A 16-bit number in octal, padded to 6 characters plus null terminator
+    int index = 5; // Start from the end of the array
+    octal[index--] = '\0'; // Null terminator
+
+    // Fill the octal array with digits from the number
+    while (number > 0) {
+        octal[index--] = (number & 0x7) + '0'; // Get the last 3 bits and convert to char
+        number >>= 3; // Shift right by 3 bits
+    }
+
+    // Fill the remaining space with leading zeros
+    while (index >= 0) {
+        octal[index--] = '0';
+    }
+    printf("%s\n", octal);
+    fprintf(file_ptr, "0%d\t%s\n", address, octal);
+    address++;
+}
+
+void print_binary(uint16_t word, FILE *file_ptr) {
     for (int i = 14; i >= 0; i--) {
         printf("%u", (word >> i) & 1);
+        fprintf(file_ptr, "%u", (word >> i) & 1);
     }
     printf("\n");
+    fprintf(file_ptr, "\n");
 }
 void print_binary_2(int num) {
     int i;

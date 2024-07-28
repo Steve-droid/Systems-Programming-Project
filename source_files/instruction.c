@@ -58,6 +58,10 @@ status create_instruction(inst **new_instruction) {
     _inst->is_dot_string = false;
     _inst->is_entry = false;
     _inst->is_extern = false;
+    _inst->is_src_entry = false;
+    _inst->is_src_extern = false;
+    _inst->is_dest_entry = false;
+    _inst->is_dest_extern = false;
 
     /* Operation parameters */
     _inst->src_addressing_method = NO_ADDRESSING_METHOD;
@@ -320,6 +324,8 @@ void print_instruction(inst *_inst, label_table *_label_table) {
         printf("Error: Trying to print NULL instruction\n");
         return;
     }
+
+    if (_inst->is_entry || _inst->is_extern) return;
 
     if (_inst->tokens == NULL) {
         printf("Error: Trying to print instruction with NULL tokens\n");

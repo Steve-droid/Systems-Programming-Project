@@ -23,7 +23,9 @@
         "stdlib.h": "c",
         "instruction.h": "c",
         "symbols.h": "c",
-        "asm_error.h": "c"
+        "asm_error.h": "c",
+        "libc-header-start.h": "c",
+        "features.h": "c"
     },
     "github.copilot.editor.enableCodeActions": false,
     "editor.cursorBlinking": "solid",
