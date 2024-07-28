@@ -114,6 +114,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		if (create_instruction(&state->_inst) != STATUS_OK) {
 			printf("ERROR- Failed to create an instance of the instruction\n");
 			fclose(file);
+			destroy_instruction(&state->_inst);
 			destroy_label_table(&_label_table);
 			destroy_keyword_table(&keyword_table);
 			destroy_instruction_table(&_inst_table);
@@ -125,6 +126,8 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 		/* Skip empty lines */
 		if (is_empty_line(state->buffer)) {
+			destroy_instruction(&state->_inst);
+			reset_syntax_state(state);
 			continue;
 		}
 
@@ -199,7 +202,6 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 	fclose(file);
 
-	reset_syntax_state(state);
 	destroy_syntax_state(&state);
 
 	_inst_table->IC = IC("get", 0);

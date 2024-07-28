@@ -55,6 +55,7 @@ int main(int argc, char *argv[]) {
         printf("Error while filling label table. Exiting...\n");
         delete_filenames(argc - 1, &am_filenames);
         macro_table_destructor(&m_table);
+        destroy_keyword_table(&keyword_table);
         return EXIT_FAILURE;
     }
 

@@ -4,6 +4,8 @@
 #define DEST_SHIFT 3
 #define SRC_SHIFT 7
 #define OPCODE_SHIFT 11
+#define SRC_REG_SHIFT 6
+#define DEST_REG_SHIFT 3
 
 uint16_t to_twos_complement(int16_t number) {
     return (uint16_t)number;
@@ -137,11 +139,11 @@ void assign_bits_operation(inst_table *_inst_table, size_t index) {
             _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] | _inst->bin_ARE);
             return;
         case INDIRECT_REGISTER:
-            _inst->binary_word_vec[1] = (_inst->indirect_reg_num_dest << DEST_SHIFT);
+            _inst->binary_word_vec[1] = (_inst->indirect_reg_num_dest << DEST_REG_SHIFT);
             _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] | _inst->bin_ARE);
             return;
         case DIRECT_REGISTER:
-            _inst->binary_word_vec[1] = (_inst->direct_reg_num_dest << DEST_SHIFT);
+            _inst->binary_word_vec[1] = (_inst->direct_reg_num_dest << DEST_REG_SHIFT);
             _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] | _inst->bin_ARE);
             return;
         }
@@ -174,13 +176,13 @@ void assign_bits_operation(inst_table *_inst_table, size_t index) {
             break;
         case INDIRECT_REGISTER:
             _inst->bin_ARE = 0b100;
-            _inst->binary_word_vec[1] = (_inst->indirect_reg_num_src << SRC_SHIFT);
+            _inst->binary_word_vec[1] = (_inst->indirect_reg_num_src << SRC_REG_SHIFT);
             _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] | _inst->bin_ARE);
             break;
 
         case DIRECT_REGISTER:
             _inst->bin_ARE = 0b100;
-            _inst->binary_word_vec[1] = (_inst->direct_reg_num_src << SRC_SHIFT);
+            _inst->binary_word_vec[1] = (_inst->direct_reg_num_src << SRC_REG_SHIFT);
             _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] | _inst->bin_ARE);
             break;
         }
@@ -255,10 +257,21 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     inst *tmp_inst = NULL;
     int address = 100;
     char *output_filename = "ex1.ob";
+    char *binary_output_filename = "ex1.bin";
     FILE *file_ptr = NULL;
+    FILE *bin_file_ptr = NULL;
 
     file_ptr = fopen(output_filename, "w");
     if (file_ptr == NULL) {
+        destroy_instruction_table(&_inst_table);
+        destroy_label_table(&_label_table);
+        destroy_keyword_table(&keyword_table);
+        return STATUS_ERROR;
+    }
+
+    bin_file_ptr = fopen(binary_output_filename, "w");
+    if (bin_file_ptr == NULL) {
+        fclose(file_ptr);
         destroy_instruction_table(&_inst_table);
         destroy_label_table(&_label_table);
         destroy_keyword_table(&keyword_table);
@@ -290,7 +303,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
         for (bin_word_index = 0;bin_word_index < _inst_table->inst_vec[inst_index]->num_words_to_generate;bin_word_index++) {
 
             printf("#%d\t ", address);
-            print_binary(_inst_table->inst_vec[inst_index]->binary_word_vec[bin_word_index], file_ptr);
+            print_binary(_inst_table->inst_vec[inst_index]->binary_word_vec[bin_word_index], bin_file_ptr);
             address++;
         }
 
@@ -298,7 +311,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
 
 
     }
-    fprintf(file_ptr, "\n\n\t%lu\t%lu\n", _inst_table->IC - 101 - _inst_table->DC, _inst_table->DC);
+    fprintf(file_ptr, "\t%lu\t%lu\n", _inst_table->IC - 101 - _inst_table->DC, _inst_table->DC);
 
     address = 100;
     for (inst_index = 0;inst_index < _inst_table->num_instructions;inst_index++) {
@@ -318,10 +331,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
 
     }
     fclose(file_ptr);
-    print_instruction_table(_inst_table, _label_table);
-
-    print_label_table(_label_table);
-
+    fclose(bin_file_ptr);
     destroy_keyword_table(&keyword_table);
     destroy_label_table(&_label_table);
     destroy_instruction_table(&_inst_table);
