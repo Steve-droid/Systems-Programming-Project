@@ -13,11 +13,15 @@ SRCDIR = source_files
 # Object directory
 OBJDIR = object_files
 
+# Output directory
+OUTDIR = output_files
+
 # Source files
 SRCS = $(wildcard $(SRCDIR)/*.c)
 
 # Object files
 OBJS = $(SRCS:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+
 
 # Executable name
 EXEC = assembler
@@ -40,10 +44,11 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
+
 # Clean up
 clean:
 	rm -f $(OBJDIR)/*.o $(EXEC) *.am 
-	rmdir $(OBJDIR)
+	rm -f *.ent *.ext *.ob *.binary
 	@echo "Clean complete."
 
 # Phony targets

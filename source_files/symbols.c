@@ -655,10 +655,6 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
         printf("Error- Failed to open the file '%s'. Exiting...\n", am_filename);
         return NULL;
     }
-
-    /* Print the current .am filename */
-    printf("%s\n", am_filename);
-
     /* Initialize the label table */
     _label_table = new_empty_label_table(&_label_table);
     if (_label_table == NULL) {
@@ -760,6 +756,7 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
             macro_table_destructor(&m_table);
             free(instruction_buffer);
             free(label_name);
+            free(new_label);
             label_name = NULL;
             fclose(am_file);
             return NULL;
@@ -767,6 +764,7 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
 
         free(label_name);
         label_name = NULL;
+        new_label = NULL;
 
     }
 
@@ -776,6 +774,7 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
     free(label_name);
     label_name = NULL;
     fclose(am_file);
+    new_label = NULL;
     return _label_table;
 }
 

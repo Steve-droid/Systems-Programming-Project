@@ -1,11 +1,14 @@
 #include "file_util.h"
-
+#define MAX_PATH_LENGTH 30
+#include <dirent.h>
 /*---------------File Utilities---------------*/
 char *create_file_name(char *initial_filename, char *extension) {
     size_t initial_name_len = strlen(initial_filename);
     size_t extension_len = strlen(extension);
     size_t new_filename_len = initial_name_len + extension_len; /*Length of the new filename*/
     char *new_filename = NULL;
+
+    printf("Creating %s file for '%s'... ", extension, initial_filename);
 
     /* Allocate memory for the new filename */
     new_filename = (char *)calloc(new_filename_len + 1, sizeof(char));
@@ -17,7 +20,7 @@ char *create_file_name(char *initial_filename, char *extension) {
     /* Concatenate the initial name and the extension */
     strcpy(new_filename, initial_filename);
     strcat(new_filename, extension);
-
+    printf("Done\n");
     return new_filename;
 }
 
@@ -304,8 +307,6 @@ status delete_filenames(size_t file_amount, char ***filenames) {
         printf("ERROR: Attempted to free filenames but filename array is empty. Exiting...");
         return STATUS_ERROR;
     }
-
-    printf("Deleting filenames...\n");
     for (i = 0;i < file_amount;i++) {
 
         if ((*filenames) && (*filenames)[i] != NULL) {
@@ -322,3 +323,4 @@ status delete_filenames(size_t file_amount, char ***filenames) {
 
     return STATUS_OK;
 }
+

@@ -7,7 +7,7 @@ MAIN:    add r3, LIST
 LOOP:    prn #48
          lea STR, r6
          inc r6
-         mov *r6, L3
+         mov *r4, L3
          sub r1, r4
          cmp r3, #-6
          bne END

@@ -42,7 +42,6 @@ void print_array_in_binary(int *arr);
 int *convert_twodim_array_to_onedim(int **two_dim_array);
 void print_binary(uint16_t num, FILE *file_ptr);
 void print_binary_2(int num);
-void print_octal(uint16_t number, FILE *file_ptr);
 
 
 

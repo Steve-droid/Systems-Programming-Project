@@ -64,11 +64,12 @@ data_image *create_data_image(inst_table *_inst_table) {
 		_inst_indx++;
 	}
 
-	printf("\n#################### Data Image #########################\n");
-	for (_inst_indx = 0; _inst_indx < _data_image->num_words; _inst_indx++) {
-		printf("#%lu: %s\n", _inst_indx, _data_image->data[_inst_indx]);
-	}
-	printf("\n################# End Of Data Image #####################\n");
+	/*	printf("\n#################### Data Image #########################\n");
+		for (_inst_indx = 0; _inst_indx < _data_image->num_words; _inst_indx++) {
+			printf("#%lu: %s\n", _inst_indx, _data_image->data[_inst_indx]);
+		}
+		printf("\n################# End Of Data Image #####################\n");
+	*/
 
 	return _data_image;
 
@@ -468,7 +469,8 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 
 		/* Check if the intruction terminated before any arguments arguments are found */
 		if (_instruction_args && (_instruction_args[arg_index] == '\0' || _instruction_args[arg_index] == '\n')) {
-			printf("ERROR- There are less arguments than expected for the specific command\n");
+			printf("Error on line: %d: ", state->line_number + 1);
+			printf("There are less arguments than expected for the specific command\n");
 			return STATUS_ERROR;
 		}
 
@@ -579,13 +581,15 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 	}
 
 	if (_instruction_args[0] != '\0' && _instruction_args[0] != '\n') {
-		printf("ERROR- Too many arguments for the specific command\n");
+		printf("\nError on line: %d: ", state->line_number + 1);
+		printf("There are too many arguments for the '%s' command\n", state->_inst->tokens[0]);
 		return STATUS_ERROR;
 	}
 
 	state->comma = *(_instruction_args) == ',';
 	if (state->comma == true) {
-		printf("ERROR- There is a comma after the last argument\n");
+		printf("\nError on line: %d: ", state->line_number + 1);
+		printf("There is a comma after the last argument of the '%s' command\n", state->_inst->tokens[0]);
 		return STATUS_ERROR;
 	}
 
@@ -725,7 +729,6 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	keyword_name command = UNDEFINED_KEYWORD;
 	bool contains_src_addressing = false;
 	bool contains_dest_addressing = false;
-	bool valid_label_name = false;
 	bool found_label_with_matching_name = false;
 	label *tmp_label = NULL;
 	char *tmp_ptr = NULL;
@@ -1041,7 +1044,11 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 				state->_inst->indirect_reg_num_dest = tmp_val;
 			}
 			break;
+		default:
+			break;
 		}
+
+
 	}
 
 	if (_addressing_method == DIRECT_REGISTER) {
@@ -1095,6 +1102,9 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 				state->_inst->direct_reg_num_dest = tmp_val;
 			}
 			break;
+
+
+		default: break;
 		}
 
 	}
@@ -1105,7 +1115,6 @@ static validation_state validate_label_name(syntax_state *state, label_table *_l
 	int i;
 	bool label_found = false;
 	label *_label = NULL;
-	int next = state->_inst->num_tokens;
 	int cmd_key = state->_inst->cmd_key;
 	if (!strcmp(keyword_table[cmd_key].name, ".entry") || !strcmp(keyword_table[cmd_key].name, ".extern")) {
 		for (i = 0; i < _label_table->size; i++) {
@@ -1113,12 +1122,14 @@ static validation_state validate_label_name(syntax_state *state, label_table *_l
 
 			/* For every entry point, check if the label name exists in the label table */
 			if (_label->is_entry && state->is_entry) {
-				if (label_found = !strcmp(_label->name, state->buffer)) break;
+				label_found = !strcmp(_label->name, state->buffer);
+				if (label_found) break;
 			}
 
 			/* For every external point, check if the label name exists in the label table */
 			if (_label->is_extern && state->is_extern) {
-				if (label_found = !strcmp(_label->name, state->buffer)) break;
+				label_found = !strcmp(_label->name, state->buffer);
+				if (label_found) break;
 			}
 		}
 		if (label_found == false) {
@@ -1132,7 +1143,6 @@ static validation_state validate_label_name(syntax_state *state, label_table *_l
 static validation_state validate_data_members(syntax_state *state) {
 	size_t i;
 	bool minus_or_plus = false;
-	bool comma = false;
 	bool number = false;
 	char *buffer = state->_inst->tokens[1];
 
@@ -1144,19 +1154,17 @@ static validation_state validate_data_members(syntax_state *state) {
 				return invalid;
 			}
 			minus_or_plus = true;
-			comma = number = false;
+			number = false;
 		}
 		else if (buffer[i] == ',') {
 			if (minus_or_plus == true) { /*in case of 1,-,2,3 */
 				return invalid;
 			}
-			comma = true;
 			number = false;
 			minus_or_plus = false;
 		}
 		else {   /*data_buffer[i] == number*/
 			number = true;
-			comma = false;
 			minus_or_plus = false;
 		}
 	}
@@ -1172,7 +1180,7 @@ static status assign_addresses(inst_table *_inst_table, label_table *_label_tabl
 	label *tmp_label = NULL;
 	inst *tmp_inst = NULL;
 
-	if (_inst_table == NULL | _label_table == NULL || _keyword_table == NULL) {
+	if (_inst_table == NULL || _label_table == NULL || _keyword_table == NULL) {
 		return STATUS_ERROR;
 	}
 
