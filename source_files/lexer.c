@@ -102,8 +102,6 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 	if (create_instruction_table(&_inst_table) != STATUS_OK) {
 		printf("ERROR- Failed to create an instance of the instruction table\n");
 		fclose(file);
-		destroy_label_table(&_label_table);
-		destroy_keyword_table(&keyword_table);
 		destroy_instruction_table(&_inst_table);
 		destroy_syntax_state(&state);
 		return NULL;
@@ -114,12 +112,11 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 	while (fgets(state->buffer, MAX_LINE_LENGTH, file)) { /* Read every line */
 		if (create_instruction(&state->_inst) != STATUS_OK) {
 			printf("ERROR- Failed to create an instance of the instruction\n");
-			fclose(file);
 			destroy_instruction(&state->_inst);
-			destroy_label_table(&_label_table);
-			destroy_keyword_table(&keyword_table);
 			destroy_instruction_table(&_inst_table);
 			destroy_syntax_state(&state);
+			free(state);
+			fclose(file);
 			return NULL;
 		}
 
@@ -137,6 +134,8 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 		/* Skip comment lines */
 		if (state->buffer[0] == ';') {
+			destroy_instruction(&state->_inst);
+			reset_syntax_state(state);
 			continue;
 		}
 
@@ -158,13 +157,15 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 		/* If the command does not exist, exit */
 		if (state->cmd_key == UNDEFINED) {
+			printf("\nError on line %d: Undefined command name. Aborting lexer...\n", state->line_number);
 			fclose(file);
-			reset_syntax_state(state);
-			destroy_syntax_state(&state);
-			buffer_without_offset = NULL;
-			destroy_label_table(&_label_table);
-			destroy_keyword_table(&keyword_table);
+			destroy_instruction(&(state->_inst));
 			destroy_instruction_table(&_inst_table);
+			state->buffer = buffer_without_offset;
+			buffer_without_offset = NULL;
+			destroy_syntax_state(&state);
+			free(state);
+
 			return NULL;
 		}
 		/* If the command key is valid, assign the command key to the instruction */
@@ -176,12 +177,12 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		if (generate_tokens(state, keyword_table, _label_table) != STATUS_OK) {
 			printf("ERROR- Failed to generate tokens\n");
 			fclose(file);
+			destroy_instruction(&state->_inst);
 			destroy_instruction_table(&_inst_table);
 			state->buffer = buffer_without_offset;
 			buffer_without_offset = NULL;
 			destroy_syntax_state(&state);
-			destroy_label_table(&_label_table);
-			destroy_keyword_table(&keyword_table);
+			free(state);
 			return NULL;
 		}
 
@@ -189,8 +190,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		if (insert_inst_to_table(_inst_table, state->_inst) != STATUS_OK) {
 			printf("ERROR- Failed to insert instruction to table\n");
 			fclose(file);
-			destroy_label_table(&_label_table);
-			destroy_keyword_table(&keyword_table);
+			destroy_instruction(&state->_inst);
 			destroy_instruction_table(&_inst_table);
 			destroy_syntax_state(&state);
 			return NULL;
@@ -210,10 +210,9 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 	if (assign_addresses(_inst_table, _label_table, keyword_table) != STATUS_OK) {
 		printf("ERROR- Failed to insert instruction to table\n");
-		destroy_label_table(&_label_table);
-		destroy_keyword_table(&keyword_table);
 		destroy_instruction_table(&_inst_table);
 		destroy_syntax_state(&state);
+		free(state);
 		return NULL;
 	}
 
@@ -221,8 +220,6 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 	if (_data_image == NULL) {
 		printf("ERROR- Failed to create data image\n");
-		destroy_label_table(&_label_table);
-		destroy_keyword_table(&keyword_table);
 		destroy_instruction_table(&_inst_table);
 		destroy_syntax_state(&state);
 		return NULL;
@@ -346,8 +343,8 @@ static status assign_data(syntax_state *state, label_table *_label_table, keywor
 	int char_indx = 0;
 	int copy_indx = 0;
 
-	if (state == NULL || state->_inst == NULL || keyword_table == NULL || _label_table == NULL) {
-		printf("ERROR- Tried to process unknown amount of arguments with NULL arguments\n");
+	if (state->_inst == NULL) {
+		printf("ERROR- Tried to process NULL arguments\n");
 		return STATUS_ERROR;
 	}
 
@@ -698,12 +695,16 @@ static validation_state process_string_command(syntax_state *state, label_table 
 static validation_state process_entry_extern_command(syntax_state *state) {
 	int i = state->index;
 	char *line = state->buffer;
-	int next = state->_inst->num_tokens;
+	int next = 0;
+	static bool created_token = false;
 
-	if (create_empty_token(state->_inst) != STATUS_OK) {
+	if (!created_token && create_empty_token(state->_inst) != STATUS_OK) {
 		printf("ERROR- Failed to allocate memory for string tokens\n");
 		return invalid;
 	}
+
+	created_token = true;
+	next = state->_inst->num_tokens - 1;
 
 	if (!(isalpha(line[i]) || isdigit(line[i]))) {
 		printf("ERROR- Invalid character for label, no label with this name\n");
@@ -965,7 +966,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 		}
 
 		for (i = 0;i < _label_table->size;i++) {
-			tmp_label = get_label(_label_table, argument);
+			tmp_label = get_label_by_name(_label_table, argument);
 			if (tmp_label != NULL) {
 				found_label_with_matching_name = true;
 				break;
@@ -1131,9 +1132,17 @@ static validation_state validate_label_name(syntax_state *state, label_table *_l
 				label_found = !strcmp(_label->name, state->buffer);
 				if (label_found) break;
 			}
+
+
 		}
+
+		_label = get_label_by_name(_label_table, state->buffer);
+		if (_label != NULL)
+			if (_label->is_entry || _label->is_extern) {
+				label_found = true;
+			}
 		if (label_found == false) {
-			printf("ERROR- No such label name\n");
+			printf("Error on line %d: The name '%s' is an invalid label name.\n", state->line_number, state->buffer);
 			return invalid;
 		}
 	}

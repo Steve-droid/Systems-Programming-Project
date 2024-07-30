@@ -32,6 +32,8 @@
 #define UNUSED(x) (void)(x)
 
  /* File Utilities */
+void free_filenames(char *p1, ...);
+void close_files(FILE *p1, ...);
 char *create_file_name(char *initial_name, char *extension);
 status remove_file_extension(char **full_filename, char **generic_filename);
 status copy_file_contents(char *src_filename, char *dest_filename);

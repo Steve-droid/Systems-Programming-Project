@@ -2,6 +2,37 @@
 #define MAX_PATH_LENGTH 30
 #include <dirent.h>
 /*---------------File Utilities---------------*/
+void close_files(FILE *p1, ...) {
+    va_list args;
+    FILE *current_file;
+
+    va_start(args, p1);
+
+    current_file = p1;
+    while (current_file != NULL) {
+        fclose(current_file);
+        current_file = va_arg(args, FILE *);
+    }
+
+    va_end(args);
+}
+
+void free_filenames(char *p1, ...) {
+    va_list args;
+    char *current_filename;
+
+    va_start(args, p1);
+
+    current_filename = p1;
+    while (current_filename != NULL) {
+        free(current_filename);
+        current_filename = va_arg(args, char *);
+    }
+
+    va_end(args);
+}
+
+
 char *create_file_name(char *initial_filename, char *extension) {
     size_t initial_name_len = strlen(initial_filename);
     size_t extension_len = strlen(extension);

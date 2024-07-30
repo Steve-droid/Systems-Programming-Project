@@ -222,3 +222,11 @@ If an instruction uses direct register addressing for both operands, they will s
 * Addressing Method for destination operand: bits 7-5: [6,5,4,3]
 
 * A.R.E Field: bits 4-3: [2,1,0] (A- Absolute, R- Relocatable, E- External)
+
+## Todo
+
+* [ ] Memory managment for pre assembler
+* [ ] Memory managment for keyword table
+* [ ] Memory managment for label table
+* [ ] Memory managment for lexer
+* [ ] Memory managment for parser

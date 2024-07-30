@@ -1,4 +1,7 @@
 #include "assembler.h"
+#include "asm_error.h"
+
+
 
 size_t DC(char *prompt, size_t amount)
 {
@@ -26,6 +29,7 @@ size_t IC(char *prompt, size_t amount)
 }
 
 
+
 int main(int argc, char *argv[]) {
 
     keyword *keyword_table = NULL;
@@ -48,8 +52,7 @@ int main(int argc, char *argv[]) {
     m_table = fill_macro_table(argc, argv, &am_filenames);
     if (m_table == NULL) {
         printf("Error while filling macro table. Exiting...\n");
-        delete_filenames(argc - 1, &am_filenames);
-        destroy_keyword_table(&keyword_table);
+        terminate(0, NULL, NULL, &keyword_table, NULL, NULL);
         return EXIT_FAILURE;
     }
     /* Initialize the label table */
@@ -57,24 +60,18 @@ int main(int argc, char *argv[]) {
     _label_table = fill_label_table(am_filenames[0], m_table, keyword_table);
     if (_label_table == NULL) {
         printf("Error while filling label table. Exiting...\n");
-        delete_filenames(argc - 1, &am_filenames);
-        macro_table_destructor(&m_table);
-        destroy_keyword_table(&keyword_table);
+        terminate(argc - 1, &am_filenames, &m_table, &keyword_table, &_label_table, NULL);
         return EXIT_FAILURE;
     }
     printf("Done\n");
 
     /* Lex the assembly code */
-    printf("Lexing the file '%s'... ", am_filenames[0]);
+    printf("Lexing the file '%s'...", am_filenames[0]);
     _inst_table = lex(am_filenames[0], _label_table, keyword_table);
 
     if (_inst_table == NULL) {
         printf("Error while lexing the assembly code. Exiting...\n");
-        destroy_instruction_table(&_inst_table);
-        delete_filenames(argc - 1, &am_filenames);
-        destroy_keyword_table(&keyword_table);
-        macro_table_destructor(&m_table);
-        destroy_label_table(&_label_table);
+        terminate(argc - 1, &am_filenames, &m_table, &keyword_table, &_label_table, &_inst_table);
         return EXIT_FAILURE;
     }
     printf("Done\n");
@@ -82,20 +79,12 @@ int main(int argc, char *argv[]) {
     printf("Parsing the file '%s'... ", am_filenames[0]);
     if (parse(_inst_table, _label_table, keyword_table, am_filenames[0]) != STATUS_OK) {
         printf("Error while parsing the assembly code. Exiting...\n");
-        delete_filenames(argc - 1, &am_filenames);
-        macro_table_destructor(&m_table);
-        destroy_keyword_table(&keyword_table);
-        destroy_label_table(&_label_table);
-        destroy_instruction_table(&_inst_table);
+        terminate(argc - 1, &am_filenames, &m_table, &keyword_table, &_label_table, &_inst_table);
         return EXIT_FAILURE;
     }
     printf("Done\n");
 
     printf("Assembly of the file '%s' completed successfully. Exiting...\n", am_filenames[0]);
-    delete_filenames(argc - 1, &am_filenames);
-    macro_table_destructor(&m_table);
-    destroy_keyword_table(&keyword_table);
-    destroy_label_table(&_label_table);
-    destroy_instruction_table(&_inst_table);
+    terminate(argc - 1, &am_filenames, &m_table, &keyword_table, &_label_table, &_inst_table);
     return EXIT_SUCCESS;
 }

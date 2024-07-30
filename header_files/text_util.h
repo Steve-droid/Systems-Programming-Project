@@ -34,15 +34,14 @@ void skip_label_name(syntax_state *state, label_table *_label_table);
 char *skip_ent_or_ext(char *_buffer);
 
 int *convert_to_int_array(char *str);
-void int_to_binary_array(int num, bin_word *binary_word, int start, int finish);
 int binary_array_to_int(int *array);
 bool is_empty_line(char *str);
 void print_2D_array(int **arr);
 void print_array_in_binary(int *arr);
 int *convert_twodim_array_to_onedim(int **two_dim_array);
-void print_binary(uint16_t num, FILE *file_ptr);
+void print_binary_to_file(uint16_t num, FILE *file_ptr);
 void print_binary_2(int num);
-
+void print_bits(unsigned value, int num_bits);
 
 
 #endif

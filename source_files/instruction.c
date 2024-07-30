@@ -1,6 +1,6 @@
 #include "instruction.h"
 #define MAX_TOKEN_SIZE 25
-#define INITIAL_CAPACITY 20
+#define INITIAL_CAPACITY 10
 #define UNSET -1
 
 
@@ -18,25 +18,20 @@ status create_instruction(inst **new_instruction) {
     if (new_instruction == NULL) {
         return STATUS_ERROR;
     }
+
+    (*new_instruction) = NULL;
     /* Allocate memory for the new instruction */
-    _inst = (inst *) calloc(1, sizeof(inst));
+    _inst = (inst *)malloc(sizeof(inst));
     if (_inst == NULL) {
         printf("Error while allocating memory for new instruction. Exiting...\n");
-        if (*(new_instruction) != NULL) {
-            free(*new_instruction);
-            (*new_instruction) = NULL;
-        }
+
         return STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     /* Allocate memory for the tokens of the new instruction */
-    _inst->tokens = (char **) calloc(INITIAL_NUM_TOKENS, sizeof(char *));
+    _inst->tokens = (char **)calloc(INITIAL_NUM_TOKENS, sizeof(char *));
     if (_inst->tokens == NULL) {
-        destroy_instruction(&_inst);
-        if (new_instruction) {
-            free(*new_instruction);
-            (*new_instruction) = NULL;
-        }
+        free(_inst);
         printf("Error while allocating memory for new instruction. Exiting...\n");
         return STATUS_ERROR_MEMORY_ALLOCATION;
     }
@@ -104,6 +99,8 @@ status create_instruction(inst **new_instruction) {
 
 
     *(new_instruction) = _inst;
+
+    _inst = NULL;
     return STATUS_OK;
 }
 
@@ -112,7 +109,7 @@ status create_empty_token(inst *instruction) {
     size_t i;
 
     /* Allocate memory for the empty token */
-    empty_token = (char *) calloc(MAX_TOKEN_SIZE, sizeof(char));
+    empty_token = (char *)calloc(MAX_TOKEN_SIZE, sizeof(char));
     if (empty_token == NULL) {
         printf("Error while allocating memory for empty token. Exiting...\n");
         return STATUS_ERROR_MEMORY_ALLOCATION;
@@ -129,14 +126,14 @@ status create_instruction_table(inst_table **new_instruction_table) {
     inst_table *new_table = NULL;
 
     /* Allocate memory for the new instruction table */
-    new_table = (inst_table *) calloc(1, sizeof(inst_table));
+    new_table = (inst_table *)calloc(1, sizeof(inst_table));
     if (new_table == NULL) {
         printf("Error while allocating memory for new instruction table. Exiting...\n");
         return STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
     /* Allocate memory for the instructions of the new instruction table */
-    new_table->inst_vec = (inst **) calloc(INITIAL_CAPACITY, sizeof(inst *));
+    new_table->inst_vec = (inst **)calloc(INITIAL_CAPACITY, sizeof(inst *));
     if (new_table->inst_vec == NULL) {
         table_memory_error(new_table, NULL);
     }
@@ -160,8 +157,8 @@ status insert_token_to_inst(inst *instruction, char *token) {
 
     /* Reallocate memory for the tokens if needed */
     if (instruction->num_tokens == instruction->capacity) {
-        instruction->capacity *= 2;
-        instruction->tokens = (char **) realloc(instruction->tokens, sizeof(char *) * instruction->capacity);
+        instruction->capacity += 1;
+        instruction->tokens = (char **)realloc(instruction->tokens, sizeof(char *) * instruction->capacity);
         if (instruction->tokens == NULL) {
             printf("Error while reallocating memory for tokens. Exiting...\n");
             return STATUS_ERROR_MEMORY_ALLOCATION;
@@ -190,8 +187,8 @@ status insert_inst_to_table(inst_table *_inst_table, inst *instruction) {
 
     /* Reallocate memory for the instructions if needed */
     if (_inst_table->num_instructions == _inst_table->capacity) {
-        _inst_table->capacity *= 2;
-        _inst_table->inst_vec = (inst **) realloc(_inst_table->inst_vec, sizeof(inst *) * _inst_table->capacity);
+        _inst_table->capacity += 1;
+        _inst_table->inst_vec = (inst **)realloc(_inst_table->inst_vec, sizeof(inst *) * _inst_table->capacity);
         if (_inst_table->inst_vec == NULL) {
             printf("Error while reallocating memory for instructions. Exiting...\n");
             destroy_instruction(&instruction);
@@ -209,111 +206,59 @@ status insert_inst_to_table(inst_table *_inst_table, inst *instruction) {
     return STATUS_OK;
 }
 
-/* Get functions */
-char **get_tokens(inst *instruction) {
-    if (instruction == NULL) {
-        printf("Error: Trying to access tokens from a NULL instruction\n");
-        return NULL;
-    }
-    return instruction->tokens;
-}
-
-int get_num_tokens(inst *instruction) {
-    if (instruction == NULL) {
-        printf("Error: Trying to access number of tokens from a NULL instruction\n");
-        return UNDEFINED;
-    }
-
-    return instruction->num_tokens;
-}
-
-inst **get_instructions(inst_table *_inst_table) {
-    if (_inst_table == NULL) {
-        printf("Error: Trying to access instructions from a NULL table\n");
-        return NULL;
-    }
-
-    if (_inst_table->inst_vec == NULL) {
-        printf("Error: Trying to access instructions from a NULL instruction vector\n");
-        return NULL;
-    }
-
-    return _inst_table->inst_vec;
-}
-
-inst *get_instruction_at(inst_table *_table, size_t index) {
-    if (_table == NULL) return NULL;
-
-    if (index >= _table->num_instructions) {
-        printf("Error: Trying to access instruction at index %ld, but the table has only %ld instructions\n", index,
-               _table->num_instructions);
-        return NULL;
-    }
-
-    return _table->inst_vec[index];
-}
-
-int get_num_instructions(inst_table *table) {
-    if (table == NULL) {
-        printf("Error: Trying to access number of instructions from a NULL table\n");
-        return UNDEFINED;
-    }
-
-    return table->num_instructions;
-}
 
 void destroy_instruction(inst **_inst) {
     size_t i;
-    if (_inst == NULL || *_inst == NULL) {
+    if (_inst == NULL) {
         return;
     }
+    if (*(_inst) != NULL) {
+        free((*_inst)->binary_word_vec);
+        (*_inst)->binary_word_vec = NULL;
 
-    free((*_inst)->binary_word_vec);
-    (*_inst)->binary_word_vec = NULL;
 
+        for (i = 0; i < (*_inst)->capacity; i++) {
+            free((*_inst)->tokens[i]);
+            (*_inst)->tokens[i] = NULL;
+        }
+        free((*_inst)->tokens);
+        (*_inst)->tokens = NULL;
 
-    for (i = 0; i < (*_inst)->num_tokens; i++) {
-        free((*_inst)->tokens[i]);
-        (*_inst)->tokens[i] = NULL;
     }
-    free((*_inst)->tokens);
     free(*_inst);
     (*_inst) = NULL;
 }
 
 void destroy_instruction_table(inst_table **_inst_table) {
-    size_t i;
+    int i;
 
-    if (_inst_table == NULL || *_inst_table == NULL) {
+    if (_inst_table == NULL) {
         return;
     }
-    if ((*_inst_table)->inst_vec != NULL) {
+    if ((*_inst_table) && (*_inst_table)->inst_vec != NULL) {
         /* Free the instructions */
         for (i = 0; i < (*_inst_table)->capacity; i++) {
             destroy_instruction(&((*_inst_table)->inst_vec[i]));
         }
+        /* Free instruction vector */
+        free((*_inst_table)->inst_vec);
+        (*_inst_table)->inst_vec = NULL;
+
     }
 
 
-    /* Free instruction vector */
-    free((*_inst_table)->inst_vec);
-    (*_inst_table)->inst_vec = NULL;
+
     free((*_inst_table));
     (*_inst_table) = NULL;
 }
 
-void print_bits(unsigned value, int num_bits) {
-    int i;
-    for (i = num_bits - 1; i >= 0; i--) {
-        printf("%u", (value >> i) & 1);
-    }
-}
+
 
 void print_instruction(inst *_inst, label_table *_label_table) {
     size_t i;
     size_t size = 0;
-    char addressing_method_src[MAX_LINE_LENGTH] = {0};
-    char addressing_method_dest[MAX_LINE_LENGTH] = {0};
+    char addressing_method_src[MAX_LINE_LENGTH] = { 0 };
+    char addressing_method_dest[MAX_LINE_LENGTH] = { 0 };
     label *tmp_label = NULL;
     if (_inst == NULL) {
         printf("Error: Trying to print NULL instruction\n");
@@ -329,25 +274,33 @@ void print_instruction(inst *_inst, label_table *_label_table) {
 
     if (_inst->src_addressing_method == DIRECT) {
         strcpy(addressing_method_src, "DIRECT");
-    } else if (_inst->src_addressing_method == IMMEDIATE) {
+    }
+    else if (_inst->src_addressing_method == IMMEDIATE) {
         strcpy(addressing_method_src, "IMMEDIATE");
-    } else if (_inst->src_addressing_method == INDIRECT_REGISTER) {
+    }
+    else if (_inst->src_addressing_method == INDIRECT_REGISTER) {
         strcpy(addressing_method_src, "INDIRECT_REGISTER");
-    } else if (_inst->src_addressing_method == DIRECT_REGISTER) {
+    }
+    else if (_inst->src_addressing_method == DIRECT_REGISTER) {
         strcpy(addressing_method_src, "DIRECT_REGISTER");
-    } else if (_inst->src_addressing_method == NO_ADDRESSING_METHOD) {
+    }
+    else if (_inst->src_addressing_method == NO_ADDRESSING_METHOD) {
         strcpy(addressing_method_src, "NO_ADDRESSING_METHOD");
     }
 
     if (_inst->dest_addressing_method == DIRECT) {
         strcpy(addressing_method_dest, "DIRECT");
-    } else if (_inst->dest_addressing_method == IMMEDIATE) {
+    }
+    else if (_inst->dest_addressing_method == IMMEDIATE) {
         strcpy(addressing_method_dest, "IMMEDIATE");
-    } else if (_inst->dest_addressing_method == INDIRECT_REGISTER) {
+    }
+    else if (_inst->dest_addressing_method == INDIRECT_REGISTER) {
         strcpy(addressing_method_dest, "INDIRECT_REGISTER");
-    } else if (_inst->dest_addressing_method == DIRECT_REGISTER) {
+    }
+    else if (_inst->dest_addressing_method == DIRECT_REGISTER) {
         strcpy(addressing_method_dest, "DIRECT_REGISTER");
-    } else if (_inst->dest_addressing_method == NO_ADDRESSING_METHOD) {
+    }
+    else if (_inst->dest_addressing_method == NO_ADDRESSING_METHOD) {
         strcpy(addressing_method_dest, "NO_ADDRESSING_METHOD");
     }
 
@@ -369,7 +322,11 @@ void print_instruction(inst *_inst, label_table *_label_table) {
     }
 
     printf("\t\tNumber of binary words to generate: %lu\n", _inst->num_words_to_generate);
-    printf("\t\tAddress: %d\n", _inst->address);
+
+    if (_inst->address == UNSET)
+        printf("\t\tAddress: Unset\n");
+    else
+        printf("\t\tAddress: %d\n", _inst->address);
 
     if (_inst->label_key != UNSET) {
         tmp_label = get_label_by_key(_label_table, _inst->label_key);
@@ -415,7 +372,7 @@ void print_instruction(inst *_inst, label_table *_label_table) {
 
     if (_inst->indirect_reg_num_dest != UNSET) {
         printf("\t\tIndirect Register Addressing --> destination register number --> %d\n",
-               _inst->indirect_reg_num_dest);
+            _inst->indirect_reg_num_dest);
     }
 
     if (_inst->direct_reg_num_dest != UNSET) {

@@ -77,7 +77,8 @@ typedef enum {
     CONTAINS_EXTERN,
     CONTAINS_ENTRY,
     CONTAINS_EXTERN_AND_ENTRY,
-    NEITHER_EXTERN_NOR_ENTRY
+    NEITHER_EXTERN_NOR_ENTRY,
+    DUPLICATED
 } status;
 
 
@@ -226,19 +227,6 @@ typedef struct instruction_table {
     size_t IC;
     size_t DC;
 } inst_table;
-
-
-typedef struct binary_word {
-    int *bits_vec;
-    bool first_in_instruction;
-}bin_word;
-
-typedef struct bin_instruction {
-    bin_word **words;
-    size_t num_words;
-    size_t capacity;
-    int cmd_key;
-}bin_inst;
 
 
 typedef struct label {
