@@ -89,6 +89,8 @@ void destroy_syntax_state(syntax_state **state) {
         (*state)->buffer = NULL;
     }
 
+    free((*state)->_inst);
+
     free((*state));
     (*state) = NULL;
 }
@@ -235,20 +237,6 @@ void skip_label_name(syntax_state *state, label_table *_label_table) {
     state->buffer += offset;
 }
 
-void int_to_binary_array(int num, bin_word *binary_word, int start, int finish) {
-    size_t i;
-
-    /** If the number is negative, adjust for two's complement */
-    if (num < 0) {
-        num += (1 << (finish - start + 1));
-    }
-    /** Convert the number to binary and store it in the array */
-    for (i = finish; i >= start; i--) {
-        binary_word->bits_vec[i] = num % 2;
-        num /= 2;
-    }
-}
-
 int binary_array_to_int(int *array) {
     int sign_bit, value, i;
     sign_bit = array[0];
@@ -320,7 +308,7 @@ void print_array_in_binary(int *arr) {
     }
 
     for (i = 0; arr[i] != FLAG; i++) {
-        print_binary(arr[i]);
+        print_binary_2(arr[i]);
     }
 
     printf("\n");
@@ -408,13 +396,26 @@ void print_2D_array(int **arr) {
     printf("END 2D ARRAY\n");
 }
 
-
-void print_binary(uint16_t word) {
-    for (int i = 14; i >= 0; i--) {
-        printf("%u", (word >> i) & 1);
+void print_bits(unsigned value, int num_bits) {
+    int i;
+    for (i = num_bits - 1; i >= 0; i--) {
+        printf("%u", (value >> i) & 1);
     }
-    printf("\n");
 }
+
+
+
+
+void print_binary_to_file(uint16_t word, FILE *file_ptr) {
+    int i;
+    for (i = 14; i >= 0; i--) {
+        fprintf(file_ptr, "%u", (word >> i) & 1);
+    }
+    fprintf(file_ptr, "\n");
+}
+
+
+
 void print_binary_2(int num) {
     int i;
     unsigned int mask;

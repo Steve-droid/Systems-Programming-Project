@@ -77,7 +77,8 @@ typedef enum {
     CONTAINS_EXTERN,
     CONTAINS_ENTRY,
     CONTAINS_EXTERN_AND_ENTRY,
-    NEITHER_EXTERN_NOR_ENTRY
+    NEITHER_EXTERN_NOR_ENTRY,
+    DUPLICATED
 } status;
 
 
@@ -169,6 +170,10 @@ typedef struct instruction {
     int label_key;
     int address;
     size_t line_number;
+    bool is_src_entry;
+    bool is_src_extern;
+    bool is_dest_entry;
+    bool is_dest_extern;
 
     /* Directive parameters */
     size_t num_dot_data_members;
@@ -222,19 +227,6 @@ typedef struct instruction_table {
     size_t IC;
     size_t DC;
 } inst_table;
-
-
-typedef struct binary_word {
-    int *bits_vec;
-    bool first_in_instruction;
-}bin_word;
-
-typedef struct bin_instruction {
-    bin_word **words;
-    size_t num_words;
-    size_t capacity;
-    int cmd_key;
-}bin_inst;
 
 
 typedef struct label {
@@ -292,6 +284,10 @@ typedef struct syntax_state {
     bool digit;
     bool is_data;
     bool is_string;
+    bool is_src_entry;
+    bool is_src_extern;
+    bool is_dest_entry;
+    bool is_dest_extern;
     bool is_entry;
     bool is_extern;
 } syntax_state;

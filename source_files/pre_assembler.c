@@ -184,7 +184,6 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
         return NULL;
     }
 
-    printf("Creating .as files... ");
     for (i = 0;i < file_amount;i++) {
 
         as_filenames[i] = create_file_name(generic_filenames[i], ".as");
@@ -201,10 +200,6 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
         }
     }
 
-    printf("Done\n");
-
-
-    printf("Backing up original .as files...");
     if (duplicate_files(&backup_filenames, file_amount, as_filenames, ".bk") != STATUS_OK) {
         printf("Error: File backup did not execute properly. Exiting..");
         delete_filenames(file_amount, &as_filenames);
@@ -216,10 +211,7 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
         return NULL;
     }
 
-
-    printf("Creating .am files... ");
     for (i = 0;i < file_amount;i++) {
-
         *(am_filenames)[i] = create_file_name(generic_filenames[i], ".am");
 
         if (*(am_filenames)[i] == NULL) {
@@ -234,7 +226,7 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
         }
     }
 
-    printf("Done\n");
+
 
     m_table = create_macro_table();
     if (m_table == NULL) {

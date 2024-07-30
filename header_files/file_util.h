@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <dirent.h>
 
 
 #define MAX_LABEL_LENGTH 33 /* max label len is 31 , + 1 for ':' , + 1 for '\0' */ /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
@@ -31,6 +32,8 @@
 #define UNUSED(x) (void)(x)
 
  /* File Utilities */
+void free_filenames(char *p1, ...);
+void close_files(FILE *p1, ...);
 char *create_file_name(char *initial_name, char *extension);
 status remove_file_extension(char **full_filename, char **generic_filename);
 status copy_file_contents(char *src_filename, char *dest_filename);

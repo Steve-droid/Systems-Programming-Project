@@ -1,5 +1,6 @@
 #include "symbols.h"
 #define PADDING 2
+#define INITIAL_CAPACITY 10
 
 keyword *get_keyword_by_name(keyword *keyword_table, char *name) {
     int i;
@@ -210,6 +211,7 @@ validation_state label_name_is_valid(label_table *_label_table, char *_buffer, k
     macro *result_macro = NULL;
     keyword *result_keyword = NULL;
     char *label_name = _buffer;
+    label *tmp_label = NULL;
 
     /* Check if the label name is NULL or too long */
     if (_buffer == NULL) {
@@ -227,7 +229,7 @@ validation_state label_name_is_valid(label_table *_label_table, char *_buffer, k
     /*Check if the label name contains only alphabetical characters and digits */
     for (i = 0; label_name[i] != '\0'; i++) {
         if (!(isalpha(label_name[i]) || isdigit(label_name[i]))) {
-            printf("ERROR- Label name %s contains invalid characters.\n", label_name);
+            printf("\nError- Label name %s contains invalid characters.\n", label_name);
             return invalid;
         }
     }
@@ -235,20 +237,23 @@ validation_state label_name_is_valid(label_table *_label_table, char *_buffer, k
     /* Check if the label name is a keyword */
     result_keyword = get_keyword_by_name(keywords_table, label_name);
     if (result_keyword != NULL) {
-        printf("ERROR- Label name %s cannot be a keyword.\n", label_name);
+        printf("\nError- Label name %s cannot be a keyword.\n", label_name);
         return invalid;
     }
 
     /* Check if the label name is a macro name */
     result_macro = get_macro(_macro_table, label_name);
     if (result_macro != NULL) {
-        printf("ERROR- Label name '%s' cannot be the same as the '%s' macro name.\n", label_name, result_macro->name);
+        printf("\nError- Label name '%s' cannot be the same as the '%s' macro name.\n", label_name, result_macro->name);
         return invalid;
     }
 
     /* Check if the label name is already in the label table */
-    if (get_label(_label_table, label_name) != NULL && (*entry_or_ext) == NEITHER_EXTERN_NOR_ENTRY) {
-        printf("ERROR- Label name '%s' is already in the label table.\n", label_name);
+    tmp_label = get_label_by_name(_label_table, label_name);
+    if (tmp_label != NULL && (*entry_or_ext) == NEITHER_EXTERN_NOR_ENTRY) {
+        if (tmp_label->is_entry)
+            return valid;+
+            printf("\nError- Label name '%s' is already in the label table.\n", label_name);
         return invalid;
     }
 
@@ -279,7 +284,7 @@ char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_exte
     }
 
     if (contains_entry && contains_extern) {
-        printf("ERROR- Line cannot contain both '.entry' and '.extern' directives.\n");
+        printf("\nError- Line cannot contain both '.entry' and '.extern' directives.\n");
         *_entry_or_external = NEITHER_EXTERN_NOR_ENTRY;
         return NULL;
     }
@@ -304,7 +309,7 @@ char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_exte
             free(*_buffer);
             (*_buffer) = NULL;
             label_name = NULL;
-            printf("ERROR- Failed to allocate memory for copy of label name.\n");
+            printf("\nError- Failed to allocate memory for copy of label name.\n");
             return NULL;
         }
         chars_copied = 0;
@@ -325,7 +330,7 @@ char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_exte
         free(*_buffer);
         *(_buffer) = NULL;
         free(copy_of_label_name);
-        printf("ERROR- Failed to allocate memory for instruction copy.\n");
+        printf("\nError- Failed to allocate memory for instruction copy.\n");
         return NULL;
     }
     trim_whitespace(label_name);
@@ -378,52 +383,13 @@ char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_exte
     return NULL;
 }
 
-void print_label_table(label_table *_label_table) {
-    int i;
-    char entry[] = " .entry";
-    char external[] = " .extern";
-    char none[] = "No Directives";
-    if (_label_table == NULL) {
-        printf("ERROR- Trying to print a NULL label table.\n");
-        return;
-    }
-    printf("\n######################################################\n");
-    printf("Printing Label Table:");
-    printf("\n######################################################\n");
-
-    for (i = 0; i < _label_table->size; i++) {
-        printf("Name: %s \n", _label_table->labels[i]->name);
-        printf("Key: %d \n", _label_table->labels[i]->key);
-        if (_label_table->labels[i]->is_entry) {
-            printf("Directives: %s \n", entry);
-        }
-        else if (_label_table->labels[i]->is_extern) {
-            printf("Directives: %s \n", external);
-        }
-        else {
-            printf("Directives: %s \n", none);
-        }
-        printf("Instruction line: %lu \n", _label_table->labels[i]->instruction_line);
-        if (_label_table->labels[i]->address != 0) {
-            printf("Address: %lu \n", _label_table->labels[i]->address);
-        }
-        printf("\n-----------------------------------\n");
-
-    }
-    printf("\n######################################################\n");
-    printf("End Of Label Table");
-    printf("\n######################################################\n\n\n");
-
-
-}
-
 label_table *new_empty_label_table(label_table **new_label_table) {
     if (!(*new_label_table = (label_table *)malloc(sizeof(label_table)))) {
         return NULL;
     }
     (*new_label_table)->size = 0;
-    (*new_label_table)->capacity = 1;
-    (*new_label_table)->labels = (label **)malloc((*new_label_table)->capacity * sizeof(label *));
+    (*new_label_table)->capacity = INITIAL_CAPACITY;
+    (*new_label_table)->labels = (label **)calloc(INITIAL_CAPACITY, sizeof(label *));
     if ((*new_label_table)->labels == NULL) {
         free(*new_label_table);
         return NULL;
@@ -432,7 +398,12 @@ label_table *new_empty_label_table(label_table **new_label_table) {
 }
 
 label *new_empty_label(label **new_label) {
-    if (!(*new_label = (label *)malloc(sizeof(label)))) {
+    if (new_label == NULL) return NULL;
+
+    (*new_label) = (label *)malloc(sizeof(label));
+
+    if ((*new_label) == NULL) {
+        printf("\nError- could not allocate memory for a new label\n");
         return NULL;
     }
 
@@ -444,47 +415,35 @@ label *new_empty_label(label **new_label) {
     (*new_label)->is_entry = false;
     (*new_label)->is_extern = false;
 
-    return *new_label;
+    return *(new_label);
 }
 
-label_table *insert_label(label_table *_label_table, label *_lable) {
+status insert_label(label_table *_label_table, label **_label) {
+    size_t i;
+    label *tmp_label = NULL;
+
+
+
+    tmp_label = get_label_by_name(_label_table, (*_label)->name);
+    if (tmp_label != NULL) {
+        return DUPLICATED;
+    }
+
     if (_label_table->size == _label_table->capacity) {
         _label_table->capacity *= 2;
         _label_table->labels = (label **)realloc(_label_table->labels, _label_table->capacity * sizeof(label *));
         if (_label_table->labels == NULL) {
             free(_label_table);
-            return NULL;
+            return STATUS_ERROR;
         }
     }
-    _label_table->labels[_label_table->size] = _lable;
+
+    _label_table->labels[_label_table->size] = (*_label);
     _label_table->size++;
-    return _label_table;
+    return STATUS_OK;
 }
 
-void label_update_fields(label **new_label, char *label_name, int line_counter, status _entry_or_external, int address) {
-    static int label_key = FIRST_KEY;
-    /* Fill label name */
-    strcpy((*new_label)->name, label_name);
-    (*new_label)->key = label_key;
-    label_key++;
-    (*new_label)->instruction_line = line_counter;
-    (*new_label)->address = address;
-    (*new_label)->size = 0;
-
-    if (_entry_or_external == CONTAINS_ENTRY) {
-        (*new_label)->is_entry = true;
-    }
-    else if (_entry_or_external == CONTAINS_EXTERN) {
-        (*new_label)->is_extern = true;
-    }
-    else {
-        (*new_label)->is_entry = false;
-        (*new_label)->is_extern = false;
-    }
-
-}
-
-label *get_label(label_table *_label_table, char *label_name) {
+label *get_label_by_name(label_table *_label_table, char *label_name) {
     size_t i;
 
     for (i = 0; (i < _label_table->size) && (_label_table->labels[i] != NULL); i++) {
@@ -513,20 +472,65 @@ label *get_label_by_key(label_table *_label_table, int key) {
 
 }
 
-void destroy_label(label **_label) {
-    free(*_label);
-    *_label = NULL;
-}
+addressing_method get_addressing_method(char *sub_inst, label_table *_label_table) {
+    int i;
 
-void destroy_label_table(label_table **_label_table) {
-    size_t i;
-    if (_label_table == NULL || *(_label_table) == NULL) return;
-    for (i = 0; i < (*_label_table)->size; i++) {
-        destroy_label(&(*_label_table)->labels[i]);
+    /* case 0 */
+    if (sub_inst[0] == '#') {
+        if (sub_inst[1] == '\0') {
+            return UNDEFINED;
+        }
+        if (sub_inst[1] != '-' && sub_inst[1] != '+' && !isdigit(sub_inst[1])) {
+            return UNDEFINED;
+        }
+        if (sub_inst[1] == '-' || sub_inst[1] == '+') {
+            if (!isdigit(sub_inst[2])) {
+                return UNDEFINED;
+            }
+        }
+        for (i = 2; i < (int)strlen(sub_inst); i++) {
+            if (!isdigit(sub_inst[i])) {
+                return UNDEFINED;
+            }
+        }
+        return IMMEDIATE;
     }
-    free((*_label_table)->labels);
-    free(*_label_table);
-    *_label_table = NULL;
+
+    /* case 1 */
+    for (i = 0; i < _label_table->size; i++) {
+        if (!strcmp(_label_table->labels[i]->name, sub_inst)) {
+            return DIRECT;
+        }
+    }
+
+    /* case 2 */
+    if (sub_inst[0] == '*') {
+        if (sub_inst[1] == '\0' || sub_inst[1] != 'r') {
+            return UNDEFINED_METHOD;
+        }
+        if (sub_inst[2] == '\0' || sub_inst[2] < '0' || sub_inst[2] > '7') {
+            return UNDEFINED_METHOD;
+        }
+        if (sub_inst[3] != '\0') {
+            return UNDEFINED_METHOD;
+        }
+        return INDIRECT_REGISTER;
+    }
+
+    /* case 3 */
+
+    if (sub_inst[0] == 'r') {
+        if (sub_inst[1] == '\0' || sub_inst[1] < '0' || sub_inst[1] > '7') {
+            return UNDEFINED_METHOD;
+        }
+        if (sub_inst[2] != '\0') {
+            return UNDEFINED_METHOD;
+        }
+        return DIRECT_REGISTER;
+    }
+
+    /* else */
+    return UNDEFINED_METHOD;
 }
 
 keyword *fill_keyword_table() {
@@ -604,6 +608,33 @@ keyword *fill_keyword_table() {
     return keywords_table;
 }
 
+void label_update_fields(label **new_label, char *label_name, int line_counter, status _entry_or_external, int address) {
+    static int label_key = FIRST_KEY;
+    /* Fill label name */
+    strcpy((*new_label)->name, label_name);
+    if (_entry_or_external == NEITHER_EXTERN_NOR_ENTRY) {
+        (*new_label)->key = label_key;
+        label_key++;
+        (*new_label)->instruction_line = line_counter;
+        (*new_label)->address = address;
+        (*new_label)->size = 0;
+    }
+
+    if (_entry_or_external == CONTAINS_ENTRY) {
+        (*new_label)->is_entry = true;
+    }
+    else if (_entry_or_external == CONTAINS_EXTERN) {
+        (*new_label)->is_extern = true;
+    }
+
+
+    else if ((*new_label)->is_entry == false && (*new_label)->is_extern == false) {
+        (*new_label)->is_entry = false;
+        (*new_label)->is_extern = false;
+    }
+
+}
+
 label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *keywords_table) {
     char *instruction_buffer = NULL; /* Buffer to hold each line */
     char *label_name = NULL;
@@ -611,13 +642,14 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
     label_table *_label_table = NULL;
     FILE *am_file = NULL;
     label *new_label = NULL;
+    label *tmp_label = NULL;
     validation_state _validation = invalid;
-    status entry_or_external = NEITHER_EXTERN_NOR_ENTRY;
-
+    status entry_or_external_definition = NEITHER_EXTERN_NOR_ENTRY;
+    int i;
 
     instruction_buffer = (char *)calloc(MAX_LINE_LENGTH, sizeof(char));
     if (instruction_buffer == NULL) {
-        printf("ERROR- Failed to allocate memory for instruction buffer\n");
+        printf("\nError- Failed to allocate memory for instruction buffer\n");
         return NULL;
     }
 
@@ -626,31 +658,25 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
     /* Open the .am file for reading lines */
     am_file = fopen(am_filename, "r");
     if (am_file == NULL) {
-        printf("Error- Failed to open the file '%s'. Exiting...\n", am_filename);
+        printf("\nError- Failed to open the file '%s'. Exiting...\n", am_filename);
         return NULL;
     }
-
-    /* Print the current .am filename */
-    printf("%s\n", am_filename);
-
     /* Initialize the label table */
     _label_table = new_empty_label_table(&_label_table);
     if (_label_table == NULL) {
-        printf("ERROR- Failed to allocate memory for label table.\nFile name: '%s'.\n Exiting...\n", am_filename);
+        printf("\nError- Failed to allocate memory for label table.\nFile name: '%s'.\n Exiting...\n", am_filename);
         return NULL;
     }
 
     lines_in_file = -1; /* lines start from 0*/
 
     while (fgets(instruction_buffer, MAX_LINE_LENGTH, am_file)) { /* Read every line from the .am file */
-        entry_or_external = NEITHER_EXTERN_NOR_ENTRY;
+        entry_or_external_definition = NEITHER_EXTERN_NOR_ENTRY;
+        new_label = NULL;
 
-        /* Skip empty lines */
-        if (is_empty_line(instruction_buffer)) {
-            continue;
-        }
-        /* Skip comment lines */
-        if (instruction_buffer[0] == ';') {
+        /* Skip empty/comment lines */
+        if (is_empty_line(instruction_buffer) || instruction_buffer[0] == ';') {
+            initialize_char_array(instruction_buffer);
             continue;
         }
 
@@ -658,14 +684,14 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
         instruction_buffer = trim_whitespace(instruction_buffer);
 
         /* Check if the line contains a label definition. if it does, save the label name */
-        label_name = extract_label_name_from_instruction(&instruction_buffer, &entry_or_external);
+        label_name = extract_label_name_from_instruction(&instruction_buffer, &entry_or_external_definition);
 
         if (instruction_buffer == NULL) {
             printf("Cannot continue filling the label table. Exiting...\n");
             free(label_name);
             label_name = NULL;
             destroy_label_table(&_label_table);
-            destroy_keyword_table(&keywords_table);
+            free(_label_table);
             free(instruction_buffer);
             fclose(am_file);
             return NULL;
@@ -677,124 +703,80 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
         }
 
 
-        _validation = label_name_is_valid(_label_table, label_name, keywords_table, m_table, &entry_or_external);
+        _validation = label_name_is_valid(_label_table, label_name, keywords_table, m_table, &entry_or_external_definition);
 
         if (_validation != valid) {
-            printf("ERROR- Invalid label name '%s' in file '%s' on line #%d\n", label_name, am_filename, lines_in_file + 1);
+            printf("\nError-- Invalid label name '%s' in file '%s' on line # % d\n", label_name, am_filename, lines_in_file + 1);
             printf("Cannot continue filling the label table. Exiting...\n");
             destroy_label_table(&_label_table);
-            destroy_keyword_table(&keywords_table);
             free(instruction_buffer);
             free(label_name);
             label_name = NULL;
             fclose(am_file);
             return NULL;
+        }
+
+        for (i = 0;i < _label_table->size;i++) {
+            tmp_label = get_label_by_name(_label_table, label_name);
+            if (tmp_label != NULL) {
+                if (tmp_label->is_entry == false && tmp_label->is_extern == false && entry_or_external_definition == NEITHER_EXTERN_NOR_ENTRY) {
+                    printf("\nError- Label redefinition.\nFilename: '%s'.\n Exiting...\n", am_filename);
+                    free(label_name);
+                    destroy_label_table(&_label_table);
+                    free(instruction_buffer);
+                    label_name = NULL;
+                    fclose(am_file);
+                    return NULL;
+                }
+
+                new_label = tmp_label;
+                tmp_label = NULL;
+            }
         }
 
         /* If the line contains a label definition, check if the label name is valid */
-        new_label = new_empty_label(&new_label);
-
         if (new_label == NULL) {
-            printf("ERROR- Failed to allocate memory for new label.\nFile name: '%s'.\n Exiting...\n", am_filename);
-            destroy_label_table(&_label_table);
-            destroy_keyword_table(&keywords_table);
-            macro_table_destructor(&m_table);
-            free(instruction_buffer);
-            free(label_name);
-            label_name = NULL;
-            fclose(am_file);
-            return NULL;
+            if (new_empty_label(&new_label) == NULL) {
+                printf("\nError-- Failed to allocate memory for new label.\nFile name: '%s'.\n Exiting...\n", am_filename);
+                free(label_name);
+                free(new_label);
+                destroy_label_table(&_label_table);
+                free(instruction_buffer);
+                label_name = NULL;
+                fclose(am_file);
+                return NULL;
+            }
         }
 
         /* Fill the label data and keep the address as UNDEFINED until the 2nd pass */
-        label_update_fields(&new_label, label_name, lines_in_file, entry_or_external, 0);
-        _label_table = insert_label(_label_table, new_label);
-
-        if (_label_table == NULL) {
-            printf("ERROR- Failed to insert label '%s' into label table.\nFile name: '%s'.\n Exiting...\n", label_name, am_filename);
-            destroy_label_table(&_label_table);
-            destroy_keyword_table(&keywords_table);
-            macro_table_destructor(&m_table);
-            free(instruction_buffer);
-            free(label_name);
-            label_name = NULL;
-            fclose(am_file);
-            return NULL;
-        }
+        label_update_fields(&new_label, label_name, lines_in_file, entry_or_external_definition, 0);
 
         free(label_name);
         label_name = NULL;
 
-    }
+        insert_label(_label_table, &new_label);
 
+        if (_label_table == NULL) {
+            printf("\nError-- Failed to insert label '%s' into label table.\nFile name: '%s'.\n Exiting...\n", label_name, am_filename);
+            free(instruction_buffer);
+            free(label_name);
+            free(new_label);
+            label_name = NULL;
+            destroy_label_table(&_label_table);
+            fclose(am_file);
+            return NULL;
+        }
+        new_label = NULL;
+        tmp_label = NULL;
+    }
 
     free(instruction_buffer);
     instruction_buffer = NULL;
     free(label_name);
     label_name = NULL;
     fclose(am_file);
+    new_label = NULL;
     return _label_table;
-}
-
-addressing_method get_addressing_method(char *sub_inst, label_table *_label_table) {
-    int i;
-
-    /* case 0 */
-    if (sub_inst[0] == '#') {
-        if (sub_inst[1] == '\0') {
-            return UNDEFINED;
-        }
-        if (sub_inst[1] != '-' && sub_inst[1] != '+' && !isdigit(sub_inst[1])) {
-            return UNDEFINED;
-        }
-        if (sub_inst[1] == '-' || sub_inst[1] == '+') {
-            if (!isdigit(sub_inst[2])) {
-                return UNDEFINED;
-            }
-        }
-        for (i = 2; i < (int)strlen(sub_inst); i++) {
-            if (!isdigit(sub_inst[i])) {
-                return UNDEFINED;
-            }
-        }
-        return IMMEDIATE;
-    }
-
-    /* case 1 */
-    for (i = 0; i < _label_table->size; i++) {
-        if (!strcmp(_label_table->labels[i]->name, sub_inst)) {
-            return DIRECT;
-        }
-    }
-
-    /* case 2 */
-    if (sub_inst[0] == '*') {
-        if (sub_inst[1] == '\0' || sub_inst[1] != 'r') {
-            return UNDEFINED_METHOD;
-        }
-        if (sub_inst[2] == '\0' || sub_inst[2] < '0' || sub_inst[2] > '7') {
-            return UNDEFINED_METHOD;
-        }
-        if (sub_inst[3] != '\0') {
-            return UNDEFINED_METHOD;
-        }
-        return INDIRECT_REGISTER;
-    }
-
-    /* case 3 */
-
-    if (sub_inst[0] == 'r') {
-        if (sub_inst[1] == '\0' || sub_inst[1] < '0' || sub_inst[1] > '7') {
-            return UNDEFINED_METHOD;
-        }
-        if (sub_inst[2] != '\0') {
-            return UNDEFINED_METHOD;
-        }
-        return DIRECT_REGISTER;
-    }
-
-    /* else */
-    return UNDEFINED_METHOD;
 }
 
 void destroy_keyword_table(keyword **_keyword_table) {
@@ -804,3 +786,62 @@ void destroy_keyword_table(keyword **_keyword_table) {
     (*_keyword_table) = NULL;
 }
 
+void destroy_label(label **_label) {
+    if (_label == NULL) return;
+
+    free(*_label);
+    *_label = NULL;
+}
+
+void destroy_label_table(label_table **_label_table) {
+    size_t i;
+    if (_label_table == NULL || *(_label_table) == NULL) return;
+    for (i = 0; i < (*_label_table)->capacity; i++) {
+        destroy_label(&(*_label_table)->labels[i]);
+    }
+    free((*_label_table)->labels);
+    free(*_label_table);
+    *_label_table = NULL;
+}
+
+void print_label_table(label_table *_label_table) {
+    int i;
+    char entry[] = " .entry";
+    char external[] = " .extern";
+    char none[] = "None";
+    if (_label_table == NULL) {
+        printf("\nError- Trying to print a NULL label table.\n");
+        return;
+    }
+    printf("\n######################################################\n");
+    printf("Printing Label Table:");
+    printf("\n######################################################\n");
+
+    for (i = 0; i < _label_table->size; i++) {
+        printf("Name: %s \n", _label_table->labels[i]->name);
+        if (_label_table->labels[i]->key != 0 && _label_table->labels[i]->key != -1)
+            printf("Key: %d \n", _label_table->labels[i]->key);
+
+        if (_label_table->labels[i]->is_entry) {
+            printf("Directives: %s \n", entry);
+        }
+        else if (_label_table->labels[i]->is_extern) {
+            printf("Directives: %s \n", external);
+        }
+        else {
+            printf("Directives: %s \n", none);
+        }
+        if (_label_table->labels[i]->instruction_line != 0)
+            printf("Instruction line: %lu \n", _label_table->labels[i]->instruction_line);
+        if (_label_table->labels[i]->address != 0 && _label_table->labels[i]->address != -1) {
+            printf("Address: %lu \n", _label_table->labels[i]->address);
+        }
+        printf("\n-----------------------------------\n");
+
+    }
+    printf("\n######################################################\n");
+    printf("End Of Label Table");
+    printf("\n######################################################\n\n\n");
+
+
+}

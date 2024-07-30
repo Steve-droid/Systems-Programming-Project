@@ -64,11 +64,12 @@ data_image *create_data_image(inst_table *_inst_table) {
 		_inst_indx++;
 	}
 
-	printf("\n#################### Data Image #########################\n");
-	for (_inst_indx = 0; _inst_indx < _data_image->num_words; _inst_indx++) {
-		printf("#%lu: %s\n", _inst_indx, _data_image->data[_inst_indx]);
-	}
-	printf("\n################# End Of Data Image #####################\n");
+	/*	printf("\n#################### Data Image #########################\n");
+		for (_inst_indx = 0; _inst_indx < _data_image->num_words; _inst_indx++) {
+			printf("#%lu: %s\n", _inst_indx, _data_image->data[_inst_indx]);
+		}
+		printf("\n################# End Of Data Image #####################\n");
+	*/
 
 	return _data_image;
 
@@ -100,9 +101,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 	/* Create an instance of an instruction table */
 	if (create_instruction_table(&_inst_table) != STATUS_OK) {
 		printf("ERROR- Failed to create an instance of the instruction table\n");
-		destroy_label_table(&_label_table);
-		destroy_label_table(&_label_table);
-		destroy_keyword_table(&keyword_table);
+		fclose(file);
 		destroy_instruction_table(&_inst_table);
 		destroy_syntax_state(&state);
 		return NULL;
@@ -113,10 +112,11 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 	while (fgets(state->buffer, MAX_LINE_LENGTH, file)) { /* Read every line */
 		if (create_instruction(&state->_inst) != STATUS_OK) {
 			printf("ERROR- Failed to create an instance of the instruction\n");
-			destroy_label_table(&_label_table);
-			destroy_keyword_table(&keyword_table);
+			destroy_instruction(&state->_inst);
 			destroy_instruction_table(&_inst_table);
 			destroy_syntax_state(&state);
+			free(state);
+			fclose(file);
 			return NULL;
 		}
 
@@ -124,6 +124,8 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 		/* Skip empty lines */
 		if (is_empty_line(state->buffer)) {
+			destroy_instruction(&state->_inst);
+			reset_syntax_state(state);
 			continue;
 		}
 
@@ -132,6 +134,8 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 		/* Skip comment lines */
 		if (state->buffer[0] == ';') {
+			destroy_instruction(&state->_inst);
+			reset_syntax_state(state);
 			continue;
 		}
 
@@ -144,9 +148,6 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		/* If the instruction starts with a label definition, skip it */
 		skip_label_name(state, _label_table);
 
-		if (state->extern_or_entry == CONTAINS_ENTRY || state->extern_or_entry == CONTAINS_EXTERN) {
-			continue;
-		}
 
 		/* Skip unnecessary spaces */
 		state->buffer = trim_whitespace(state->buffer);
@@ -156,10 +157,15 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 		/* If the command does not exist, exit */
 		if (state->cmd_key == UNDEFINED) {
-			destroy_label_table(&_label_table);
-			destroy_keyword_table(&keyword_table);
+			printf("\nError on line %d: Undefined command name. Aborting lexer...\n", state->line_number);
+			fclose(file);
+			destroy_instruction(&(state->_inst));
 			destroy_instruction_table(&_inst_table);
+			state->buffer = buffer_without_offset;
+			buffer_without_offset = NULL;
 			destroy_syntax_state(&state);
+			free(state);
+
 			return NULL;
 		}
 		/* If the command key is valid, assign the command key to the instruction */
@@ -170,18 +176,21 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 		if (generate_tokens(state, keyword_table, _label_table) != STATUS_OK) {
 			printf("ERROR- Failed to generate tokens\n");
-			destroy_label_table(&_label_table);
-			destroy_keyword_table(&keyword_table);
+			fclose(file);
+			destroy_instruction(&state->_inst);
 			destroy_instruction_table(&_inst_table);
+			state->buffer = buffer_without_offset;
+			buffer_without_offset = NULL;
 			destroy_syntax_state(&state);
+			free(state);
 			return NULL;
 		}
 
 		/* Insert the instruction to the instruction table */
 		if (insert_inst_to_table(_inst_table, state->_inst) != STATUS_OK) {
 			printf("ERROR- Failed to insert instruction to table\n");
-			destroy_label_table(&_label_table);
-			destroy_keyword_table(&keyword_table);
+			fclose(file);
+			destroy_instruction(&state->_inst);
 			destroy_instruction_table(&_inst_table);
 			destroy_syntax_state(&state);
 			return NULL;
@@ -194,15 +203,16 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 	fclose(file);
 
+	destroy_syntax_state(&state);
+
 	_inst_table->IC = IC("get", 0);
 	_inst_table->DC = DC("get", 0);
 
 	if (assign_addresses(_inst_table, _label_table, keyword_table) != STATUS_OK) {
 		printf("ERROR- Failed to insert instruction to table\n");
-		destroy_label_table(&_label_table);
-		destroy_keyword_table(&keyword_table);
 		destroy_instruction_table(&_inst_table);
 		destroy_syntax_state(&state);
+		free(state);
 		return NULL;
 	}
 
@@ -210,18 +220,13 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 	if (_data_image == NULL) {
 		printf("ERROR- Failed to create data image\n");
-		destroy_label_table(&_label_table);
-		destroy_keyword_table(&keyword_table);
 		destroy_instruction_table(&_inst_table);
 		destroy_syntax_state(&state);
 		return NULL;
 	}
 
-	print_instruction_table(_inst_table, _label_table);
 
-	print_label_table(_label_table);
 
-	destroy_syntax_state(&state);
 
 	for (i = 0;i < _data_image->num_dot_data;i++) {
 		_data_image->data[i] = NULL;
@@ -338,8 +343,8 @@ static status assign_data(syntax_state *state, label_table *_label_table, keywor
 	int char_indx = 0;
 	int copy_indx = 0;
 
-	if (state == NULL || state->_inst == NULL || keyword_table == NULL || _label_table == NULL) {
-		printf("ERROR- Tried to process unknown amount of arguments with NULL arguments\n");
+	if (state->_inst == NULL) {
+		printf("ERROR- Tried to process NULL arguments\n");
 		return STATUS_ERROR;
 	}
 
@@ -461,7 +466,8 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 
 		/* Check if the intruction terminated before any arguments arguments are found */
 		if (_instruction_args && (_instruction_args[arg_index] == '\0' || _instruction_args[arg_index] == '\n')) {
-			printf("ERROR- There are less arguments than expected for the specific command\n");
+			printf("Error on line: %d: ", state->line_number + 1);
+			printf("There are less arguments than expected for the specific command\n");
 			return STATUS_ERROR;
 		}
 
@@ -572,13 +578,15 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 	}
 
 	if (_instruction_args[0] != '\0' && _instruction_args[0] != '\n') {
-		printf("ERROR- Too many arguments for the specific command\n");
+		printf("\nError on line: %d: ", state->line_number + 1);
+		printf("There are too many arguments for the '%s' command\n", state->_inst->tokens[0]);
 		return STATUS_ERROR;
 	}
 
 	state->comma = *(_instruction_args) == ',';
 	if (state->comma == true) {
-		printf("ERROR- There is a comma after the last argument\n");
+		printf("\nError on line: %d: ", state->line_number + 1);
+		printf("There is a comma after the last argument of the '%s' command\n", state->_inst->tokens[0]);
 		return STATUS_ERROR;
 	}
 
@@ -687,12 +695,16 @@ static validation_state process_string_command(syntax_state *state, label_table 
 static validation_state process_entry_extern_command(syntax_state *state) {
 	int i = state->index;
 	char *line = state->buffer;
-	int next = state->_inst->num_tokens;
+	int next = 0;
+	static bool created_token = false;
 
-	if (create_empty_token(state->_inst) != STATUS_OK) {
+	if (!created_token && create_empty_token(state->_inst) != STATUS_OK) {
 		printf("ERROR- Failed to allocate memory for string tokens\n");
 		return invalid;
 	}
+
+	created_token = true;
+	next = state->_inst->num_tokens - 1;
 
 	if (!(isalpha(line[i]) || isdigit(line[i]))) {
 		printf("ERROR- Invalid character for label, no label with this name\n");
@@ -718,7 +730,6 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	keyword_name command = UNDEFINED_KEYWORD;
 	bool contains_src_addressing = false;
 	bool contains_dest_addressing = false;
-	bool valid_label_name = false;
 	bool found_label_with_matching_name = false;
 	label *tmp_label = NULL;
 	char *tmp_ptr = NULL;
@@ -955,7 +966,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 		}
 
 		for (i = 0;i < _label_table->size;i++) {
-			tmp_label = get_label(_label_table, argument);
+			tmp_label = get_label_by_name(_label_table, argument);
 			if (tmp_label != NULL) {
 				found_label_with_matching_name = true;
 				break;
@@ -967,12 +978,16 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 				if (state->_inst->direct_label_key_src == -1) {
 					state->_inst->direct_label_key_src = tmp_label->key;
 					strcpy(state->_inst->direct_label_name_src, tmp_label->name);
+					if (tmp_label->is_entry) state->_inst->is_src_entry = true;
+					else if (tmp_label->is_extern) state->_inst->is_src_extern = true;
 				}
 			}
 			if (state->_inst->dest_addressing_method == DIRECT) {
 				if (state->_inst->direct_label_key_dest == -1) {
 					state->_inst->direct_label_key_dest = tmp_label->key;
 					strcpy(state->_inst->direct_label_name_dest, tmp_label->name);
+					if (tmp_label->is_entry) state->_inst->is_dest_entry = true;
+					else if (tmp_label->is_extern) state->_inst->is_dest_extern = true;
 				}
 			}
 
@@ -1030,7 +1045,11 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 				state->_inst->indirect_reg_num_dest = tmp_val;
 			}
 			break;
+		default:
+			break;
 		}
+
+
 	}
 
 	if (_addressing_method == DIRECT_REGISTER) {
@@ -1084,6 +1103,9 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 				state->_inst->direct_reg_num_dest = tmp_val;
 			}
 			break;
+
+
+		default: break;
 		}
 
 	}
@@ -1094,7 +1116,6 @@ static validation_state validate_label_name(syntax_state *state, label_table *_l
 	int i;
 	bool label_found = false;
 	label *_label = NULL;
-	int next = state->_inst->num_tokens;
 	int cmd_key = state->_inst->cmd_key;
 	if (!strcmp(keyword_table[cmd_key].name, ".entry") || !strcmp(keyword_table[cmd_key].name, ".extern")) {
 		for (i = 0; i < _label_table->size; i++) {
@@ -1102,16 +1123,26 @@ static validation_state validate_label_name(syntax_state *state, label_table *_l
 
 			/* For every entry point, check if the label name exists in the label table */
 			if (_label->is_entry && state->is_entry) {
-				if (label_found = !strcmp(_label->name, state->_inst->tokens[next])) break;
+				label_found = !strcmp(_label->name, state->buffer);
+				if (label_found) break;
 			}
 
 			/* For every external point, check if the label name exists in the label table */
 			if (_label->is_extern && state->is_extern) {
-				if (label_found = !strcmp(_label->name, state->_inst->tokens[next])) break;
+				label_found = !strcmp(_label->name, state->buffer);
+				if (label_found) break;
 			}
+
+
 		}
+
+		_label = get_label_by_name(_label_table, state->buffer);
+		if (_label != NULL)
+			if (_label->is_entry || _label->is_extern) {
+				label_found = true;
+			}
 		if (label_found == false) {
-			printf("ERROR- No such label name\n");
+			printf("Error on line %d: The name '%s' is an invalid label name.\n", state->line_number, state->buffer);
 			return invalid;
 		}
 	}
@@ -1121,7 +1152,6 @@ static validation_state validate_label_name(syntax_state *state, label_table *_l
 static validation_state validate_data_members(syntax_state *state) {
 	size_t i;
 	bool minus_or_plus = false;
-	bool comma = false;
 	bool number = false;
 	char *buffer = state->_inst->tokens[1];
 
@@ -1133,19 +1163,17 @@ static validation_state validate_data_members(syntax_state *state) {
 				return invalid;
 			}
 			minus_or_plus = true;
-			comma = number = false;
+			number = false;
 		}
 		else if (buffer[i] == ',') {
 			if (minus_or_plus == true) { /*in case of 1,-,2,3 */
 				return invalid;
 			}
-			comma = true;
 			number = false;
 			minus_or_plus = false;
 		}
 		else {   /*data_buffer[i] == number*/
 			number = true;
-			comma = false;
 			minus_or_plus = false;
 		}
 	}
@@ -1161,7 +1189,7 @@ static status assign_addresses(inst_table *_inst_table, label_table *_label_tabl
 	label *tmp_label = NULL;
 	inst *tmp_inst = NULL;
 
-	if (_inst_table == NULL | _label_table == NULL || _keyword_table == NULL) {
+	if (_inst_table == NULL || _label_table == NULL || _keyword_table == NULL) {
 		return STATUS_ERROR;
 	}
 

@@ -25,7 +25,7 @@
 #include "instruction.h"
 
 
-status parse(inst_table *_inst_table, label_table *_label_table, keyword *keyword_table);
+status parse(inst_table *_inst_table, label_table *_label_table, keyword *keyword_table, char *am_filename);
 
 
 
