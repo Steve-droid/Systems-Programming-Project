@@ -37,6 +37,8 @@ int main(int argc, char *argv[]) {
     label_table *_label_table = NULL;
     inst_table *_inst_table = NULL;
     char **am_filenames = NULL;
+    data_image *_data_image = NULL;
+
 
     /*Initialize the keyword table*/
     printf("Creating keyword table... ");
@@ -76,15 +78,17 @@ int main(int argc, char *argv[]) {
     }
     printf("Done\n");
 
-    printf("Parsing the file '%s'... ", am_filenames[0]);
+    printf("Parsing the file '%s'...\n ", am_filenames[0]);
     if (parse(_inst_table, _label_table, keyword_table, am_filenames[0]) != STATUS_OK) {
         printf("Error while parsing the assembly code. Exiting...\n");
         terminate(argc - 1, &am_filenames, &m_table, &keyword_table, &_label_table, &_inst_table);
         return EXIT_FAILURE;
     }
+
     printf("Done\n");
 
     printf("Assembly of the file '%s' completed successfully. Exiting...\n", am_filenames[0]);
     terminate(argc - 1, &am_filenames, &m_table, &keyword_table, &_label_table, &_inst_table);
     return EXIT_SUCCESS;
+
 }

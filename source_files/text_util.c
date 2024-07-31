@@ -410,10 +410,11 @@ void print_binary_to_file(uint16_t word, FILE *file_ptr) {
     int i;
     for (i = 14; i >= 0; i--) {
         fprintf(file_ptr, "%u", (word >> i) & 1);
+        printf("%u", (word >> i) & 1);
     }
+    printf("\n");
     fprintf(file_ptr, "\n");
 }
-
 
 
 void print_binary_2(int num) {

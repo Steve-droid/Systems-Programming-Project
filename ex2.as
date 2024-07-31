@@ -7,6 +7,7 @@ MAIN:    add r3, LIST
 LOOP:    prn #48
          lea STR, r6
          inc r6
+STR:     .string "abcd"
          mov *r4, L3
          sub r1, r4
          cmp r3, #-6
@@ -17,7 +18,6 @@ LOOP:    prn #48
 .entry MAIN
          jmp LOOP
 END:     stop
-STR:     .string "abcd"
 LIST:    .data 6,-9
          .data -100
 K:       .data 31

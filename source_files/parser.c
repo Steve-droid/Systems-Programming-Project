@@ -17,37 +17,64 @@ uint16_t to_twos_complement(int16_t number) {
     return (uint16_t)number;
 }
 
-static void assign_bits_directive(inst_table *_inst_table, size_t index) {
+data_image *create_data_image(inst_table *_inst_table) {
+    size_t _inst_indx;
+    inst *current_inst = NULL;
     char *temp = NULL;
     char *token = NULL;
     int i = 0;
-    inst *_inst = _inst_table->inst_vec[index];
 
-
-    if (_inst->is_dot_data) {
-        temp = strdup(_inst->tokens[1]);
-        token = strtok(temp, ",");
-
-        while (token != NULL && i < _inst->num_dot_data_members) {
-            _inst->binary_word_vec[i] = to_twos_complement(atoi(token));
-            token = strtok(NULL, ", ");
-            i++;
-        }
-
-        free(temp);
-        temp = NULL;
-
-        return;
+    data_image *_data_image = (data_image *)calloc(1, sizeof(data_image));
+    if (_data_image == NULL) {
+        printf("ERROR- Failed to allocate memory for data image\n");
+        return NULL;
     }
 
-    if (_inst->is_dot_string) {
-        for (i = 0; i < _inst->num_words_to_generate; i++) {
-            _inst->binary_word_vec[i] = (_inst->tokens[1][i]);
+    _data_image->binary_word_vec = NULL;
+    _data_image->num_words = 0;
+
+    _data_image->binary_word_vec = (uint16_t *)calloc(_inst_table->DC, sizeof(uint16_t));
+    if (_data_image->binary_word_vec == NULL) {
+        free(_data_image);
+        return NULL;
+    }
+
+    _inst_indx = 0;
+    while (_inst_indx < _inst_table->num_instructions) {
+        current_inst = _inst_table->inst_vec[_inst_indx];
+        if (current_inst->is_dot_data) {
+            temp = strdup(current_inst->tokens[1]);
+            token = strtok(temp, ",");
+            i = 0;
+            while (token != NULL && i < current_inst->num_dot_data_members) {
+                _data_image->binary_word_vec[_data_image->num_words] = to_twos_complement(atoi(token));
+                token = strtok(NULL, ", ");
+                _data_image->num_words++;
+            }
+
+            free(temp);
+            temp = NULL;
         }
 
-        return;
+        if (current_inst->is_dot_string) {
+            for (i = 0;i < current_inst->num_words_to_generate; i++) {
+                _data_image->binary_word_vec[_data_image->num_words] = (current_inst->tokens[1][i]);
+                _data_image->num_words++;
+            }
+        }
+
+        _inst_indx++;
     }
+
+    if (_data_image->num_words != _inst_table->DC) {
+        printf("Error: Data image did not create properly\n");
+        return NULL;
+    }
+
+    return _data_image;
 }
+
+
 
 
 void assign_bits_operation(inst_table *_inst_table, size_t index) {
@@ -291,6 +318,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     label *tmp_label = NULL;
     bool create_ext = false;
     bool create_ent = false;
+    data_image *_data_image = NULL;
 
 
     bin_file_ptr = fopen(binary_output_filename, "w");
@@ -322,6 +350,18 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
         return STATUS_ERROR;
     }
 
+
+    _data_image = create_data_image(_inst_table);
+    if (_data_image == NULL) {
+        free_filenames(object_output_filename, NULL);
+        close_files(bin_file_ptr, object_file_ptr, NULL);
+        object_output_filename = NULL;
+        object_file_ptr = NULL;
+        return STATUS_ERROR;
+    }
+
+
+
     for (i = 0; i < _inst_table->num_instructions; i++) {
         if (generate_binary_words(_inst_table, i) != STATUS_OK) {
             free_filenames(object_output_filename, NULL);
@@ -335,20 +375,36 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
         if (!(tmp_inst->is_dot_data || tmp_inst->is_dot_string || tmp_inst->is_entry || tmp_inst->is_extern)) {
             assign_bits_operation(_inst_table, i);
         }
-        else assign_bits_directive(_inst_table, i);
     }
 
 
     /*Print to the .ob output file*/
     fprintf(object_file_ptr, "\t%lu\t%lu\n", _inst_table->IC - 101 - _inst_table->DC, _inst_table->DC);
     for (inst_index = 0; inst_index < _inst_table->num_instructions; inst_index++) {
+        for (i = 0;i < _inst_table->inst_vec[inst_index]->num_tokens;i++) {
+            tmp_inst = _inst_table->inst_vec[inst_index];
+            if (tmp_inst->is_dot_data || tmp_inst->is_dot_string) continue;
+            printf("%s ", tmp_inst->tokens[i]);
+            tmp_inst = NULL;
+        }
+        printf("\n");
         for (bin_word_index = 0; bin_word_index < _inst_table->inst_vec[inst_index]->num_words_to_generate;
             bin_word_index++) {
+            tmp_inst = _inst_table->inst_vec[inst_index];
+            if (tmp_inst->is_dot_data || tmp_inst->is_dot_string) continue;
             print_octal((_inst_table->inst_vec[inst_index]->binary_word_vec[bin_word_index]), object_file_ptr);
             print_binary_to_file((_inst_table->inst_vec[inst_index]->binary_word_vec[bin_word_index]), bin_file_ptr);
-            address++;
         }
     }
+
+    printf("Data Image:\n");
+    for (bin_word_index = 0; bin_word_index < _data_image->num_words; bin_word_index++) {
+        _data_image->binary_word_vec[bin_word_index];
+        print_octal(_data_image->binary_word_vec[bin_word_index], object_file_ptr);
+        print_binary_to_file(_data_image->binary_word_vec[bin_word_index], bin_file_ptr);
+    }
+
+
 
     close_files(object_file_ptr, bin_file_ptr, NULL);
     free_filenames(object_output_filename, NULL);

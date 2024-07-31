@@ -31,54 +31,13 @@ static validation_state validate_data_members(syntax_state *state);
 static validation_state validate_label_name(syntax_state *state, label_table *_label_table, keyword *keyword_table);
 static status assign_addresses(inst_table *_inst_table, label_table *_label_table, keyword *_keyword_table);
 
-data_image *create_data_image(inst_table *_inst_table) {
-	size_t _inst_indx;
 
-	data_image *_data_image = (data_image *)calloc(1, sizeof(data_image));
-	if (_data_image == NULL) {
-		printf("ERROR- Failed to allocate memory for data image\n");
-		return NULL;
-	}
 
-	_data_image->data = NULL;
-	_data_image->dot_data = NULL;
-	_data_image->dot_string = NULL;
-	_data_image->num_dot_data = 0;
-	_data_image->num_dot_string = 0;
-	_data_image->num_words = 0;
 
-	_data_image->data = (char **)calloc(_inst_table->DC, sizeof(char *));
-	if (_data_image->data == NULL) {
-		_data_image->dot_data = NULL;
-		_data_image->dot_string = NULL;
-		destroy_instruction_table(&_inst_table);
-		free(_data_image);
-		return NULL;
-	}
-	_inst_indx = 0;
-	while (_inst_indx < _inst_table->num_instructions) {
-		if (_inst_table->inst_vec[_inst_indx]->is_dot_data || _inst_table->inst_vec[_inst_indx]->is_dot_string) {
-			_data_image->data[_data_image->num_words] = _inst_table->inst_vec[_inst_indx]->tokens[1];
-			_data_image->num_words++;
-		}
-		_inst_indx++;
-	}
-
-	/*	printf("\n#################### Data Image #########################\n");
-		for (_inst_indx = 0; _inst_indx < _data_image->num_words; _inst_indx++) {
-			printf("#%lu: %s\n", _inst_indx, _data_image->data[_inst_indx]);
-		}
-		printf("\n################# End Of Data Image #####################\n");
-	*/
-
-	return _data_image;
-
-}
 
 inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_table) {
 	syntax_state *state = NULL;
 	char *buffer_without_offset = NULL;
-	data_image *_data_image = NULL;
 	inst_table *_inst_table = NULL;
 	FILE *file = NULL;
 	size_t i = 0;
@@ -203,6 +162,8 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 	fclose(file);
 
+	print_instruction_table(_inst_table, _label_table);
+
 	destroy_syntax_state(&state);
 
 	_inst_table->IC = IC("get", 0);
@@ -216,29 +177,8 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		return NULL;
 	}
 
-	_data_image = create_data_image(_inst_table);
 
-	if (_data_image == NULL) {
-		printf("ERROR- Failed to create data image\n");
-		destroy_instruction_table(&_inst_table);
-		destroy_syntax_state(&state);
-		return NULL;
-	}
-
-
-
-
-	for (i = 0;i < _data_image->num_dot_data;i++) {
-		_data_image->data[i] = NULL;
-	}
-
-	free(_data_image->data);
-
-	_data_image->data = NULL;
-
-	free(_data_image);
-
-	_data_image = NULL;
+	print_instruction_table(_inst_table, _label_table);
 
 	return _inst_table;
 }
