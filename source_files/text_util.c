@@ -408,6 +408,7 @@ void print_bits(unsigned value, int num_bits) {
 
 void print_binary_to_file(uint16_t word, FILE *file_ptr) {
     int i;
+    printf("\t\t\t");
     for (i = 14; i >= 0; i--) {
         fprintf(file_ptr, "%u", (word >> i) & 1);
         printf("%u", (word >> i) & 1);

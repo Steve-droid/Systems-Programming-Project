@@ -162,7 +162,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 	fclose(file);
 
-	print_instruction_table(_inst_table, _label_table);
+
 
 	destroy_syntax_state(&state);
 
@@ -176,10 +176,6 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		free(state);
 		return NULL;
 	}
-
-
-	print_instruction_table(_inst_table, _label_table);
-
 	return _inst_table;
 }
 

@@ -23,6 +23,7 @@ data_image *create_data_image(inst_table *_inst_table) {
     char *temp = NULL;
     char *token = NULL;
     int i = 0;
+    int name_count = 0;
 
     data_image *_data_image = (data_image *)calloc(1, sizeof(data_image));
     if (_data_image == NULL) {
@@ -32,9 +33,16 @@ data_image *create_data_image(inst_table *_inst_table) {
 
     _data_image->binary_word_vec = NULL;
     _data_image->num_words = 0;
-
+    _data_image->num_names = 0;
     _data_image->binary_word_vec = (uint16_t *)calloc(_inst_table->DC, sizeof(uint16_t));
     if (_data_image->binary_word_vec == NULL) {
+        free(_data_image);
+        return NULL;
+    }
+
+    _data_image->names = (char **)calloc(MAX_LINE_LENGTH, sizeof(char *));
+    if (_data_image->names == NULL) {
+        free(_data_image->binary_word_vec);
         free(_data_image);
         return NULL;
     }
@@ -43,6 +51,8 @@ data_image *create_data_image(inst_table *_inst_table) {
     while (_inst_indx < _inst_table->num_instructions) {
         current_inst = _inst_table->inst_vec[_inst_indx];
         if (current_inst->is_dot_data) {
+            _data_image->names[name_count] = current_inst->tokens[1];
+            name_count++;
             temp = strdup(current_inst->tokens[1]);
             token = strtok(temp, ",");
             i = 0;
@@ -57,6 +67,8 @@ data_image *create_data_image(inst_table *_inst_table) {
         }
 
         if (current_inst->is_dot_string) {
+            _data_image->names[name_count] = current_inst->tokens[1];
+            name_count++;
             for (i = 0;i < current_inst->num_words_to_generate; i++) {
                 _data_image->binary_word_vec[_data_image->num_words] = (current_inst->tokens[1][i]);
                 _data_image->num_words++;
@@ -71,10 +83,30 @@ data_image *create_data_image(inst_table *_inst_table) {
         return NULL;
     }
 
+
+    _data_image->num_names = name_count;
     return _data_image;
 }
 
+void destroy_data_image(data_image **_data_image) {
+    int i;
+    if (*(_data_image) == NULL) return;
 
+    if ((*_data_image)->binary_word_vec != NULL) {
+        free((*_data_image)->binary_word_vec);
+        (*_data_image)->binary_word_vec = NULL;
+    }
+    if ((*_data_image)->names != NULL) {
+        for (i = 0;i < (*_data_image)->num_names;i++) {
+            (*_data_image)->names[i] = NULL;
+        }
+        free((*_data_image)->names);
+        (*_data_image)->names = NULL;
+    }
+
+    free(*_data_image);
+    (*_data_image) = NULL;
+}
 
 
 void assign_bits_operation(inst_table *_inst_table, size_t index) {
@@ -381,23 +413,36 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     /*Print to the .ob output file*/
     fprintf(object_file_ptr, "\t%lu\t%lu\n", _inst_table->IC - 101 - _inst_table->DC, _inst_table->DC);
     for (inst_index = 0; inst_index < _inst_table->num_instructions; inst_index++) {
-        for (i = 0;i < _inst_table->inst_vec[inst_index]->num_tokens;i++) {
-            tmp_inst = _inst_table->inst_vec[inst_index];
-            if (tmp_inst->is_dot_data || tmp_inst->is_dot_string) continue;
-            printf("%s ", tmp_inst->tokens[i]);
-            tmp_inst = NULL;
+        printf("\n------------------------------------------------------------\n\n\t\t\t");
+        tmp_inst = _inst_table->inst_vec[inst_index];
+        printf("%d--> ", tmp_inst->address);
+        if (tmp_inst->is_dot_data || tmp_inst->is_dot_string || tmp_inst->is_entry || tmp_inst->is_extern) {
+            printf("%s (skip)", tmp_inst->tokens[0]);
+            continue;
         }
-        printf("\n");
+
+        for (i = 0;i < _inst_table->inst_vec[inst_index]->num_tokens;i++) {
+            printf("%s ", tmp_inst->tokens[i]);
+        }
+        printf("\n\n");
+
         for (bin_word_index = 0; bin_word_index < _inst_table->inst_vec[inst_index]->num_words_to_generate;
             bin_word_index++) {
             tmp_inst = _inst_table->inst_vec[inst_index];
-            if (tmp_inst->is_dot_data || tmp_inst->is_dot_string) continue;
+            if (tmp_inst->is_dot_data || tmp_inst->is_dot_string || tmp_inst->is_entry || tmp_inst->is_extern) continue;
             print_octal((_inst_table->inst_vec[inst_index]->binary_word_vec[bin_word_index]), object_file_ptr);
             print_binary_to_file((_inst_table->inst_vec[inst_index]->binary_word_vec[bin_word_index]), bin_file_ptr);
         }
     }
 
-    printf("Data Image:\n");
+    printf("\n------------------------------------------------------------\n\n\t\t\t");
+    printf("Data Image:\n\n");
+
+    for (i = 0;i < _data_image->num_names;i++) {
+        printf("\t\t\t %s\n\n", _data_image->names[i]);
+    }
+
+    printf("\n\t\t\t   ^\n\t\t\t   |\n");
     for (bin_word_index = 0; bin_word_index < _data_image->num_words; bin_word_index++) {
         _data_image->binary_word_vec[bin_word_index];
         print_octal(_data_image->binary_word_vec[bin_word_index], object_file_ptr);
@@ -406,9 +451,11 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
 
 
 
+
     close_files(object_file_ptr, bin_file_ptr, NULL);
     free_filenames(object_output_filename, NULL);
     object_file_ptr = NULL;
+    bin_file_ptr = NULL;
     object_output_filename = NULL;
 
 
@@ -439,7 +486,6 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
             tmp_ptr[3] = 't';
             tmp_ptr = NULL;
         }
-
 
         entry_file_ptr = fopen(entry_output_filename, "w");
         if (entry_file_ptr == NULL) {
@@ -511,13 +557,14 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
                 if (tmp_inst->is_dest_extern)
                     fprintf(extern_file_ptr, "%s\t0%d\n", tmp_inst->direct_label_name_dest, tmp_inst->address + 1);
         }
-
-        close_files(extern_file_ptr, NULL);
-        free_filenames(extern_output_filename, NULL);
-        extern_file_ptr = NULL;
-        extern_output_filename = NULL;
-
-
-        return STATUS_OK;
     }
+
+    close_files(extern_file_ptr, NULL);
+    free_filenames(extern_output_filename, NULL);
+    extern_file_ptr = NULL;
+    extern_output_filename = NULL;
+
+    destroy_data_image(&_data_image);
+    return STATUS_OK;
+
 }

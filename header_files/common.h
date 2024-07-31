@@ -252,6 +252,8 @@ size_t IC(char *prompt, size_t amount);
 typedef struct data_image {
     size_t num_words;
     uint16_t *binary_word_vec;
+    char **names;
+    int num_names;
 
 } data_image;
 

@@ -8,6 +8,7 @@ LOOP:    prn #48
          lea STR, r6
          inc r6
 STR:     .string "abcd"
+         .data -100
          mov *r4, L3
          sub r1, r4
          cmp r3, #-6
@@ -19,6 +20,5 @@ STR:     .string "abcd"
          jmp LOOP
 END:     stop
 LIST:    .data 6,-9
-         .data -100
 K:       .data 31
 .extern L3
