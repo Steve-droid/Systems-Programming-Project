@@ -447,8 +447,11 @@ void print_binary_2(int num) {
 
 
 char *my_strdup(char *s) {
-    char *d = malloc(strlen(s) + 1);
+    char *d = NULL;
+    if (s == NULL) return NULL;
+    d = calloc(strlen(s) + 4, sizeof(char));
     if (d == NULL) return NULL;
     strcpy(d, s);
+    d[strlen(s)] = '\0';
     return d;
 }

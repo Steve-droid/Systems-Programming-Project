@@ -157,9 +157,6 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 	_inst_table->IC = IC("get", 0);
 	_inst_table->DC = DC("get", 0);
 
-	printf("\nIC: %lu\n", _inst_table->IC);
-	printf("\nDC: %lu\n ", _inst_table->DC);
-
 	if (assign_addresses(_inst_table, _label_table, keyword_table) != STATUS_OK) {
 		printf("ERROR- Failed to insert instruction to table\n");
 		destroy_instruction_table(&_inst_table);

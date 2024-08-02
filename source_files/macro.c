@@ -150,10 +150,16 @@ void macro_table_destructor(macro_table **table) {
 
     if (table == NULL) return;
 
-    for (i = 0; i < (*table)->macro_count; i++) {
-        macro_destructor(&((*table)->macros[i]));
+    if ((*table) && (*table)->macros) {
+
+        for (i = 0; i < (*table)->macro_count; i++) {
+            macro_destructor(&((*table)->macros[i]));
+
+        }
+
+        free((*table)->macros);
     }
-    free((*table)->macros);
+
     free((*table));
     *table = NULL;
 }
