@@ -250,12 +250,11 @@ size_t DC(char *prompt, size_t amount);
 size_t IC(char *prompt, size_t amount);
 
 typedef struct data_image {
-    char **data;
     size_t num_words;
-    char **dot_data;
-    size_t num_dot_data;
-    char **dot_string;
-    size_t num_dot_string;
+    uint16_t *binary_word_vec;
+    char **names;
+    int num_names;
+
 } data_image;
 
 typedef struct syntax_state {

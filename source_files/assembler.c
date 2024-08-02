@@ -37,6 +37,8 @@ int main(int argc, char *argv[]) {
     label_table *_label_table = NULL;
     inst_table *_inst_table = NULL;
     char **am_filenames = NULL;
+    data_image *_data_image = NULL;
+
 
     /*Initialize the keyword table*/
     printf("Creating keyword table... ");
@@ -82,9 +84,11 @@ int main(int argc, char *argv[]) {
         terminate(argc - 1, &am_filenames, &m_table, &keyword_table, &_label_table, &_inst_table);
         return EXIT_FAILURE;
     }
+
     printf("Done\n");
 
     printf("Assembly of the file '%s' completed successfully. Exiting...\n", am_filenames[0]);
     terminate(argc - 1, &am_filenames, &m_table, &keyword_table, &_label_table, &_inst_table);
     return EXIT_SUCCESS;
+
 }

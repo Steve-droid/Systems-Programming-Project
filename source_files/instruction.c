@@ -1,5 +1,5 @@
 #include "instruction.h"
-#define MAX_TOKEN_SIZE 25
+#define MAX_TOKEN_SIZE 81
 #define INITIAL_CAPACITY 10
 #define UNSET -1
 
