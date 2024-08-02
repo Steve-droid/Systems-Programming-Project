@@ -147,6 +147,9 @@ void macro_destructor(macro **mac) {
  */
 void macro_table_destructor(macro_table **table) {
     int i;
+
+    if (table == NULL) return;
+
     for (i = 0; i < (*table)->macro_count; i++) {
         macro_destructor(&((*table)->macros[i]));
     }

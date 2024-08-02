@@ -51,5 +51,9 @@ clean:
 	rm -f *.ent *.ext *.ob *.binary
 	@echo "Clean complete."
 
+reset:
+	rm -f *.ent *.ext *.ob *.binary
+	@echo "Reset complete"	
+
 # Phony targets
 .PHONY: all clean

@@ -49,6 +49,8 @@ void reset_syntax_state(syntax_state *state) {
     for (i = 0;i < MAX_LINE_LENGTH;i++) {
         state->buffer[i] = '\0';
     }
+
+    state->buffer_without_offset = NULL;
     state->index = -1;
     state->_validation_state = invalid;
     state->extern_or_entry = NEITHER_EXTERN_NOR_ENTRY;
