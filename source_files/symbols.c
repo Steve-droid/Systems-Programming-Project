@@ -31,8 +31,7 @@ keyword_name identify_command(syntax_state *state, label_table *_label_table, ke
 
 
     if (state == NULL || _label_table == NULL || keyword_table == NULL) {
-        printf("Tried to identify command with NULL arguments\n");
-        return UNDEFINED_KEYWORD;
+        return UNDEFINED;
     }
 
     _instruction = state->buffer;
@@ -55,8 +54,8 @@ keyword_name identify_command(syntax_state *state, label_table *_label_table, ke
 
             /* Check if the command name is too long */
             if (strlen(command_name) > strlen(keyword_table[i].name)) {
-                printf("ERROR- Command name '%s' is too long\n", command_name);
-                return UNDEFINED_KEYWORD;
+                printf("Error on line %d: '%s'- Extra letters after a valid command name\n", state->line_number,state->buffer_without_offset);
+                return UNDEFINED;
             }
 
             /* If the command name is found, return the command key */
@@ -65,7 +64,7 @@ keyword_name identify_command(syntax_state *state, label_table *_label_table, ke
     }
 
     /* If the command name is not found, return UNDEFINED */
-    return UNDEFINED_KEYWORD;
+    return UNDEFINED;
 }
 
 int get_command_opcode(keyword *keyword_table, int key) {

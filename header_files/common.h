@@ -17,7 +17,7 @@
 #include <errno.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <stdint-gcc.h>
+#include <stdint.h>
 
 #define MAX_LINE_LENGTH 80
 #define UNKNOWN_NUMBER_OF_ARGUMENTS -2
@@ -266,6 +266,7 @@ typedef struct syntax_state {
     inst *_inst;
     char *buffer;
     int label_key;
+    char* buffer_without_offset;
 
     bool continue_reading;
     bool label_name;

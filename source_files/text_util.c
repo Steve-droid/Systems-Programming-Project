@@ -15,6 +15,7 @@ syntax_state *create_syntax_state() {
         return NULL;
     }
 
+    state->buffer_without_offset = buffer;
     state->index = -1;
     state->continue_reading = false;
     state->_validation_state = invalid;

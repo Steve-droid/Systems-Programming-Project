@@ -4,7 +4,6 @@
 #include "common.h"
 
 #include "text_util.h"
-#include "error.h"
 #include "symbols.h"
 #include "pre_assembler.h"
 #include "lexer.h"

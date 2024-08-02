@@ -37,7 +37,6 @@ static status assign_addresses(inst_table *_inst_table, label_table *_label_tabl
 
 inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_table) {
 	syntax_state *state = NULL;
-	char *buffer_without_offset = NULL;
 	inst_table *_inst_table = NULL;
 	FILE *file = NULL;
 	size_t i = 0;
@@ -79,7 +78,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 			return NULL;
 		}
 
-		buffer_without_offset = state->buffer;
+		state->buffer_without_offset = state->buffer;
 
 		/* Skip empty lines */
 		if (is_empty_line(state->buffer)) {
@@ -116,16 +115,13 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 		/* If the command does not exist, exit */
 		if (state->cmd_key == UNDEFINED) {
-			printf("\nError on line %d: Undefined command name. Aborting lexer...\n", state->line_number);
+			printf("\nError on line %d: '%s'- Undefined command name. Aborting lexer...\n", state->line_number,state->buffer_without_offset);
 			fclose(file);
 			destroy_instruction(&(state->_inst));
-			destroy_instruction_table(&_inst_table);
-			state->buffer = buffer_without_offset;
-			buffer_without_offset = NULL;
-			destroy_syntax_state(&state);
-			free(state);
-
-			return NULL;
+			state->buffer = state->buffer_without_offset;
+			state->buffer_without_offset = NULL;
+			reset_syntax_state(state);
+			continue;
 		}
 		/* If the command key is valid, assign the command key to the instruction */
 		state->_inst->cmd_key = state->cmd_key;
@@ -134,15 +130,11 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 			state->_inst->label_key = state->label_key;
 
 		if (generate_tokens(state, keyword_table, _label_table) != STATUS_OK) {
-			printf("ERROR- Failed to generate tokens\n");
-			fclose(file);
 			destroy_instruction(&state->_inst);
-			destroy_instruction_table(&_inst_table);
-			state->buffer = buffer_without_offset;
-			buffer_without_offset = NULL;
-			destroy_syntax_state(&state);
-			free(state);
-			return NULL;
+			state->buffer = state->buffer_without_offset;
+			state->buffer_without_offset = NULL;
+			reset_syntax_state(state);
+			continue;
 		}
 
 		/* Insert the instruction to the instruction table */
@@ -155,7 +147,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 			return NULL;
 		}
 
-		state->buffer = buffer_without_offset;
+		state->buffer = state->buffer_without_offset;
 
 		reset_syntax_state(state);
 	}
@@ -197,7 +189,6 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 		printf("Error- Command not found\n");
 		return UNDEFINED;
 	}
-
 
 
 	/* Get the number of arguments required for the command */
@@ -255,7 +246,7 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 
 	/* Check if there is a comma between the command and the arguments */
 	if (state->buffer && state->buffer[FIRST_ARG] == ',') {
-		printf("ERROR- An unnecessary comma between command and arguments\n");
+		printf("ERROR- on line: %d: '%s' unnecessary comma between the command and the arguments\n",state->line_number, state->buffer_without_offset);
 		return STATUS_ERROR;
 	}
 
@@ -278,11 +269,6 @@ static status assign_data(syntax_state *state, label_table *_label_table, keywor
 	char *token = NULL;
 	int char_indx = 0;
 	int copy_indx = 0;
-
-	if (state->_inst == NULL) {
-		printf("ERROR- Tried to process NULL arguments\n");
-		return STATUS_ERROR;
-	}
 
 	/* Check if the command is .data, .string, .entry, or .extern */
 	update_command(state, keyword_table, command_key);
@@ -486,7 +472,6 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 			return STATUS_ERROR;
 		}
 
-		IC("increment", state->_inst->num_words_to_generate);
 	}
 
 
@@ -497,6 +482,8 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 			if (dest_reg == DIRECT_REGISTER || dest_reg == INDIRECT_REGISTER)
 				state->_inst->num_words_to_generate = 2;
 	}
+	
+	IC("increment", state->_inst->num_words_to_generate);
 
 
 
