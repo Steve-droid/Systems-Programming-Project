@@ -17,7 +17,7 @@
 #include <errno.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <stdint-gcc.h>
+#include <stdint.h>
 
 #define MAX_LINE_LENGTH 80
 #define UNKNOWN_NUMBER_OF_ARGUMENTS -2
@@ -64,6 +64,7 @@ typedef enum {
     STATUS_ERROR_WRITE,
     STATUS_ERROR_INVALID_EXTENSION,
     STATUS_ERROR_MACRO_REDEFINITION,
+    STATUS_ERROR_MACRO_NAMED_AS_KEYWORD,
     STATUS_ERROR_MEMORY_ALLOCATION,
     STATUS_ERROR_MACRO_NOT_FOUND,
     STATUS_ERROR_MACRO_TABLE_IS_EMPTY,
@@ -266,6 +267,7 @@ typedef struct syntax_state {
     inst *_inst;
     char *buffer;
     int label_key;
+    char *buffer_without_offset;
 
     bool continue_reading;
     bool label_name;

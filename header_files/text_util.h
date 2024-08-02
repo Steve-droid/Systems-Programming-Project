@@ -42,6 +42,6 @@ int *convert_twodim_array_to_onedim(int **two_dim_array);
 void print_binary_to_file(uint16_t num, FILE *file_ptr);
 void print_binary_2(int num);
 void print_bits(unsigned value, int num_bits);
-
+char *my_strdup(char *s);
 
 #endif
