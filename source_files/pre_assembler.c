@@ -150,8 +150,6 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
     char **as_filenames = NULL;
     char **backup_filenames = NULL;
     char **generic_filenames = argv + 1;
-    char ch = '\0';
-    FILE *tmp = NULL;
 
 
     if (file_amount < 1) {

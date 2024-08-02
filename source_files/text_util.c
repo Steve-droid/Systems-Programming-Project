@@ -404,9 +404,6 @@ void print_bits(unsigned value, int num_bits) {
     }
 }
 
-
-
-
 void print_binary_to_file(uint16_t word, FILE *file_ptr) {
     int i;
     fprintf(file_ptr, "\t\t\t");
@@ -444,4 +441,12 @@ void print_binary_2(int num) {
 
     /** Print the resulting binary string */
     printf("%s\n", binary);
+}
+
+
+char *my_strdup(char *s) {
+    char *d = malloc(strlen(s) + 1);
+    if (d == NULL) return NULL;
+    strcpy(d, s);
+    return d;
 }

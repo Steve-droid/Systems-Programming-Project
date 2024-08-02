@@ -2,7 +2,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS =   -g
+CFLAGS =   -g -Wall -ansi -pedantic 
 
 # Include directories
 INCLUDES = -I./header_files

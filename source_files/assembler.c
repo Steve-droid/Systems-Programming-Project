@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
     label_table *_label_table = NULL;
     inst_table *_inst_table = NULL;
     char **am_filenames = NULL;
-    data_image *_data_image = NULL;
+   
 
 
     /*Initialize the keyword table*/

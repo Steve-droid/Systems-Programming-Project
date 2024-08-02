@@ -1,4 +1,5 @@
 #include "macro.h"
+#include "text_util.h"
 /**
  * @brief Create a new macro object
  *
@@ -8,7 +9,7 @@
 status create_macro(char *macro_name, macro **new_macro) {
     *new_macro = (macro *)malloc(sizeof(macro));
     if (*new_macro == NULL) err(errno, "Failed to allocate memory for a new macro");
-    (*new_macro)->name = strdup(macro_name);
+    (*new_macro)->name = my_strdup(macro_name);
     (*new_macro)->lines = NULL;
     (*new_macro)->line_capacity = 0;
     (*new_macro)->line_count = 0;
@@ -32,7 +33,7 @@ status insert_line_to_macro(macro *mac, char *line) {
         }
     }
 
-    mac->lines[mac->line_count] = strdup(line);
+    mac->lines[mac->line_count] = my_strdup(line);
     mac->line_count++;
     return STATUS_OK;
 }
