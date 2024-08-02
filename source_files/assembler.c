@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     }
     printf("Done\n");
 
-    printf("Parsing the file '%s'...\n ", am_filenames[0]);
+    printf("Parsing the file '%s'... ", am_filenames[0]);
     if (parse(_inst_table, _label_table, keyword_table, am_filenames[0]) != STATUS_OK) {
         printf("Error while parsing the assembly code. Exiting...\n");
         terminate(argc - 1, &am_filenames, &m_table, &keyword_table, &_label_table, &_inst_table);
