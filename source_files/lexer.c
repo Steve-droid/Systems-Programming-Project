@@ -32,9 +32,6 @@ static validation_state validate_label_name(syntax_state *state, label_table *_l
 static status assign_addresses(inst_table *_inst_table, label_table *_label_table, keyword *_keyword_table);
 
 
-
-
-
 inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_table) {
 	syntax_state *state = NULL;
 	char *buffer_without_offset = NULL;
@@ -168,6 +165,9 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 	_inst_table->IC = IC("get", 0);
 	_inst_table->DC = DC("get", 0);
+
+	printf("\nIC: %lu\n", _inst_table->IC);
+	printf("\nDC: %lu\n ", _inst_table->DC);
 
 	if (assign_addresses(_inst_table, _label_table, keyword_table) != STATUS_OK) {
 		printf("ERROR- Failed to insert instruction to table\n");
@@ -486,7 +486,6 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 			return STATUS_ERROR;
 		}
 
-		IC("increment", state->_inst->num_words_to_generate);
 	}
 
 
@@ -498,6 +497,7 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 				state->_inst->num_words_to_generate = 2;
 	}
 
+	IC("increment", state->_inst->num_words_to_generate);
 
 
 	/*
