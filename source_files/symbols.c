@@ -214,12 +214,12 @@ validation_state label_name_is_valid(label_table *_label_table, char *_buffer, k
 
     /* Check if the label name is NULL or too long */
     if (_buffer == NULL) {
-        printf("Error- Checking a NULL label name.\n");
+        printf("*** ERROR ***\nChecking a NULL label name.\n");
         return invalid;
     }
 
     if (strlen(label_name) > MAX_LABEL_LENGTH) {
-        printf("ERROR- Label name %s is too long. Max label length is %d.\n", label_name, MAX_LABEL_LENGTH);
+        printf("*** ERROR ***\nLabel name %s is too long. Max label length is %d.\n", label_name, MAX_LABEL_LENGTH);
         return invalid;
     }
 
@@ -228,7 +228,7 @@ validation_state label_name_is_valid(label_table *_label_table, char *_buffer, k
     /*Check if the label name contains only alphabetical characters and digits */
     for (i = 0; label_name[i] != '\0'; i++) {
         if (!(isalpha(label_name[i]) || isdigit(label_name[i]))) {
-            printf("\nError- Label name %s contains invalid characters.\n", label_name);
+            printf("\n*** ERROR ***\nLabel name %s contains invalid characters.\n", label_name);
             return invalid;
         }
     }
@@ -236,14 +236,14 @@ validation_state label_name_is_valid(label_table *_label_table, char *_buffer, k
     /* Check if the label name is a keyword */
     result_keyword = get_keyword_by_name(keywords_table, label_name);
     if (result_keyword != NULL) {
-        printf("\nError- Label name %s cannot be a keyword.\n", label_name);
+        printf("\n*** ERROR ***\nLabel name %s cannot be a keyword.\n", label_name);
         return invalid;
     }
 
     /* Check if the label name is a macro name */
     result_macro = get_macro(_macro_table, label_name);
     if (result_macro != NULL) {
-        printf("\nError- Label name '%s' cannot be the same as the '%s' macro name.\n", label_name, result_macro->name);
+        printf("\n*** ERROR ***\n Label name '%s' cannot be the same as the '%s' macro name.\n", label_name, result_macro->name);
         return invalid;
     }
 
@@ -252,7 +252,7 @@ validation_state label_name_is_valid(label_table *_label_table, char *_buffer, k
     if (tmp_label != NULL && (*entry_or_ext) == NEITHER_EXTERN_NOR_ENTRY) {
         if (tmp_label->is_entry)
             return valid;+
-            printf("\nError- Label name '%s' is already in the label table.\n", label_name);
+            printf("\n*** ERROR ***\nLabel name '%s' is already in the label table.\n", label_name);
         return invalid;
     }
 
@@ -283,7 +283,7 @@ char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_exte
     }
 
     if (contains_entry && contains_extern) {
-        printf("\nError- Line cannot contain both '.entry' and '.extern' directives.\n");
+        printf("\n*** ERROR ***\nLine cannot contain both '.entry' and '.extern' directives.\n");
         *_entry_or_external = NEITHER_EXTERN_NOR_ENTRY;
         return NULL;
     }
@@ -308,7 +308,7 @@ char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_exte
             free(*_buffer);
             (*_buffer) = NULL;
             label_name = NULL;
-            printf("\nError- Failed to allocate memory for copy of label name.\n");
+            printf("\n*** ERROR ***\nFailed to allocate memory for copy of label name.\n");
             return NULL;
         }
         chars_copied = 0;
@@ -329,7 +329,7 @@ char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_exte
         free(*_buffer);
         *(_buffer) = NULL;
         free(copy_of_label_name);
-        printf("\nError- Failed to allocate memory for instruction copy.\n");
+        printf("\n*** ERROR ***\nFailed to allocate memory for instruction copy.\n");
         return NULL;
     }
     trim_whitespace(label_name);
@@ -402,7 +402,7 @@ label *new_empty_label(label **new_label) {
     (*new_label) = (label *)malloc(sizeof(label));
 
     if ((*new_label) == NULL) {
-        printf("\nError- could not allocate memory for a new label\n");
+        printf("\n*** ERROR ***\ncould not allocate memory for a new label\n");
         return NULL;
     }
 
@@ -457,7 +457,7 @@ label *get_label_by_key(label_table *_label_table, int key) {
     int i;
 
     if (_label_table == NULL) {
-        printf("Trying to find a lable in a NULL label table.\n");
+        printf("*** ERROR ***\nTrying to find a lable in a NULL label table.\n");
         return NULL;
     }
 
@@ -572,7 +572,7 @@ keyword *fill_keyword_table() {
 
     keywords_table = (keyword *)calloc(KEYWORD_TABLE_LENGTH, sizeof(keyword));
     if (keywords_table == NULL) {
-        printf("Error while allocating memory for keyword table. Exiting...\n");
+        printf("*** ERROR ***\nError while allocating memory for keyword table. Exiting...\n");
         return NULL;
     }
 
@@ -648,7 +648,7 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
 
     instruction_buffer = (char *)calloc(MAX_LINE_LENGTH, sizeof(char));
     if (instruction_buffer == NULL) {
-        printf("\nError- Failed to allocate memory for instruction buffer\n");
+        printf("\n*** ERROR ***\nFailed to allocate memory for instruction buffer\n");
         return NULL;
     }
 
@@ -657,13 +657,13 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
     /* Open the .am file for reading lines */
     am_file = fopen(am_filename, "r");
     if (am_file == NULL) {
-        printf("\nError- Failed to open the file '%s'. Exiting...\n", am_filename);
+        printf("\n*** ERROR ***\nFailed to open the file '%s'. Exiting...\n", am_filename);
         return NULL;
     }
     /* Initialize the label table */
     _label_table = new_empty_label_table(&_label_table);
     if (_label_table == NULL) {
-        printf("\nError- Failed to allocate memory for label table.\nFile name: '%s'.\n Exiting...\n", am_filename);
+        printf("\n*** ERROR ***\nFailed to allocate memory for label table.\nFile name: '%s'.\n Exiting...\n", am_filename);
         return NULL;
     }
 
@@ -686,7 +686,7 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
         label_name = extract_label_name_from_instruction(&instruction_buffer, &entry_or_external_definition);
 
         if (instruction_buffer == NULL) {
-            printf("Cannot continue filling the label table. Exiting...\n");
+            printf("*** ERROR ***\nCannot continue filling the label table. Exiting...\n");
             free(label_name);
             label_name = NULL;
             destroy_label_table(&_label_table);
@@ -705,7 +705,7 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
         _validation = label_name_is_valid(_label_table, label_name, keywords_table, m_table, &entry_or_external_definition);
 
         if (_validation != valid) {
-            printf("\nError-- Invalid label name '%s' in file '%s' on line # % d\n", label_name, am_filename, lines_in_file + 1);
+            printf("\n*** ERROR *** \nline: %d: Invalid label name '%s' in file '%s'\n",lines_in_file + 1, label_name, am_filename);
             printf("Cannot continue filling the label table. Exiting...\n");
             destroy_label_table(&_label_table);
             free(instruction_buffer);
@@ -719,7 +719,7 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
             tmp_label = get_label_by_name(_label_table, label_name);
             if (tmp_label != NULL) {
                 if (tmp_label->is_entry == false && tmp_label->is_extern == false && entry_or_external_definition == NEITHER_EXTERN_NOR_ENTRY) {
-                    printf("\nError- Label redefinition.\nFilename: '%s'.\n Exiting...\n", am_filename);
+                    printf("\n*** ERROR ***\nLabel redefinition.\nFilename: '%s'.\n Exiting...\n", am_filename);
                     free(label_name);
                     destroy_label_table(&_label_table);
                     free(instruction_buffer);
@@ -736,7 +736,7 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
         /* If the line contains a label definition, check if the label name is valid */
         if (new_label == NULL) {
             if (new_empty_label(&new_label) == NULL) {
-                printf("\nError-- Failed to allocate memory for new label.\nFile name: '%s'.\n Exiting...\n", am_filename);
+                printf("\n*** ERROR ***\nFailed to allocate memory for new label.\nFile name: '%s'.\n Exiting...\n", am_filename);
                 free(label_name);
                 free(new_label);
                 destroy_label_table(&_label_table);
@@ -756,7 +756,7 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
         insert_label(_label_table, &new_label);
 
         if (_label_table == NULL) {
-            printf("\nError-- Failed to insert label '%s' into label table.\nFile name: '%s'.\n Exiting...\n", label_name, am_filename);
+            printf("\n*** ERROR ***\nFailed to insert label '%s' into label table.\nFile name: '%s'.\n Exiting...\n", label_name, am_filename);
             free(instruction_buffer);
             free(label_name);
             free(new_label);
@@ -809,7 +809,7 @@ void print_label_table(label_table *_label_table) {
     char external[] = " .extern";
     char none[] = "None";
     if (_label_table == NULL) {
-        printf("\nError- Trying to print a NULL label table.\n");
+        printf("\n*** ERROR ***\nTrying to print a NULL label table.\n");
         return;
     }
     printf("\n######################################################\n");

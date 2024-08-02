@@ -27,7 +27,7 @@ data_image *create_data_image(inst_table *_inst_table) {
 
     data_image *_data_image = (data_image *)calloc(1, sizeof(data_image));
     if (_data_image == NULL) {
-        printf("ERROR- Failed to allocate memory for data image\n");
+        printf("*** ERROR ***\nFailed to allocate memory for data image\n");
         return NULL;
     }
 
@@ -79,7 +79,7 @@ data_image *create_data_image(inst_table *_inst_table) {
     }
 
     if (_data_image->num_words != _inst_table->DC) {
-        printf("Error: Data image did not create properly\n");
+        printf("*** ERROR ***\nData image did not create properly\n");
         return NULL;
     }
 

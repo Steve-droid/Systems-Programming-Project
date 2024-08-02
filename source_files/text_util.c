@@ -183,7 +183,7 @@ char *skip_ent_or_ext(char *_buffer) {
     char *ptr = _buffer;
 
     if (_buffer == NULL) {
-        printf("ERROR- Trying to skip '.entry' on a null buffer.\n");
+        printf("*** ERROR ***\nTrying to skip '.entry' on a null buffer.\n");
         return NULL;
     }
 
@@ -192,7 +192,7 @@ char *skip_ent_or_ext(char *_buffer) {
     }
 
     if (strncmp(_buffer, ".entry", 6) != 0 && strncmp(_buffer, ".extern", 7) != 0) {
-        printf("Error- '.entry' or '.extern' directive must be at the beginning of the line.\n");
+        printf("*** ERROR ***\n '.entry' or '.extern' directive must be at the beginning of the line.\n");
         return NULL;
     }
 
@@ -278,7 +278,7 @@ int *convert_twodim_array_to_onedim(int **two_dim_array) {
     /* Allocate memory for the 1D array plus one additional space for the FLAG */
     one_dim_array = (int *)malloc((elements + 1) * sizeof(int));
     if (one_dim_array == NULL) {
-        printf("ERROR-Memory allocation failed\n");
+        printf("*** ERROR ***\nMemory allocation failed\n");
         return NULL;
     }
 
@@ -341,7 +341,7 @@ int char_to_int(char c) {
         return  COMMA;
     }
     else {
-        printf("Error: The character is not a digit.\n");
+        printf("*** ERROR ***\nThe character is not a digit.\n");
         return -1; /* Return an error code if the character is not a digit */
     }
 }
@@ -358,7 +358,7 @@ int *convert_to_int_array(char *str) {
         /* Reallocate memory for the integer array */
         result = (int *)realloc(result, (index + 1) * sizeof(int));
         if (result == NULL) {
-            printf("Memory allocation failed\n");
+            printf("*** ERROR ***\nMemory allocation failed\n");
             exit(1);
         }
 
@@ -372,7 +372,7 @@ int *convert_to_int_array(char *str) {
     /* Reallocate memory to add the FLAG at the end */
     result = (int *)realloc(result, (index + 1) * sizeof(int));
     if (result == NULL) {
-        printf("Memory allocation failed\n");
+        printf("*** ERROR ***\nMemory allocation failed\n");
         exit(1);
     }
 

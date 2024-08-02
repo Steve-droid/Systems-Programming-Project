@@ -56,7 +56,7 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
 
 
     if (remove_whitespace(as_filename) != STATUS_OK) {
-        printf("Error while removing whitespace from %s\nExiting...\n", as_filename);
+        printf("*** ERROR ***\nError while removing whitespace from %s\nExiting...\n", as_filename);
         free(as_filename);
         free(am_filename);
         return STATUS_ERROR;
@@ -64,7 +64,7 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
 
     as_file = fopen(as_filename, "r");
     if (as_file == NULL) {
-        printf("Error: Could not open file called: %s\nExiting...", as_filename);
+        printf("*** ERROR ***\nCould not open file called: %s\nExiting...", as_filename);
         free(as_filename);
         free(am_filename);
         return STATUS_ERROR_OPEN_SRC;
@@ -72,7 +72,7 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
 
     am_file = fopen(am_filename, "w");
     if (am_file == NULL) {
-        printf("Error: Could not open file called: %s\nExiting...", am_filename);
+        printf("*** ERROR ***\nCould not open file called: %s\nExiting...", am_filename);
         fclose(as_file);
         free(as_filename);
         free(am_filename);
@@ -87,7 +87,7 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
         /* Check if the current line is a macro call. If so, copy the expanded macro lines to the .am file*/
         if (is_macro_call(line, m_table)) {
             if (expand_macro(first_word, am_file, m_table) != STATUS_OK) {
-                printf("Error while expanding macro %s. Exiting...\n", first_word);
+                printf("*** ERROR ***\nError while expanding macro %s. Exiting...\n", first_word);
                 fclose(as_file);
                 fclose(am_file);
                 free(as_filename);
@@ -108,7 +108,7 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
              */
             macroname_found_flag = get_macro(m_table, macro_name);
             if (macroname_found_flag != NULL) {
-                printf("Error: macro with the name '%s' is already defined. Exiting...\n", macro_name);
+                printf("*** ERROR ***\nMacro with the name '%s' is already defined. Exiting...\n", macro_name);
                 macro_table_destructor(&m_table);
                 fclose(as_file);
                 fclose(am_file);
@@ -121,7 +121,7 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
             result = add_macro_to_table(macro_name, as_file, m_table);
 
             if (result != STATUS_OK) {
-                printf("Error while adding macro: %s to macro table. Exiting...\n", macro_name);
+                printf("*** ERROR ***\nError while adding macro: %s to macro table. Exiting...\n", macro_name);
                 macro_table_destructor(&m_table);
                 fclose(as_file);
                 fclose(am_file);
@@ -189,7 +189,7 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
         as_filenames[i] = create_file_name(generic_filenames[i], ".as");
 
         if (as_filenames[i] == NULL) {
-            printf("Error: .as file creation for %s did not execute properly.\nExiting...\n", generic_filenames[i]);
+            printf("*** ERROR ***\n .as file creation for %s did not execute properly.\nExiting...\n", generic_filenames[i]);
             delete_filenames(file_amount, &as_filenames);
             delete_filenames(file_amount, &backup_filenames);
             delete_filenames(file_amount, am_filenames);
@@ -201,7 +201,7 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
     }
 
     if (duplicate_files(&backup_filenames, file_amount, as_filenames, ".bk") != STATUS_OK) {
-        printf("Error: File backup did not execute properly. Exiting..");
+        printf("*** ERROR ***\nFile backup did not execute properly. Exiting..");
         delete_filenames(file_amount, &as_filenames);
         delete_filenames(file_amount, &backup_filenames);
         delete_filenames(file_amount, am_filenames);
@@ -215,7 +215,7 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
         *(am_filenames)[i] = create_file_name(generic_filenames[i], ".am");
 
         if (*(am_filenames)[i] == NULL) {
-            printf("Error: .am file creation for the file '%s.as' did not execute properly.\nExiting...\n", generic_filenames[i]);
+            printf("*** ERROR ***\n.am file creation for the file '%s.as' did not execute properly.\nExiting...\n", generic_filenames[i]);
             delete_filenames(file_amount, &as_filenames);
             delete_filenames(file_amount, &backup_filenames);
             delete_filenames(file_amount, am_filenames);
@@ -230,7 +230,7 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
 
     m_table = create_macro_table();
     if (m_table == NULL) {
-        printf("Error: Could not create macro table. Exiting...\n");
+        printf("*** ERROR ***\nCould not create macro table. Exiting...\n");
         delete_filenames(file_amount, &as_filenames);
         delete_filenames(file_amount, &backup_filenames);
         delete_filenames(file_amount, am_filenames);
@@ -250,28 +250,28 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames) {
             printf("Pre-assembly of '%s' completed successfully.\n", as_filenames[i]);
             break;
         case STATUS_ERROR_OPEN_SRC:
-            printf("Error: Could not open source file.\n");
+            printf("*** ERROR ***\nCould not open source file.\n");
             break;
         case STATUS_ERROR_OPEN_DEST:
-            printf("Error: Could not open destination file.\n");
+            printf("*** ERROR ***\nCould not open destination file.\n");
             break;
         case STATUS_ERROR_READ:
-            printf("Error: Could not read from source file.\n");
+            printf("*** ERROR ***\nCould not read from source file.\n");
             break;
         case STATUS_ERROR_WRITE:
-            printf("Error: Could not write to destination file.\n");
+            printf("*** ERROR ***\nCould not write to destination file.\n");
             break;
         case STATUS_ERROR_MACRO_REDEFINITION:
-            printf("Error: Macro redefinition detected.\n");
+            printf("*** ERROR ***\nMacro redefinition detected.\n");
             break;
         case STATUS_ERROR_MEMORY_ALLOCATION:
-            printf("Error: Memory allocation failed.\n");
+            printf("*** ERROR ***\nMemory allocation failed.\n");
             break;
         case STATUS_ERROR_MACRO_NOT_FOUND:
-            printf("Error: Macro not found.\n");
+            printf("*** ERROR ***\nMacro not found.\n");
             break;
         default:
-            printf("Unknown error.\n");
+            printf("*** ERROR ***\nUnknown error.\n");
             delete_filenames(file_amount, &as_filenames);
             delete_filenames(file_amount, &backup_filenames);
             delete_filenames(file_amount, am_filenames);

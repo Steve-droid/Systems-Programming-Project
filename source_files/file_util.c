@@ -44,7 +44,7 @@ char *create_file_name(char *initial_filename, char *extension) {
     /* Allocate memory for the new filename */
     new_filename = (char *)calloc(new_filename_len + 1, sizeof(char));
     if (new_filename == NULL) {
-        printf("Memory allocation error while creating a new filename for %s\nExiting...\n", initial_filename);
+        printf("*** ERROR ***\nMemory allocation error while creating a new filename for %s\nExiting...\n", initial_filename);
         return NULL;
     }
 
@@ -61,7 +61,7 @@ status remove_file_extension(char **full_filename, char **generic_filename) {
     char *extension = NULL;
 
     if (full_filename == NULL || (*full_filename) == NULL) {
-        printf("Trying to remove extention from an empty filename\nExiting...\n");
+        printf("*** ERROR ***\nTrying to remove extention from an empty filename\nExiting...\n");
         if (generic_filename) {
             free(*generic_filename);
             (*generic_filename) = NULL;
@@ -75,7 +75,7 @@ status remove_file_extension(char **full_filename, char **generic_filename) {
     }
 
     if (generic_filename == NULL) {
-        printf("Trying to remove extention from an empty filename\nExiting...\n");
+        printf("*** ERROR ***\nTrying to remove extention from an empty filename\nExiting...\n");
         if (generic_filename) {
             free(*generic_filename);
             (*generic_filename) = NULL;
@@ -90,7 +90,7 @@ status remove_file_extension(char **full_filename, char **generic_filename) {
     *(generic_filename) = (char *)calloc((full_filename_length + 1), sizeof(char));
 
     if (*(generic_filename) == NULL) {
-        printf("Memory allocation error while creating generic filename for %s\nExiting...\n", (*full_filename));
+        printf("*** ERROR ***\nMemory allocation error while creating generic filename for %s\nExiting...\n", (*full_filename));
         return STATUS_ERROR_INVALID_EXTENSION;
     }
 
@@ -99,7 +99,7 @@ status remove_file_extension(char **full_filename, char **generic_filename) {
 
 
     if (extension == NULL) {
-        printf("Trying to remove extention from a filename with no extention\nExiting...\n");
+        printf("*** ERROR ***\nTrying to remove extention from a filename with no extention\nExiting...\n");
         free(*full_filename);
         free(*generic_filename);
         (*full_filename) = NULL;
@@ -121,12 +121,12 @@ status copy_file_contents(char *src_filename, char *dest_filename) {
 
 
     if (src_file == NULL) {
-        fprintf(stderr, "Failed to open source file %s\n", src_filename);
+        fprintf(stderr, "*** ERROR ***\nFailed to open source file %s\n", src_filename);
         return STATUS_ERROR_OPEN_SRC;
     }
 
     if (dest_file == NULL) {
-        fprintf(stderr, "Failed to open destination file %s\n", dest_filename);
+        fprintf(stderr, "*** ERROR ***\nFailed to open destination file %s\n", dest_filename);
         fclose(src_file);
         return STATUS_ERROR_OPEN_DEST;
     }
@@ -137,7 +137,7 @@ status copy_file_contents(char *src_filename, char *dest_filename) {
 
         /* If we failed to write exactly what we read, data was lost in the process */
         if (bytes_written != bytes_read) {
-            fprintf(stderr, "Error writing to file %s\n", dest_filename);
+            fprintf(stderr, "*** ERROR ***\nError writing to file %s\n", dest_filename);
             write_success = false;
             break;
         }
@@ -178,14 +178,14 @@ status remove_whitespace(char *filename) {
     /* Create a temporary file to write the cleaned lines */
     temp_file_descriptor = mkstemp(tmp_filename);
     if (temp_file_descriptor == -1) {
-        fprintf(stderr, "Failed to create temporary file\n");
+        fprintf(stderr, "*** ERROR ***\nFailed to create temporary file\n");
         fclose(file);
         return STATUS_ERROR_OPEN_DEST;
     }
     tmp_file = fdopen(temp_file_descriptor, "w");
 
     if (tmp_file == NULL) {
-        fprintf(stderr, "Failed to open temporary file\n");
+        fprintf(stderr, "*** ERROR ***\nFailed to open temporary file\n");
         close(temp_file_descriptor);
         fclose(file);
         return STATUS_ERROR_OPEN_DEST;
@@ -226,7 +226,7 @@ status remove_whitespace(char *filename) {
         /* Only write non-empty lines to the temporary file */
         if (*start != '\0') {
             if (fprintf(tmp_file, "%s\n", start) < 0) {
-                fprintf(stderr, "Error writing to temporary file\n");
+                fprintf(stderr, "*** ERROR ***\nError writing to temporary file\n");
                 fclose(file);
                 fclose(tmp_file);
                 remove(tmp_filename);
@@ -241,19 +241,19 @@ status remove_whitespace(char *filename) {
 
     /* Verify that the number of lines matches */
     if (original_line_count != cleaned_line_count) {
-        fprintf(stderr, "Line count mismatch: original=%d, cleaned=%d\n", original_line_count, cleaned_line_count);
+        fprintf(stderr, "*** ERROR ***\nLine count mismatch: original=%d, cleaned=%d\n", original_line_count, cleaned_line_count);
         remove(tmp_filename);
         return STATUS_ERROR_WRITE;
     }
 
     /* Replace the original file with the cleaned temporary file */
     if (remove(filename) != 0) {
-        fprintf(stderr, "Failed to remove original file %s: %s\n", filename, strerror(errno));
+        fprintf(stderr, "*** ERROR ***\nFailed to remove original file %s: %s\n", filename, strerror(errno));
         remove(tmp_filename);
         return STATUS_ERROR_WRITE;
     }
     if (rename(tmp_filename, filename) != 0) {
-        fprintf(stderr, "Failed to rename temporary file to %s: %s\n", filename, strerror(errno));
+        fprintf(stderr, "*** ERROR ***\nFailed to rename temporary file to %s: %s\n", filename, strerror(errno));
         remove(tmp_filename);
         return STATUS_ERROR_WRITE;
     }
@@ -270,7 +270,7 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
     int filename_copy_len = 0;
 
     if (filenames == NULL || file_count < 1) {
-        printf("Attempting to backup an empty file list. Exiting...");
+        printf("*** ERROR ***\nAttempting to backup an empty file list. Exiting...");
         exit(EXIT_FAILURE);
     }
 
@@ -278,7 +278,7 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
         current_filename = filenames[i];
 
         if (current_filename == NULL) {
-            printf("Error while backing up argument names. Original filename is NULL. Exiting...");
+            printf("*** ERROR ***\nError while backing up argument names. Original filename is NULL. Exiting...");
             return STATUS_ERROR;
         }
 
@@ -286,7 +286,7 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
         filename_copy_len = current_filename_len + strlen(extention) - 1;
         filename_copy = (char *)calloc(filename_copy_len * 5, sizeof(char));
         if (filename_copy == NULL) {
-            printf("Memory allocation error while creating a backup %s filename", extention);
+            printf("*** ERROR ***\nMemory allocation error while creating a backup %s filename", extention);
             return STATUS_ERROR_MEMORY_ALLOCATION;
         }
         strcpy(filename_copy, current_filename);
@@ -294,7 +294,7 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
 
         printf("Copying %s file into %s%s... ", current_filename, current_filename, extention);
         if (filename_copy == NULL) {
-            printf("Error while backing up files. Removing created backups...\n");
+            printf("*** ERROR ***\nError while backing up files. Removing created backups...\n");
             for (i = 0;i < backup_filenames_count;i++) {
                 if (*backup_filenames[i] != NULL) free(*backup_filenames[i]);
             }
@@ -304,8 +304,8 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
         printf("Done\n");
 
         if (copy_file_contents(current_filename, filename_copy) != STATUS_OK) {
-            printf("Error while creating a backup file for %s. Exiting...\n", current_filename);
-            printf("Error while backing up files. Removing created backups...\n");
+            printf("*** ERROR ***\nError while creating a backup file for %s. Exiting...\n", current_filename);
+            printf("*** ERROR ***\nError while backing up files. Removing created backups...\n");
             for (i = 0;i < backup_filenames_count;i++) {
                 if (*backup_filenames[i] != NULL) free(*backup_filenames[i]);
             }
@@ -320,7 +320,7 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
     }
 
     if (backup_filenames_count != file_count) {
-        printf("Error while backing up files. Number of files in backup is different from the original number of files. ");
+        printf("*** ERROR ***\nError while backing up files. Number of files in backup is different from the original number of files. ");
         printf("\nRemoving backup filenames...");
         for (i = 0;i < backup_filenames_count;i++) {
             if (*backup_filenames[i] != NULL) free(*backup_filenames[i]);
@@ -335,7 +335,7 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
 status delete_filenames(size_t file_amount, char ***filenames) {
     size_t i;
     if (filenames == NULL) {
-        printf("ERROR: Attempted to free filenames but filename array is empty. Exiting...");
+        printf("*** ERROR ***\n Attempted to free filenames but filename array is empty. Exiting...");
         return STATUS_ERROR;
     }
     for (i = 0;i < file_amount;i++) {

@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     printf("Creating keyword table... ");
     keyword_table = fill_keyword_table();
     if (keyword_table == NULL) {
-        printf("Error while filling keyword table. Exiting...\n");
+        printf("*** ERROR ***\nError while filling keyword table. Exiting...\n");
         return EXIT_FAILURE;
     }
     printf("Done\n");
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
     /*Initialize the macro table*/
     m_table = fill_macro_table(argc, argv, &am_filenames);
     if (m_table == NULL) {
-        printf("Error while filling macro table. Exiting...\n");
+        printf("*** ERROR ***\nError while filling macro table. Exiting...\n");
         terminate(0, NULL, NULL, &keyword_table, NULL, NULL);
         return EXIT_FAILURE;
     }
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     printf("Scanning labels in '%s'... ", am_filenames[0]);
     _label_table = fill_label_table(am_filenames[0], m_table, keyword_table);
     if (_label_table == NULL) {
-        printf("Error while filling label table. Exiting...\n");
+        printf("*** ERROR ***\nError while filling label table. Exiting...\n");
         terminate(argc - 1, &am_filenames, &m_table, &keyword_table, &_label_table, NULL);
         return EXIT_FAILURE;
     }
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     _inst_table = lex(am_filenames[0], _label_table, keyword_table);
 
     if (_inst_table == NULL) {
-        printf("Error while lexing the assembly code. Exiting...\n");
+        printf("*** ERROR ***\nError while lexing the assembly code. Exiting...\n");
         terminate(argc - 1, &am_filenames, &m_table, &keyword_table, &_label_table, &_inst_table);
         return EXIT_FAILURE;
     }
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
 
     printf("Parsing the file '%s'... ", am_filenames[0]);
     if (parse(_inst_table, _label_table, keyword_table, am_filenames[0]) != STATUS_OK) {
-        printf("Error while parsing the assembly code. Exiting...\n");
+        printf("*** ERROR ***\nError while parsing the assembly code. Exiting...\n");
         terminate(argc - 1, &am_filenames, &m_table, &keyword_table, &_label_table, &_inst_table);
         return EXIT_FAILURE;
     }
