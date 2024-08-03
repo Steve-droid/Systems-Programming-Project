@@ -49,14 +49,14 @@ status create_instruction(inst **new_instruction) {
     /* Directibe parameters */
     _inst->num_dot_data_members = 0;
     _inst->num_dot_string_members = 0;
-    _inst->is_dot_data = false;
-    _inst->is_dot_string = false;
-    _inst->is_entry = false;
-    _inst->is_extern = false;
-    _inst->is_src_entry = false;
-    _inst->is_src_extern = false;
-    _inst->is_dest_entry = false;
-    _inst->is_dest_extern = false;
+    _inst->is_dot_data = FALSE;
+    _inst->is_dot_string = FALSE;
+    _inst->is_entry = FALSE;
+    _inst->is_extern = FALSE;
+    _inst->is_src_entry = FALSE;
+    _inst->is_src_extern = FALSE;
+    _inst->is_dest_entry = FALSE;
+    _inst->is_dest_extern = FALSE;
 
     /* Operation parameters */
     _inst->src_addressing_method = NO_ADDRESSING_METHOD;

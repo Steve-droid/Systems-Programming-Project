@@ -1,11 +1,11 @@
 
 #include "pre_assembler.h"
 
-static bool is_macro_definition(char *line) {
+static int is_macro_definition(char *line) {
     return (strncmp(line, "macr ", DEFINE_SEQUENCE_LEN) == 0);
 }
 
-static bool is_macro_call(char *line, macro_table *table) {
+static int is_macro_call(char *line, macro_table *table) {
     char macro_name[MAX_MACRO_NAME_LENGTH] = { '\0' };
 
     /*

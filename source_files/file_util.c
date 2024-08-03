@@ -115,7 +115,7 @@ status copy_file_contents(char *src_filename, char *dest_filename) {
     char buffer[BUFSIZ] = { 0 };
     size_t bytes_read = 0;
     size_t bytes_written = 0;
-    bool write_success = true;
+    int write_success = TRUE;
 
 
     if (src_file == NULL) {
@@ -136,7 +136,7 @@ status copy_file_contents(char *src_filename, char *dest_filename) {
         /* If we failed to write exactly what we read, data was lost in the process */
         if (bytes_written != bytes_read) {
             fprintf(stderr, "*** ERROR ***\nError writing to file %s\n", dest_filename);
-            write_success = false;
+            write_success = FALSE;
             break;
         }
     }
@@ -145,7 +145,7 @@ status copy_file_contents(char *src_filename, char *dest_filename) {
     fclose(dest_file);
 
     /* If the operation resulted in a partial copy, we remove the destination file */
-    if (write_success == false) {
+    if (write_success == FALSE) {
         remove(dest_filename);
         return STATUS_ERROR_WRITE;
     }
@@ -165,7 +165,7 @@ status remove_whitespace(char *filename) {
     char line[BUFSIZ];
     int original_line_count = 0;
     int cleaned_line_count = 0;
-    bool line_contains_only_whitespace = false;
+    int line_contains_only_whitespace = FALSE;
 
     file = fopen(filename, "r");
     if (file == NULL) {
@@ -194,17 +194,17 @@ status remove_whitespace(char *filename) {
 
         start = line;
         end = start + strlen(start) - 1;
-        line_contains_only_whitespace = true;
+        line_contains_only_whitespace = TRUE;
 
         /*Check if the line contains only whitespace. If so, skip the line*/
-        for (i = 0, tmp = start;line_contains_only_whitespace == true && i < strlen(start) && tmp != NULL;i++, tmp++) {
+        for (i = 0, tmp = start;line_contains_only_whitespace == TRUE && i < strlen(start) && tmp != NULL;i++, tmp++) {
             if (!isspace(*tmp)) {
-                line_contains_only_whitespace = false;
+                line_contains_only_whitespace = FALSE;
                 break;
             }
         }
 
-        if (line_contains_only_whitespace) continue;
+        if (line_contains_only_whitespace == TRUE) continue;
 
 
 

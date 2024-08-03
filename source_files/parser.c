@@ -363,8 +363,8 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     FILE *extern_file_ptr = NULL;
     char *tmp_ptr = NULL;
     label *tmp_label = NULL;
-    bool create_ext = false;
-    bool create_ent = false;
+    int create_ext = FALSE;
+    int create_ent = FALSE;
     data_image *_data_image = NULL;
 
 
@@ -479,11 +479,11 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     for (inst_index = 0; inst_index < _inst_table->num_instructions; inst_index++) {
         tmp_inst = _inst_table->inst_vec[inst_index];
         if (tmp_inst->is_dest_entry || tmp_inst->is_src_entry) {
-            create_ent = true;
+            create_ent = TRUE;
         }
 
         if (tmp_inst->is_dest_extern || tmp_inst->is_src_extern) {
-            create_ext = true;
+            create_ext = TRUE;
         }
     }
 

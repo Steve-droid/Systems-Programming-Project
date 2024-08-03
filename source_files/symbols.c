@@ -27,7 +27,7 @@ keyword_name identify_command(syntax_state *state, label_table *_label_table, ke
     char *_instruction = NULL;
     char command_name[MAX_LINE_LENGTH] = { 0 };
     size_t buffer_length = strlen(state->buffer);
-    bool command_found = false;
+    int command_found = FALSE;
 
 
     if (state == NULL || _label_table == NULL || keyword_table == NULL) {
@@ -266,19 +266,19 @@ char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_exte
     char *instruction_copy = NULL;
     char *instruction_copy_ptr = NULL;
     char *instruction_copy_ptr2 = NULL;
-    bool contains_entry = false;
-    bool contains_extern = false;
+    int contains_entry = FALSE;
+    int contains_extern = FALSE;
     int label_name_len = 0;
     *_entry_or_external = NEITHER_EXTERN_NOR_ENTRY;
 
 
     /*Check if the line contains the .entry or .extern directive */
     if (strstr(*(_buffer), ".entry") != NULL) {
-        contains_entry = true;
+        contains_entry = TRUE;
         *_entry_or_external = CONTAINS_ENTRY;
     }
     if (strstr(*(_buffer), ".extern") != NULL) {
-        contains_extern = true;
+        contains_extern = TRUE;
         *_entry_or_external = CONTAINS_EXTERN;
     }
 
@@ -411,8 +411,8 @@ label *new_empty_label(label **new_label) {
     (*new_label)->instruction_line = 0;
     (*new_label)->address = 0;
     (*new_label)->size = 0;
-    (*new_label)->is_entry = false;
-    (*new_label)->is_extern = false;
+    (*new_label)->is_entry = FALSE;
+    (*new_label)->is_extern = FALSE;
 
     return *(new_label);
 }
@@ -619,16 +619,16 @@ void label_update_fields(label **new_label, char *label_name, int line_counter, 
     }
 
     if (_entry_or_external == CONTAINS_ENTRY) {
-        (*new_label)->is_entry = true;
+        (*new_label)->is_entry = TRUE;
     }
     else if (_entry_or_external == CONTAINS_EXTERN) {
-        (*new_label)->is_extern = true;
+        (*new_label)->is_extern = TRUE;
     }
 
 
-    else if ((*new_label)->is_entry == false && (*new_label)->is_extern == false) {
-        (*new_label)->is_entry = false;
-        (*new_label)->is_extern = false;
+    else if ((*new_label)->is_entry == FALSE && (*new_label)->is_extern == FALSE) {
+        (*new_label)->is_entry = FALSE;
+        (*new_label)->is_extern = FALSE;
     }
 
 }
@@ -717,7 +717,7 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
         for (i = 0;i < _label_table->size;i++) {
             tmp_label = get_label_by_name(_label_table, label_name);
             if (tmp_label != NULL) {
-                if (tmp_label->is_entry == false && tmp_label->is_extern == false && entry_or_external_definition == NEITHER_EXTERN_NOR_ENTRY) {
+                if (tmp_label->is_entry == FALSE && tmp_label->is_extern == FALSE && entry_or_external_definition == NEITHER_EXTERN_NOR_ENTRY) {
                     printf("\n*** ERROR ***\nLabel redefinition.\nFilename: '%s'.\n Exiting...\n", am_filename);
                     free(label_name);
                     destroy_label_table(&_label_table);

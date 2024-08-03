@@ -16,7 +16,6 @@
 #include <err.h>
 #include <errno.h>
 #include <stddef.h>
-#include <stdbool.h>
 #include <stdint.h>
 
 #define MAX_LINE_LENGTH 80
@@ -49,6 +48,8 @@
 #define PLUS -50001
 #define MINUS -50002
 #define COMMA -50003
+#define TRUE 1
+#define FALSE 0
 
  /*---Enums---*/
 typedef enum {
@@ -159,6 +160,7 @@ typedef struct {
  * @is_entry: A boolean indicating if this instruction is an entry point.
  * @is_extern: A boolean indicating if this instruction is an external reference.
  */
+
 typedef struct instruction {
 
     /* General instruction parameters */
@@ -171,18 +173,18 @@ typedef struct instruction {
     int label_key;
     int address;
     size_t line_number;
-    bool is_src_entry;
-    bool is_src_extern;
-    bool is_dest_entry;
-    bool is_dest_extern;
+    int is_src_entry;
+    int is_src_extern;
+    int is_dest_entry;
+    int is_dest_extern;
 
     /* Directive parameters */
     size_t num_dot_data_members;
     size_t num_dot_string_members;
-    bool is_dot_data;
-    bool is_dot_string;
-    bool is_entry;
-    bool is_extern;
+    int is_dot_data;
+    int is_dot_string;
+    int is_entry;
+    int is_extern;
 
     /* Operations parameters */
     addressing_method src_addressing_method;
@@ -236,8 +238,8 @@ typedef struct label {
     size_t instruction_line;
     size_t address;
     size_t size;
-    bool is_entry;
-    bool is_extern;
+    int is_entry;
+    int is_extern;
 }label;
 
 typedef struct label_table {
@@ -269,28 +271,28 @@ typedef struct syntax_state {
     int label_key;
     char *buffer_without_offset;
 
-    bool continue_reading;
-    bool label_name;
-    bool comma;
-    bool whitespace;
-    bool null_terminator;
-    bool new_line;
-    bool minus_sign;
-    bool plus_sign;
-    bool end_of_argument_by_space;
-    bool end_of_argument;
-    bool end_of_string;
-    bool first_quatiotion_mark;
-    bool last_quatiotion_mark;
-    bool digit;
-    bool is_data;
-    bool is_string;
-    bool is_src_entry;
-    bool is_src_extern;
-    bool is_dest_entry;
-    bool is_dest_extern;
-    bool is_entry;
-    bool is_extern;
+    int continue_reading;
+    int label_name;
+    int comma;
+    int whitespace;
+    int null_terminator;
+    int new_line;
+    int minus_sign;
+    int plus_sign;
+    int end_of_argument_by_space;
+    int end_of_argument;
+    int end_of_string;
+    int first_quatiotion_mark;
+    int last_quatiotion_mark;
+    int digit;
+    int is_data;
+    int is_string;
+    int is_src_entry;
+    int is_src_extern;
+    int is_dest_entry;
+    int is_dest_extern;
+    int is_entry;
+    int is_extern;
 } syntax_state;
 
 #endif

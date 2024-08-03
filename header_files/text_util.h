@@ -16,7 +16,7 @@ void initialize_command(syntax_state *data);
 
 void update_command(syntax_state *state, keyword *keyword_table, int command_key);
 
-bool continue_reading(char *instruction_buffer, syntax_state *state);
+int continue_reading(char *instruction_buffer, syntax_state *state);
 
 void reset_syntax_state(syntax_state *state);
 
@@ -35,7 +35,7 @@ char *skip_ent_or_ext(char *_buffer);
 
 int *convert_to_int_array(char *str);
 int binary_array_to_int(int *array);
-bool is_empty_line(char *str);
+int is_empty_line(char *str);
 void print_2D_array(int **arr);
 void print_array_in_binary(int *arr);
 int *convert_twodim_array_to_onedim(int **two_dim_array);
