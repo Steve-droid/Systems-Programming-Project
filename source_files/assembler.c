@@ -182,6 +182,7 @@ int main(int argc, char **argv) {
 
         printf("Assembly of the file '%s' completed successfully.\n", generic_filenames[i]);
         terminate(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
+
     }
 
     printf("No more files to process.\n");

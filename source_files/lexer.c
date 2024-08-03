@@ -112,7 +112,6 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		/* If the command does not exist, exit */
 		if (state->cmd_key == UNDEFINED) {
 			printf("\nError on line %d: '%s'- Undefined command name. Aborting lexer...\n", state->line_number, state->buffer_without_offset);
-			fclose(file);
 			destroy_instruction(&(state->_inst));
 			state->buffer = state->buffer_without_offset;
 			state->buffer_without_offset = NULL;
@@ -136,7 +135,6 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		/* Insert the instruction to the instruction table */
 		if (insert_inst_to_table(_inst_table, state->_inst) != STATUS_OK) {
 			printf("ERROR- Failed to insert instruction to table\n");
-			fclose(file);
 			destroy_instruction(&state->_inst);
 			destroy_instruction_table(&_inst_table);
 			destroy_syntax_state(&state);
