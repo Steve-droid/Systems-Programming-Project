@@ -58,13 +58,8 @@ int main(int argc, char **argv) {
 
     generic_filenames = (char **)calloc(file_amount, sizeof(char *));
     if (generic_filenames == NULL) {
-    /*Initialize the keyword table*/
-    keyword_table = fill_keyword_table();
-    if (keyword_table == NULL) {
-        printf("*** ERROR ***\nError while filling keyword table. Exiting...\n");
         return EXIT_FAILURE;
     }
-
     for (i = 0;i < file_amount;i++) {
         generic_filenames[i] = my_strdup(argv[i + 1]);
     }
@@ -78,6 +73,7 @@ int main(int argc, char **argv) {
     if (backup_filenames == NULL) {
         delete_filenames(file_amount, &as_filenames);
         as_filenames = NULL;
+    }
 
     am_filenames = (char **)calloc(file_amount, sizeof(char *));
     if (am_filenames == NULL) {

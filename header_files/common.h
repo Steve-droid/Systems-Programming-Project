@@ -270,6 +270,8 @@ typedef struct syntax_state {
     char *buffer;
     int label_key;
     char *buffer_without_offset;
+    char *am_filename;
+    char *as_filename;
 
     int continue_reading;
     int label_name;

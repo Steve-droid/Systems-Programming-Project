@@ -327,7 +327,6 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
 void delete_filenames(size_t file_amount, char ***filenames) {
     size_t i;
     if (filenames == NULL) {
-        printf("*** ERROR ***\n Attempted to free filenames but filename array is empty. Exiting...");
         return;
     }
     for (i = 0;i < file_amount;i++) {

@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/assembler",
             "args": ["ex1", "ex2"],
-            "stopAtEntry": true,
+            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
