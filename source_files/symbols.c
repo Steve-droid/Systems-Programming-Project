@@ -54,7 +54,7 @@ keyword_name identify_command(syntax_state *state, label_table *_label_table, ke
 
             /* Check if the command name is too long */
             if (strlen(command_name) > strlen(keyword_table[i].name)) {
-                printf("Error on line %d: '%s'- Extra letters after a valid command name\n", state->line_number,state->buffer_without_offset);
+                printf("Error on line %d: '%s'- Extra letters after a valid command name\n", state->line_number, state->buffer_without_offset);
                 return UNDEFINED;
             }
 
@@ -251,8 +251,8 @@ validation_state label_name_is_valid(label_table *_label_table, char *_buffer, k
     tmp_label = get_label_by_name(_label_table, label_name);
     if (tmp_label != NULL && (*entry_or_ext) == NEITHER_EXTERN_NOR_ENTRY) {
         if (tmp_label->is_entry)
-            return valid;+
-            printf("\n*** ERROR ***\nLabel name '%s' is already in the label table.\n", label_name);
+            return valid;
+        printf("\nError- Label name '%s' is already in the label table.\n", label_name);
         return invalid;
     }
 
@@ -418,7 +418,6 @@ label *new_empty_label(label **new_label) {
 }
 
 status insert_label(label_table *_label_table, label **_label) {
-    size_t i;
     label *tmp_label = NULL;
 
 

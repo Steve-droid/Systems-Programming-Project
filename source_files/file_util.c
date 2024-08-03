@@ -39,7 +39,6 @@ char *create_file_name(char *initial_filename, char *extension) {
     size_t new_filename_len = initial_name_len + extension_len; /*Length of the new filename*/
     char *new_filename = NULL;
 
-    printf("Creating %s file for '%s'... ", extension, initial_filename);
 
     /* Allocate memory for the new filename */
     new_filename = (char *)calloc(new_filename_len + 1, sizeof(char));
@@ -51,7 +50,6 @@ char *create_file_name(char *initial_filename, char *extension) {
     /* Concatenate the initial name and the extension */
     strcpy(new_filename, initial_filename);
     strcat(new_filename, extension);
-    printf("Done\n");
     return new_filename;
 }
 
@@ -270,8 +268,13 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
     int filename_copy_len = 0;
 
     if (filenames == NULL || file_count < 1) {
+<<<<<<< HEAD
         printf("*** ERROR ***\nAttempting to backup an empty file list. Exiting...");
         exit(EXIT_FAILURE);
+=======
+        printf("Attempting to backup an empty file list. Exiting...");
+        return STATUS_ERROR;
+>>>>>>> refs/remotes/origin/master
     }
 
     for (i = 0;i < file_count;i++) {
@@ -292,16 +295,13 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
         strcpy(filename_copy, current_filename);
         strcat(filename_copy, extention);
 
-        printf("Copying %s file into %s%s... ", current_filename, current_filename, extention);
         if (filename_copy == NULL) {
             printf("*** ERROR ***\nError while backing up files. Removing created backups...\n");
             for (i = 0;i < backup_filenames_count;i++) {
                 if (*backup_filenames[i] != NULL) free(*backup_filenames[i]);
             }
-            printf("Done. Exiting...\n");
             return STATUS_ERROR;
         }
-        printf("Done\n");
 
         if (copy_file_contents(current_filename, filename_copy) != STATUS_OK) {
             printf("*** ERROR ***\nError while creating a backup file for %s. Exiting...\n", current_filename);
@@ -311,7 +311,6 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
             }
             free(filename_copy);
 
-            printf("Done. Exiting...\n");
             return STATUS_ERROR_WHILE_CREATING_FILENAME;
         }
 
@@ -332,26 +331,26 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
     return STATUS_OK;
 }
 
-status delete_filenames(size_t file_amount, char ***filenames) {
+void delete_filenames(size_t file_amount, char ***filenames) {
     size_t i;
     if (filenames == NULL) {
+<<<<<<< HEAD
         printf("*** ERROR ***\n Attempted to free filenames but filename array is empty. Exiting...");
         return STATUS_ERROR;
+=======
+        return;
+>>>>>>> refs/remotes/origin/master
     }
     for (i = 0;i < file_amount;i++) {
 
         if ((*filenames) && (*filenames)[i] != NULL) {
-            printf("Deleting filename %s... ", (*filenames)[i]);
             free((*filenames)[i]);
             (*filenames)[i] = NULL;
-            printf("Done\n");
         }
     }
 
     free((*filenames));
 
     (*filenames) = NULL;
-
-    return STATUS_OK;
 }
 

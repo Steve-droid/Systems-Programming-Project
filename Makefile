@@ -2,7 +2,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS =   -g
+CFLAGS =   -g -Wall -ansi -pedantic 
 
 # Include directories
 INCLUDES = -I./header_files
@@ -50,6 +50,10 @@ clean:
 	rm -f $(OBJDIR)/*.o $(EXEC) *.am 
 	rm -f *.ent *.ext *.ob *.binary
 	@echo "Clean complete."
+
+reset:
+	rm -f *.ent *.ext *.ob *.binary
+	@echo "Reset complete"	
 
 # Phony targets
 .PHONY: all clean

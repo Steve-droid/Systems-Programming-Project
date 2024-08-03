@@ -49,6 +49,8 @@ void reset_syntax_state(syntax_state *state) {
     for (i = 0;i < MAX_LINE_LENGTH;i++) {
         state->buffer[i] = '\0';
     }
+
+    state->buffer_without_offset = NULL;
     state->index = -1;
     state->_validation_state = invalid;
     state->extern_or_entry = NEITHER_EXTERN_NOR_ENTRY;
@@ -404,9 +406,6 @@ void print_bits(unsigned value, int num_bits) {
     }
 }
 
-
-
-
 void print_binary_to_file(uint16_t word, FILE *file_ptr) {
     int i;
     fprintf(file_ptr, "\t\t\t");
@@ -444,4 +443,12 @@ void print_binary_2(int num) {
 
     /** Print the resulting binary string */
     printf("%s\n", binary);
+}
+
+
+char *my_strdup(char *s) {
+    char *d = malloc(strlen(s) + 1);
+    if (d == NULL) return NULL;
+    strcpy(d, s);
+    return d;
 }

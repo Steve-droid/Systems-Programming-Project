@@ -1,7 +1,8 @@
+#include <string.h>
 #include "parser.h"
 
 #include <file_util.h>
-#include <string.h>
+
 #define ARE_SHIFT 0
 #define DEST_SHIFT 3
 #define SRC_SHIFT 7
@@ -53,7 +54,7 @@ data_image *create_data_image(inst_table *_inst_table) {
         if (current_inst->is_dot_data) {
             _data_image->names[name_count] = current_inst->tokens[1];
             name_count++;
-            temp = strdup(current_inst->tokens[1]);
+            temp = my_strdup(current_inst->tokens[1]);
             token = strtok(temp, ",");
             i = 0;
             while (token != NULL && i < current_inst->num_dot_data_members) {
@@ -114,41 +115,43 @@ void assign_bits_operation(inst_table *_inst_table, size_t index) {
     uint16_t combined_word = 0;
     size_t operand_count = 0;
     addressing_method _addressing_method = NO_ADDRESSING_METHOD;
-    int i;
 
-    _inst->bin_ARE = 0b100;
+    _inst->bin_ARE = 4; /* 100 -> A = 1, R = E = 0 */
 
 
     switch (_inst->src_addressing_method) {
     case IMMEDIATE:
-        _inst->bin_src_method = 0b0001;
+        _inst->bin_src_method = 1; /* 0b0001 */
         break;
     case DIRECT:
-        _inst->bin_src_method = 0b0010;
+        _inst->bin_src_method = 2; /* 0b0010 */
         break;
     case INDIRECT_REGISTER:
-        _inst->bin_src_method = 0b0100;
+        _inst->bin_src_method = 4; /* 0b0100 */
         break;
     case DIRECT_REGISTER:
-        _inst->bin_src_method = 0b1000;
+        _inst->bin_src_method = 8; /* 0b100 */
         break;
-
+    case UNDEFINED_METHOD:
+    case NO_ADDRESSING_METHOD:
     default:
         break;
     }
     switch (_inst->dest_addressing_method) {
     case IMMEDIATE:
-        _inst->bin_dest_method = 0b0001;
+        _inst->bin_dest_method = 1;
         break;
     case DIRECT:
-        _inst->bin_dest_method = 0b0010;
+        _inst->bin_dest_method = 2;
         break;
     case INDIRECT_REGISTER:
-        _inst->bin_dest_method = 0b0100;
+        _inst->bin_dest_method = 4;
         break;
     case DIRECT_REGISTER:
-        _inst->bin_dest_method = 0b1000;
+        _inst->bin_dest_method = 8;
         break;
+    case UNDEFINED_METHOD:
+    case NO_ADDRESSING_METHOD:
     default:
         break;
     }
@@ -197,9 +200,9 @@ void assign_bits_operation(inst_table *_inst_table, size_t index) {
             return;
         case DIRECT:
             if (_inst->is_dest_extern)
-                _inst->bin_ARE = 0b001;
+                _inst->bin_ARE = 1;
             else
-                _inst->bin_ARE = 0b010;
+                _inst->bin_ARE = 2;
             _inst->binary_word_vec[1] = to_twos_complement(_inst->direct_label_address_dest);
             _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] << DEST_SHIFT);
             _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] | _inst->bin_ARE);
@@ -212,7 +215,13 @@ void assign_bits_operation(inst_table *_inst_table, size_t index) {
             _inst->binary_word_vec[1] = (_inst->direct_reg_num_dest << DEST_REG_SHIFT);
             _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] | _inst->bin_ARE);
             return;
+        case UNDEFINED_METHOD:
+        case NO_ADDRESSING_METHOD:
+        default: return;
+
         }
+
+
     }
 
 
@@ -235,28 +244,31 @@ void assign_bits_operation(inst_table *_inst_table, size_t index) {
             _inst->binary_word_vec[1] = to_twos_complement(_inst->direct_label_address_src);
             _inst->binary_word_vec[1] = _inst->binary_word_vec[1] << DEST_SHIFT;
             if (_inst->is_src_extern)
-                _inst->bin_ARE = 0b001;
+                _inst->bin_ARE = 1; /* 001 */
             else
-                _inst->bin_ARE = 0b010;
+                _inst->bin_ARE = 2; /* 010 */
             _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] | _inst->bin_ARE);
             break;
         case INDIRECT_REGISTER:
-            _inst->bin_ARE = 0b100;
+            _inst->bin_ARE = 4;
             _inst->binary_word_vec[1] = (_inst->indirect_reg_num_src << SRC_REG_SHIFT);
             _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] | _inst->bin_ARE);
             break;
 
         case DIRECT_REGISTER:
-            _inst->bin_ARE = 0b100;
+            _inst->bin_ARE = 4; /*100*/
             _inst->binary_word_vec[1] = (_inst->direct_reg_num_src << SRC_REG_SHIFT);
             _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] | _inst->bin_ARE);
             break;
+        case UNDEFINED_METHOD:
+        case NO_ADDRESSING_METHOD:
+        default: break;
         }
 
         _addressing_method = _inst->dest_addressing_method;
         switch (_addressing_method) {
         case IMMEDIATE:
-            _inst->bin_ARE = 0b100;
+            _inst->bin_ARE = 4;
             _inst->binary_word_vec[2] = to_twos_complement(_inst->immediate_val_dest);
             _inst->binary_word_vec[2] = _inst->binary_word_vec[2] << DEST_SHIFT;
             _inst->binary_word_vec[2] = (_inst->binary_word_vec[2] | _inst->bin_ARE);
@@ -265,13 +277,13 @@ void assign_bits_operation(inst_table *_inst_table, size_t index) {
             _inst->binary_word_vec[2] = to_twos_complement(_inst->direct_label_address_dest);
             _inst->binary_word_vec[2] = _inst->binary_word_vec[2] << DEST_SHIFT;
             if (_inst->is_dest_extern)
-                _inst->bin_ARE = 0b001;
+                _inst->bin_ARE = 1;
             else
-                _inst->bin_ARE = 0b010;
+                _inst->bin_ARE = 2;
             _inst->binary_word_vec[2] = (_inst->binary_word_vec[2] | _inst->bin_ARE);
             return;
         case INDIRECT_REGISTER:
-            _inst->bin_ARE = 0b100;
+            _inst->bin_ARE = 2;
             if (_inst->num_words_to_generate == 2) {
                 _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] |
                     _inst->indirect_reg_num_dest << DEST_SHIFT);
@@ -283,7 +295,7 @@ void assign_bits_operation(inst_table *_inst_table, size_t index) {
             _inst->binary_word_vec[2] = (_inst->binary_word_vec[2] | _inst->bin_ARE);
             return;
         case DIRECT_REGISTER:
-            _inst->bin_ARE = 0b100;
+            _inst->bin_ARE = 2;
             if (_inst->num_words_to_generate == 2) {
                 _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] |
                     _inst->direct_reg_num_dest << DEST_SHIFT);
@@ -295,6 +307,11 @@ void assign_bits_operation(inst_table *_inst_table, size_t index) {
             _inst->binary_word_vec[2] = (_inst->binary_word_vec[2] | _inst->bin_ARE);
 
             return;
+
+        case UNDEFINED_METHOD:
+        case NO_ADDRESSING_METHOD:
+        default: return;
+
         }
     }
 }
@@ -334,10 +351,8 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     size_t label_index;
     size_t bin_word_index;
     size_t inst_index;
-    int tmp_label_key = 0;
     size_t am_filename_len = strlen(am_filename);
     inst *tmp_inst = NULL;
-    int address = 100;
     char *object_output_filename = NULL;
     char *binary_output_filename = "output.binary";
     char *extern_output_filename = NULL;
@@ -359,7 +374,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     }
 
 
-    object_output_filename = strdup(am_filename);
+    object_output_filename = my_strdup(am_filename);
     if (object_output_filename == NULL) {
         close_files(bin_file_ptr, NULL);
         bin_file_ptr = NULL;
@@ -449,7 +464,6 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
 
     fprintf(bin_file_ptr, "\n\t\t\t      ^\n\t\t\t      |\n\n");
     for (bin_word_index = 0; bin_word_index < _data_image->num_words; bin_word_index++) {
-        _data_image->binary_word_vec[bin_word_index];
         print_octal(_data_image->binary_word_vec[bin_word_index], object_file_ptr);
         print_binary_to_file(_data_image->binary_word_vec[bin_word_index], bin_file_ptr);
     }
