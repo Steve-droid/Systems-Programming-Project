@@ -268,13 +268,8 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
     int filename_copy_len = 0;
 
     if (filenames == NULL || file_count < 1) {
-<<<<<<< HEAD
         printf("*** ERROR ***\nAttempting to backup an empty file list. Exiting...");
-        exit(EXIT_FAILURE);
-=======
-        printf("Attempting to backup an empty file list. Exiting...");
         return STATUS_ERROR;
->>>>>>> refs/remotes/origin/master
     }
 
     for (i = 0;i < file_count;i++) {
@@ -334,12 +329,8 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
 void delete_filenames(size_t file_amount, char ***filenames) {
     size_t i;
     if (filenames == NULL) {
-<<<<<<< HEAD
         printf("*** ERROR ***\n Attempted to free filenames but filename array is empty. Exiting...");
-        return STATUS_ERROR;
-=======
         return;
->>>>>>> refs/remotes/origin/master
     }
     for (i = 0;i < file_amount;i++) {
 

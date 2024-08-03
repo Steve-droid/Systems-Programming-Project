@@ -114,11 +114,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 		/* If the command does not exist, exit */
 		if (state->cmd_key == UNDEFINED) {
-<<<<<<< HEAD
 			printf("\n*** ERROR *** \nline: %d: '%s' - Undefined command name. Aborting lexer...\n", state->line_number,state->buffer_without_offset);
-=======
-			printf("\nError on line %d: '%s'- Undefined command name. Aborting lexer...\n", state->line_number, state->buffer_without_offset);
->>>>>>> refs/remotes/origin/master
 			fclose(file);
 			destroy_instruction(&(state->_inst));
 			state->buffer = state->buffer_without_offset;
@@ -249,11 +245,7 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 
 	/* Check if there is a comma between the command and the arguments */
 	if (state->buffer && state->buffer[FIRST_ARG] == ',') {
-<<<<<<< HEAD
 		printf("*** ERROR *** \nline: %d: '%s' - Unnecessary comma between the command and the arguments\n",state->line_number,state->buffer_without_offset);
-=======
-		printf("ERROR- on line: %d: '%s' unnecessary comma between the command and the arguments\n", state->line_number, state->buffer_without_offset);
->>>>>>> refs/remotes/origin/master
 		return STATUS_ERROR;
 	}
 

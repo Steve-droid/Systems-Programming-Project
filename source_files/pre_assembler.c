@@ -62,27 +62,15 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
     state->line_number++;
 
     if (remove_whitespace(as_filename) != STATUS_OK) {
-<<<<<<< HEAD
         printf("*** ERROR ***\nError while removing whitespace from %s\nExiting...\n", as_filename);
-        free(as_filename);
-        free(am_filename);
-=======
-        printf("Error while removing whitespace from %s\nExiting...\n", as_filename);
         destroy_syntax_state(&state);
->>>>>>> refs/remotes/origin/master
         return STATUS_ERROR;
     }
 
     as_file = fopen(as_filename, "r");
     if (as_file == NULL) {
-<<<<<<< HEAD
         printf("*** ERROR ***\nCould not open file called: %s\nExiting...", as_filename);
-        free(as_filename);
-        free(am_filename);
-=======
-        printf("Error: Could not open file called: %s\nExiting...", as_filename);
         destroy_syntax_state(&state);
->>>>>>> refs/remotes/origin/master
         return STATUS_ERROR_OPEN_SRC;
     }
 
@@ -106,12 +94,8 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
         /* Check if the current line is a macro call. If so, copy the expanded macro lines to the .am file*/
         if (is_macro_call(state->buffer, m_table)) {
             if (expand_macro(first_word, am_file, m_table) != STATUS_OK) {
-<<<<<<< HEAD
-                printf("*** ERROR ***\nError while expanding macro %s. Exiting...\n", first_word);
-=======
-                printf("Error on line %d: '%s':", state->line_number, state->buffer_without_offset);
+                printf("*** ERROR ***\nline %d: '%s':", state->line_number, state->buffer_without_offset);
                 printf("Could not expand the macro '%s' \n", first_word);
->>>>>>> refs/remotes/origin/master
                 fclose(as_file);
                 fclose(am_file);
                 macro_table_destructor(&m_table);
@@ -133,12 +117,8 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
              */
             macroname_found_flag = get_macro(m_table, macro_name);
             if (macroname_found_flag != NULL) {
-<<<<<<< HEAD
-                printf("*** ERROR ***\nMacro with the name '%s' is already defined. Exiting...\n", macro_name);
-=======
-                printf("Error in file '%s' on line %d: '%s': ", as_filename, state->line_number, state->buffer_without_offset);
+                printf("*** ERROR ***\nline %d: '%s':", state->line_number, state->buffer_without_offset);
                 printf("Macro with the name '%s' is already defined\n", macro_name);
->>>>>>> refs/remotes/origin/master
                 macro_table_destructor(&m_table);
                 state->buffer = state->buffer_without_offset;
                 state->buffer_without_offset = NULL;
@@ -164,12 +144,8 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
             result = add_macro_to_table(macro_name, as_file, m_table);
 
             if (result != STATUS_OK) {
-<<<<<<< HEAD
-                printf("*** ERROR ***\nError while adding macro: %s to macro table. Exiting...\n", macro_name);
-=======
-                printf("Error in file '%s' on line %d: '%s': ", as_filename, state->line_number, state->buffer_without_offset);
+                printf("*** ERROR ***\nfile: %s, line %d: '%s':",as_filename ,state->line_number, state->buffer_without_offset);
                 printf("Could not add macro '%s' to macro table\n", macro_name);
->>>>>>> refs/remotes/origin/master
                 macro_table_destructor(&m_table);
                 state->buffer = state->buffer_without_offset;
                 state->buffer_without_offset = NULL;
@@ -294,7 +270,6 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames, keyw
         result = pre_assemble(as_filenames[i], (*am_filenames)[i], m_table, keyword_table);
 
 
-<<<<<<< HEAD
         switch (result) {
         case STATUS_OK:
             printf("Pre-assembly of '%s' completed successfully.\n", as_filenames[i]);
@@ -322,23 +297,24 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames, keyw
             break;
         default:
             printf("*** ERROR ***\nUnknown error.\n");
-=======
-        if (result != STATUS_OK) {
->>>>>>> refs/remotes/origin/master
-            delete_filenames(file_amount, &as_filenames);
-            delete_filenames(file_amount, &backup_filenames);
-            delete_filenames(file_amount, am_filenames);
-            generic_filenames = NULL;
-            as_filenames = NULL;
-            backup_filenames = NULL;
-            return NULL;
-        }
+    }
+
+    if (result != STATUS_OK) {
+        delete_filenames(file_amount, &as_filenames);
+        delete_filenames(file_amount, &backup_filenames);
+        delete_filenames(file_amount, am_filenames);
+        generic_filenames = NULL;
+        as_filenames = NULL;
+        backup_filenames = NULL;
+        return NULL;
+    }
     }
 
     for (i = 0;i < file_amount;i++) {
         remove(as_filenames[i]);
         rename(backup_filenames[i], strcat(generic_filenames[i], ".as"));
     }
+
 
     delete_filenames(file_amount, &as_filenames);
     delete_filenames(file_amount, &backup_filenames);
@@ -347,4 +323,3 @@ macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames, keyw
     backup_filenames = NULL;
     return m_table;
 }
-

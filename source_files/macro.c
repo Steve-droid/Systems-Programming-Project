@@ -8,13 +8,8 @@
  */
 status create_macro(char *macro_name, macro **new_macro) {
     *new_macro = (macro *)malloc(sizeof(macro));
-<<<<<<< HEAD
     if (*new_macro == NULL) err(errno, "*** ERROR ***\nFailed to allocate memory for a new macro");
-    (*new_macro)->name = strdup(macro_name);
-=======
-    if (*new_macro == NULL) err(errno, "Failed to allocate memory for a new macro");
     (*new_macro)->name = my_strdup(macro_name);
->>>>>>> refs/remotes/origin/master
     (*new_macro)->lines = NULL;
     (*new_macro)->line_capacity = 0;
     (*new_macro)->line_count = 0;
