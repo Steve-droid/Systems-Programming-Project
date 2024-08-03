@@ -14,9 +14,10 @@ syntax_state *create_syntax_state(void) {
         state = NULL;
         return NULL;
     }
-
     state->buffer_without_offset = buffer;
     state->index = -1;
+    state->am_filename = NULL;
+    state->as_filename = NULL;
     state->continue_reading = FALSE;
     state->_validation_state = invalid;
     state->extern_or_entry = NEITHER_EXTERN_NOR_ENTRY;
@@ -52,6 +53,7 @@ void reset_syntax_state(syntax_state *state) {
 
     state->buffer_without_offset = NULL;
     state->index = -1;
+
     state->_validation_state = invalid;
     state->extern_or_entry = NEITHER_EXTERN_NOR_ENTRY;
     state->_inst = NULL;

@@ -6,8 +6,8 @@
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/assembler",
-            "args": ["ex1"],
-            "stopAtEntry": true,
+            "args": ["ex1", "ex2"],
+            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "build"
         }

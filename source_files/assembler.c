@@ -60,7 +60,6 @@ int main(int argc, char **argv) {
     if (generic_filenames == NULL) {
         return EXIT_FAILURE;
     }
-
     for (i = 0;i < file_amount;i++) {
         generic_filenames[i] = my_strdup(argv[i + 1]);
     }

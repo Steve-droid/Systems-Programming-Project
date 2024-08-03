@@ -1,8 +1,8 @@
 
 #include "pre_assembler.h"
 
-static int is_macro_definition(char *line) {
-    return (strncmp(line, "macr ", DEFINE_SEQUENCE_LEN) == 0);
+static int is_macro_definition(syntax_state *state) {
+    return (strncmp(state->buffer, "macr ", DEFINE_SEQUENCE_LEN) == 0);
 }
 
 static int is_macro_call(char *line, macro_table *table) {
@@ -52,6 +52,7 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
     macro *macroname_found_flag = NULL;
     status result = STATUS_ERROR;
     syntax_state *state = NULL;
+    char *token = NULL;
 
     state = create_syntax_state();
 
@@ -60,6 +61,8 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
     }
 
     state->line_number++;
+    state->as_filename = as_filename;
+    state->am_filename = am_filename;
 
     if (remove_whitespace(as_filename) != STATUS_OK) {
         printf("*** ERROR ***\nError while removing whitespace from %s\nExiting...\n", as_filename);
@@ -107,9 +110,26 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
         }
 
         /* Check if the current line is a macro definition. If so, add macro to the macro table */
-        else if (is_macro_definition(state->buffer)) {
+        else if (is_macro_definition(state)) {
 
-            sscanf(state->buffer, "macr %s", macro_name); /* Extract 2nd word wich is the macro name */
+            state->buffer += strlen("macro");
+
+            token = state->buffer;
+            token = strchr(token, ' ');
+            while (token != NULL && (*token) != '\n' && (*token) != '\0') {
+                if (!isspace(*token)) {
+                    printf("Error in file: %s: line %d: '%s': ", state->as_filename, state->line_number, state->buffer_without_offset);
+                    printf("Macro name definition contains more than one word.\n");
+                    macro_table_destructor(&m_table);
+                    state->buffer = state->buffer_without_offset;
+                    state->buffer_without_offset = NULL;
+                    destroy_syntax_state(&state);
+                    fclose(as_file);
+                    fclose(am_file);
+                    return STATUS_ERROR;
+                }
+                token++;
+            }
 
             /*
              Check if definition is valid.
@@ -144,7 +164,7 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
             result = add_macro_to_table(macro_name, as_file, m_table);
 
             if (result != STATUS_OK) {
-                printf("*** ERROR ***\nfile: %s, line %d: '%s':",as_filename ,state->line_number, state->buffer_without_offset);
+                printf("*** ERROR ***\nfile: %s, line %d: '%s':", as_filename, state->line_number, state->buffer_without_offset);
                 printf("Could not add macro '%s' to macro table\n", macro_name);
                 macro_table_destructor(&m_table);
                 state->buffer = state->buffer_without_offset;
@@ -177,14 +197,13 @@ macro_table *fill_macro_table(char *am_filename, char *as_filename, keyword *key
     m_table = create_macro_table();
     if (m_table == NULL) {
         printf("Error: Could not create macro table. Exiting...\n");
-      return NULL;
+        return NULL;
     }
 
 
     result = pre_assemble(as_filename, am_filename, m_table, keyword_table);
 
     if (result != STATUS_OK) {
-        macro_table_destructor(&m_table);
         return NULL;
     }
 
