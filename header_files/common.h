@@ -293,7 +293,4 @@ typedef struct syntax_state {
     bool is_extern;
 } syntax_state;
 
-
-
-
 #endif

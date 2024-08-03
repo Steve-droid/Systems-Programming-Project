@@ -10,7 +10,7 @@
 
 
 /*Syntax State utility*/
-syntax_state *create_syntax_state();
+syntax_state *create_syntax_state(void);
 
 void initialize_command(syntax_state *data);
 

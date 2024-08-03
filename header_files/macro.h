@@ -46,7 +46,7 @@ status insert_line_to_macro(macro *mac, char *line);
  *
  * @return macro_table*
  */
-macro_table *create_macro_table();
+macro_table *create_macro_table(void);
 
 /**
  * @brief Insert a macro into the macro table
@@ -71,7 +71,7 @@ macro *get_macro(macro_table *table, char *name);
  *
  * @return macro_table*
  */
-macro_table *get_macro_table();
+macro_table *get_macro_table(void);
 
 
 /**

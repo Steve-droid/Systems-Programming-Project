@@ -531,7 +531,7 @@ addressing_method get_addressing_method(char *sub_inst, label_table *_label_tabl
     return UNDEFINED_METHOD;
 }
 
-keyword *fill_keyword_table() {
+keyword *fill_keyword_table(void) {
     int i;
     char reg_name[3] = { 0 };
     keyword *keywords_table = NULL;

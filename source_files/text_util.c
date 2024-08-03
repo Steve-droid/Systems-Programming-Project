@@ -1,7 +1,7 @@
 #include "text_util.h"
 
 /* Syntax State Utility */
-syntax_state *create_syntax_state() {
+syntax_state *create_syntax_state(void) {
     char *buffer = NULL;
     syntax_state *state = (syntax_state *)malloc(sizeof(syntax_state));
 
