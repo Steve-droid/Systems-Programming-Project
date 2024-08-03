@@ -27,7 +27,7 @@
   * The function creates a table of keywords and their corresponding keys, defined as enum in common.h.
   * @return keyword*
   */
-keyword *fill_keyword_table();
+keyword *fill_keyword_table(void);
 
 /**
  *@brief Creates a table of labels

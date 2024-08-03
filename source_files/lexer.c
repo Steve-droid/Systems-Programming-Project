@@ -40,21 +40,21 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 	file = fopen(am_filename, "r");
 	if (file == NULL) {
-		printf("Error while opening .am file before lexing. Exiting...\n");
+		printf("*** ERROR ***\nError while opening .am file before lexing. Exiting...\n");
 		return NULL;
 	}
 
 	state = create_syntax_state();
 
 	if (state == NULL) {
-		printf("Failed to allocate memory for syntax state. Exiting...");
+		printf("*** ERROR ***\nFailed to allocate memory for syntax state. Exiting...");
 		fclose(file);
 		return NULL;
 	}
 
 	/* Create an instance of an instruction table */
 	if (create_instruction_table(&_inst_table) != STATUS_OK) {
-		printf("ERROR- Failed to create an instance of the instruction table\n");
+		printf("*** ERROR ***\nFailed to create an instance of the instruction table\n");
 		fclose(file);
 		destroy_instruction_table(&_inst_table);
 		destroy_syntax_state(&state);
@@ -65,7 +65,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 	while (fgets(state->buffer, MAX_LINE_LENGTH, file)) { /* Read every line */
 		if (create_instruction(&state->_inst) != STATUS_OK) {
-			printf("ERROR- Failed to create an instance of the instruction\n");
+			printf("*** ERROR ***\nFailed to create an instance of the instruction\n");
 			destroy_instruction(&state->_inst);
 			destroy_instruction_table(&_inst_table);
 			destroy_syntax_state(&state);
@@ -112,6 +112,8 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 		/* If the command does not exist, exit */
 		if (state->cmd_key == UNDEFINED) {
 			printf("\nError on line %d: '%s'- Undefined command name. Aborting lexer...\n", state->line_number, state->buffer_without_offset);
+
+		
 			destroy_instruction(&(state->_inst));
 			state->buffer = state->buffer_without_offset;
 			state->buffer_without_offset = NULL;
@@ -156,7 +158,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 	_inst_table->DC = DC("get", 0);
 
 	if (assign_addresses(_inst_table, _label_table, keyword_table) != STATUS_OK) {
-		printf("ERROR- Failed to insert instruction to table\n");
+		printf("*** ERROR ***\nFailed to insert instruction to table\n");
 		destroy_instruction_table(&_inst_table);
 		destroy_syntax_state(&state);
 		free(state);
@@ -180,7 +182,7 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 
 	/* Check if the command exists */
 	if (cmd_index == UNDEFINED_KEYWORD) {
-		printf("Error- Command not found\n");
+		printf("*** ERROR *** \nline: %d: '%s' - Command not found\n",state->line_number,state->buffer_without_offset);
 		return UNDEFINED;
 	}
 
@@ -192,14 +194,14 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 		/* Allocate memory for the string tokens and for the binary words */
 		for (i = 0;i < _tok_amount_to_allocate;i++) {
 			if (create_empty_token(state->_inst) != STATUS_OK) {
-				printf("ERROR- Failed to allocate memory for string tokens\n");
+				printf("*** ERROR *** \nline: %d: '%s' - Failed to allocate memory for string tokens\n",state->line_number,state->buffer_without_offset);
 				return STATUS_ERROR;
 			}
 		}
 
 		state->_inst->opcode = get_command_opcode(_keyword_table, state->cmd_key);
 		if (state->_inst->opcode < 0 || state->_inst->opcode>15) {
-			printf("Error- Command opcode not found\n");
+			printf("*** ERROR *** \nline: %d: '%s' - Command opcode not found\n",state->line_number,state->buffer_without_offset);
 			return UNDEFINED;
 		}
 
@@ -209,7 +211,7 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 	else {
 		for (i = 0;i < MIN_ARGS;i++) {
 			if (create_empty_token(state->_inst) != STATUS_OK) {
-				printf("ERROR- Failed to allocate memory for tokens\n");
+				printf("*** ERROR *** \nline: %d: '%s' - Failed to allocate memory for tokens\n",state->line_number,state->buffer_without_offset);
 				return STATUS_ERROR;
 			}
 		}
@@ -240,7 +242,7 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 
 	/* Check if there is a comma between the command and the arguments */
 	if (state->buffer && state->buffer[FIRST_ARG] == ',') {
-		printf("ERROR- on line: %d: '%s' unnecessary comma between the command and the arguments\n", state->line_number, state->buffer_without_offset);
+		printf("*** ERROR *** \nline: %d: '%s' - Unnecessary comma between the command and the arguments\n",state->line_number,state->buffer_without_offset);
 		return STATUS_ERROR;
 	}
 
@@ -269,8 +271,7 @@ static status assign_data(syntax_state *state, label_table *_label_table, keywor
 
 	/* If the command is neither .data, .string, .entry, nor .extern, return an error */
 	if (!state->is_data && !state->is_string && !state->is_entry && !state->is_extern) {
-		printf("ERROR- Trying to process an unknown command\n");
-		printf("Instruction: %s\nExiting...", line);
+		printf("*** ERROR *** \nline: %d: '%s' - Unknown command\n",state->line_number,state->buffer_without_offset);
 		return STATUS_ERROR;
 	}
 
@@ -281,21 +282,21 @@ static status assign_data(syntax_state *state, label_table *_label_table, keywor
 	do {
 
 		if (state->is_data) {  /* Process .data command */
-			state->_inst->is_dot_data = true;
+			state->_inst->is_dot_data = TRUE;
 			if (process_data_command(state, _label_table) == invalid)
 				return STATUS_ERROR;
 		}
 
 		else if (state->is_string) { /* Process .string command */
-			state->_inst->is_dot_string = true;
+			state->_inst->is_dot_string = TRUE;
 			if (process_string_command(state, _label_table) == invalid)
 				return STATUS_ERROR;
 		}
 
 		/* Process .entry and .extern commands */
 		else if (state->is_entry || state->is_extern) {
-			if (state->is_entry) state->_inst->is_entry = true;
-			else state->_inst->is_extern = true;
+			if (state->is_entry) state->_inst->is_entry = TRUE;
+			else state->_inst->is_extern = TRUE;
 			if (process_entry_extern_command(state) == invalid) {
 				return STATUS_ERROR;
 			}
@@ -382,15 +383,14 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 
 		/* Check if the intruction terminated before any arguments arguments are found */
 		if (_instruction_args && (_instruction_args[arg_index] == '\0' || _instruction_args[arg_index] == '\n')) {
-			printf("Error on line: %d: ", state->line_number + 1);
-			printf("There are less arguments than expected for the specific command\n");
+			printf("*** ERROR *** \nline: %d: '%s' - There are less arguments than expected for the specific command\n",state->line_number,state->buffer_without_offset);
 			return STATUS_ERROR;
 		}
 
-		state->comma = false;
-		state->null_terminator = false;
-		state->new_line = false;
-		state->whitespace = false;
+		state->comma = FALSE;
+		state->null_terminator = FALSE;
+		state->new_line = FALSE;
+		state->whitespace = FALSE;
 
 
 		do {
@@ -405,7 +405,7 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 
 			state->continue_reading = !(state->comma || state->null_terminator || state->new_line || state->whitespace);
 
-			if (state->continue_reading == false) {
+			if (state->continue_reading == FALSE) {
 				break;
 			}
 
@@ -426,19 +426,19 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 		/* If we reached the end of the argument section, break out of the loop */
 		if (state->null_terminator || state->new_line) {
 			if (arg_count != (state->_inst->num_tokens - 1)) {
-				printf("ERROR- There are less arguments than expected for the specific command\n");
+				printf("*** ERROR *** \nline: %d: '%s' - There are less arguments than expected for the '%s' command\n",state->line_number,state->buffer_without_offset,state->_inst->tokens[0]);
 				return STATUS_ERROR;
 			}
 			if (assign_addressing_method(state, state->_inst->tokens[arg_count], _label_table, keyword_table) != valid) {
-				printf("ERROR- The argument '%s' on line %d has an invalid addressing method\n", state->_inst->tokens[arg_count], state->line_number);
+				printf("*** ERROR *** \nline: %d: '%s' - The argument '%s' has an invalid addressing method\n", state->line_number,state->buffer_without_offset,state->_inst->tokens[arg_count]);
 				return STATUS_ERROR;
 			}
 			break;
 		}
 
 		/* Check if there is a comma after the last argument */
-		if ((state->null_terminator == false) && _instruction_args && *(_instruction_args) == ',') {
-			state->comma = true;
+		if ((state->null_terminator == FALSE) && _instruction_args && *(_instruction_args) == ',') {
+			state->comma = TRUE;
 
 			/* Skip the comma */
 			_instruction_args++;
@@ -448,21 +448,21 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 		}
 
 		/*Check if there are multiple consecutive commas*/
-		if ((state->comma == true) && _instruction_args && *(_instruction_args) == ',') {
-			printf("ERROR- A series of commas without an argument between them\n");
+		if ((state->comma == TRUE) && _instruction_args && *(_instruction_args) == ',') {
+			printf("*** ERROR *** \nline: %d: '%s' - A series of commas without an argument between them\n",state->line_number,state->buffer_without_offset);
 			return STATUS_ERROR;
 		}
 
 		/* If there is no comma after the last argument check if there are any more arguments */
 		if ((state->null_terminator || state->new_line) && arg_count != (state->_inst->num_tokens - 1)) {
 			/* If the argument count is less than the number of expected arguments, there is a missing comma */
-			printf("ERROR- Missing ',' between arguments of the instruction\n");
+			printf("*** ERROR *** \nline: %d: '%s' - Missing ',' between arguments of the instruction\n",state->line_number,state->buffer_without_offset);
 			return STATUS_ERROR;
 		}
 
 
 		if (assign_addressing_method(state, state->_inst->tokens[arg_count], _label_table, keyword_table) != valid) {
-			printf("ERROR- The argument '%s' on line %d has an invalid addressing method\n", state->_inst->tokens[arg_count], state->line_number);
+			printf("*** ERROR *** \nline: %d: '%s' - The argument '%s' has an invalid addressing method\n", state->line_number,state->buffer_without_offset,state->_inst->tokens[arg_count]);
 			return STATUS_ERROR;
 		}
 
@@ -495,15 +495,13 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 	}
 
 	if (_instruction_args[0] != '\0' && _instruction_args[0] != '\n') {
-		printf("\nError on line: %d: ", state->line_number + 1);
-		printf("There are too many arguments for the '%s' command\n", state->_inst->tokens[0]);
+		printf("*** ERROR *** \nline: %d: '%s' - There are too many arguments for the '%s' command\n",state->line_number,state->buffer_without_offset,state->_inst->tokens[0]);
 		return STATUS_ERROR;
 	}
 
 	state->comma = *(_instruction_args) == ',';
-	if (state->comma == true) {
-		printf("\nError on line: %d: ", state->line_number + 1);
-		printf("There is a comma after the last argument of the '%s' command\n", state->_inst->tokens[0]);
+	if (state->comma == TRUE) {
+		printf("*** ERROR *** \nline: %d: '%s' -There is a comma after the last argument of the '%s' command\n", state->line_number,state->buffer_without_offset,state->_inst->tokens[0]);
 		return STATUS_ERROR;
 	}
 
@@ -516,25 +514,25 @@ static validation_state process_data_command(syntax_state *state, label_table *_
 	size_t next = state->_inst->num_tokens - 1;
 
 	if (isspace(line[i]) && !(state->comma)) {
-		state->end_of_argument_by_space = true;
+		state->end_of_argument_by_space = TRUE;
 		i++;
 	}
 
 	trim_whitespace(&line[i]);
 	if (line[i] == ',' && state->comma) {
-		printf("ERROR- Additional unnecessary comma before '.data' data\n");
+		printf("*** ERROR *** \nline: %d: '%s' - Additional unnecessary comma before '.data' data\n",state->line_number,state->buffer_without_offset);
 		return invalid;
 	}
 	if (!(isdigit(line[i]) || line[i] == '-' || line[i] == '+' || line[i] == ',' || line[i] == '\0' || line[i] == '\n' || isspace(line[i]))) {
-		printf("ERROR- Invalid symbol in '.data' data\n");
+		printf("*** ERROR *** \nline: %d: '%s' - Invalid symbol in '.data' data\n",state->line_number,state->buffer_without_offset);
 		return invalid;
 	}
 	if (state->end_of_argument_by_space && line[i] != ',' && line[i] != '\0' && line[i] != '\n') {
-		printf("ERROR- NO COMMA BETWEEN INTEGERS\n");
+		printf("*** ERROR *** \nline: %d: '%s' - NO COMMA BETWEEN INTEGERS\n",state->line_number,state->buffer_without_offset);
 		return invalid;
 	}
 	if (state->comma && line[i] == ',') {
-		printf("ERROR- A series of commas without a number between them\n");
+		printf("*** ERROR *** \nline: %d: '%s' - A series of commas without a number between them\n",state->line_number,state->buffer_without_offset);
 		return invalid;
 	}
 
@@ -542,18 +540,18 @@ static validation_state process_data_command(syntax_state *state, label_table *_
 	state->_inst->tokens[next][i + 1] = '\0';
 
 	if (line[i] == ',') {
-		state->comma = true;
+		state->comma = TRUE;
 	}
 	else {
-		state->end_of_argument_by_space = state->comma = false;
+		state->end_of_argument_by_space = state->comma = FALSE;
 	}
 	if (line[i] == '\n' || line[i + 1] == '\n' || line[i] == '\0' || line[i + 1] == '\0') {
 		if (state->comma) {
-			printf("ERROR- An unnecessary comma in the end of '.data' data\n");
+			printf("*** ERROR *** \nline: %d: '%s' - An unnecessary comma in the end of '.data' data\n",state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 		if (validate_data_members(state) == invalid) {
-			printf("ERROR- not a valid integer\n");
+			printf("*** ERROR *** \nline: %d: '%s' - not a valid integer\n",state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 	}
@@ -568,16 +566,16 @@ static validation_state process_string_command(syntax_state *state, label_table 
 	char *line = state->buffer;
 	if (i == 0) {
 		if (line[0] == '\"') {
-			state->first_quatiotion_mark = true;
+			state->first_quatiotion_mark = TRUE;
 			state->_inst->tokens[token_index][i] = line[i];
 		}
 		return valid;
 	}
 	if (line[i] == '\"') {
-		state->last_quatiotion_mark = true;
+		state->last_quatiotion_mark = TRUE;
 	}
 	else {
-		state->last_quatiotion_mark = false;
+		state->last_quatiotion_mark = FALSE;
 	}
 
 
@@ -585,17 +583,17 @@ static validation_state process_string_command(syntax_state *state, label_table 
 
 	if (line[i + 1] == '\n' || line[i + 1] == '\0') {
 		if (!state->first_quatiotion_mark && !state->last_quatiotion_mark) {
-			printf("ERROR- There are no quotation marks at the data in .string command\n");
+			printf("*** ERROR *** \nline: %d: '%s' - There are no quotation marks at the data in .string command\n",state->line_number,state->buffer_without_offset);
 			fflush(stdout);
 			return invalid;
 		}
 		else if (!state->first_quatiotion_mark && state->last_quatiotion_mark) {
-			printf("ERROR- There is no \" at the beginning of the data in .string command\n");
+			printf("*** ERROR *** \nline: %d: '%s' - There is no \" at the beginning of the data in .string command\n",state->line_number,state->buffer_without_offset);
 			fflush(stdout);
 			return invalid;
 		}
 		if (state->first_quatiotion_mark && !state->last_quatiotion_mark) {
-			printf("ERROR- There is no \" at the end of the data in .string command\n");
+			printf("*** ERROR *** \nline: %d: '%s' - There is no \" at the end of the data in .string command\n",state->line_number,state->buffer_without_offset);
 			fflush(stdout);
 			return invalid;
 		}
@@ -613,26 +611,26 @@ static validation_state process_entry_extern_command(syntax_state *state) {
 	int i = state->index;
 	char *line = state->buffer;
 	int next = 0;
-	static bool created_token = false;
+	static int created_token = FALSE;
 
 	if (!created_token && create_empty_token(state->_inst) != STATUS_OK) {
-		printf("ERROR- Failed to allocate memory for string tokens\n");
+		printf("*** ERROR *** \nline: %d: '%s' - Failed to allocate memory for string tokens\n",state->line_number,state->buffer_without_offset);
 		return invalid;
 	}
 
-	created_token = true;
+	created_token = TRUE;
 	next = state->_inst->num_tokens - 1;
 
 	if (!(isalpha(line[i]) || isdigit(line[i]))) {
-		printf("ERROR- Invalid character for label, no label with this name\n");
+		printf("*** ERROR *** \nline: %d: '%s' - Invalid character for label, no label with this name\n",state->line_number,state->buffer_without_offset);
 		return invalid;
 	}
 	if (state->end_of_argument && (!isspace(line[i]))) {
-		printf("ERROR- Too many arguments\n");
+		printf("*** ERROR *** \nline: %d: '%s' - Too many arguments\n",state->line_number,state->buffer_without_offset);
 		return invalid;
 	}
 	if (isspace(line[i]) || line[i + 1] == '\0' || line[i + 1] == '\n') {
-		state->end_of_argument = true;
+		state->end_of_argument = TRUE;
 	}
 	if (!isspace(line[i])) {
 		state->_inst->tokens[next][i] = line[i];
@@ -645,25 +643,25 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	size_t i;
 	addressing_method _addressing_method = UNDEFINED_METHOD;
 	keyword_name command = UNDEFINED_KEYWORD;
-	bool contains_src_addressing = false;
-	bool contains_dest_addressing = false;
-	bool found_label_with_matching_name = false;
+	int contains_src_addressing = FALSE;
+	int contains_dest_addressing = FALSE;
+	int found_label_with_matching_name = FALSE;
 	label *tmp_label = NULL;
 	char *tmp_ptr = NULL;
 	int tmp_val = 0;;
 
-	if (state->_inst->src_addressing_method != NO_ADDRESSING_METHOD) contains_src_addressing = true;
-	if (state->_inst->dest_addressing_method != NO_ADDRESSING_METHOD) contains_dest_addressing = true;
+	if (state->_inst->src_addressing_method != NO_ADDRESSING_METHOD) contains_src_addressing = TRUE;
+	if (state->_inst->dest_addressing_method != NO_ADDRESSING_METHOD) contains_dest_addressing = TRUE;
 
 	if (contains_dest_addressing && contains_src_addressing) {
-		printf("Error on line: #%lu: Trying to assign addressing methods to arguments for a 2nd time.\n", state->_inst->line_number);
+		printf("*** ERROR *** \nline: %d: '%s' - Trying to assign addressing methods to arguments for a 2nd time.\n", state->line_number,state->buffer_without_offset);
 		return invalid;
 	}
 
 	_addressing_method = get_addressing_method(argument, _label_table);
 
 	if (!(_addressing_method == IMMEDIATE || _addressing_method == DIRECT || _addressing_method == INDIRECT_REGISTER || _addressing_method == DIRECT_REGISTER)) {
-		printf("Error on line: #%lu: Invalid addressing method.\n", state->_inst->line_number);
+		printf("*** ERROR *** \nline: %d: '%s' - Invalid addressing method.\n", state->line_number,state->buffer_without_offset);
 		return invalid;
 	}
 
@@ -676,7 +674,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	case SUB:
 		if (contains_src_addressing) {/*Check dest addressing */
 			if (_addressing_method == IMMEDIATE) {
-				printf("Error on line: #%lu: Trying to assign an immediate addressing method to a 'mov'/'add'/'sub' destination argument\n", state->_inst->line_number);
+				printf("*** ERROR *** \nline: %d: '%s' - Trying to assign an immediate addressing method to a 'mov'/'add'/'sub' destination argument\n", state->line_number,state->buffer_without_offset);
 				return invalid;
 			}
 
@@ -685,7 +683,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 			break;
 		}
 		if (contains_dest_addressing) {
-			printf("Error on line: #%lu: Wrong order of addressing method assignment.\n", state->_inst->line_number);
+			printf("*** ERROR *** \nline: %d: '%s' - Wrong order of addressing method assignment.\n", state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 		state->_inst->src_addressing_method = _addressing_method;
@@ -697,7 +695,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 		}
 
 		if (contains_dest_addressing) {
-			printf("Error on line: #%lu: Wrong order of addressing method assignment.\n", state->_inst->line_number);
+			printf("*** ERROR *** \nline: %d: '%s' - Wrong order of addressing method assignment.\n", state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 
@@ -706,7 +704,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	case LEA:
 		if (contains_src_addressing) {
 			if (_addressing_method == IMMEDIATE) {
-				printf("Error on line: #%lu: Trying to assign an immediate addressing method to a destination argument of 'lea' instruction\n", state->_inst->line_number);
+				printf("*** ERROR *** \nline: %d: '%s' - Trying to assign an immediate addressing method to a destination argument of 'lea' instruction\n", state->line_number,state->buffer_without_offset);
 				return invalid;
 			}
 
@@ -716,12 +714,12 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 		}
 
 		if (contains_dest_addressing) {
-			printf("Error on line: #%lu: Wrong order of addressing method assignment.\n", state->_inst->line_number);
+			printf("*** ERROR *** \nline: %d: '%s' - Wrong order of addressing method assignment.\n", state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 
 		if (_addressing_method != DIRECT) {
-			printf("Error on line: #%lu: Trying to assign an an invalid addressing method to a source argument of 'lea' instruction\n", state->_inst->line_number);
+			printf("*** ERROR *** \nline: %d: '%s' - Trying to assign an an invalid addressing method to a source argument of 'lea' instruction\n", state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 
@@ -734,20 +732,17 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	case DEC:
 	case RED:
 		if (contains_src_addressing) {
-			printf("Error on line: #%lu: ", state->_inst->line_number);
-			printf("Trying to assign a source argument addressing method to a 'clr'/'not'/'inc'/'dec'/'red' instruction\n");
+			printf("*** ERROR *** \nline: %d: '%s' - Trying to assign a source argument addressing method to a 'clr'/'not'/'inc'/'dec'/'red' instruction\n",state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 
 		if (contains_dest_addressing) {
-			printf("Error on line: #%lu: ", state->_inst->line_number);
-			printf("Multiple assignment attempts for a destination argument addressing method of a 'clr'/'not'/'inc'/'dec'/'red' instruction\n");
+			printf("*** ERROR *** \nline: %d: '%s' - Multiple assignment attempts for a destination argument addressing method of a 'clr'/'not'/'inc'/'dec'/'red' instruction\n",state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 
 		if (_addressing_method == IMMEDIATE) {
-			printf("Error on line: #%lu: ", state->_inst->line_number);
-			printf("Trying to assign an immediate addressing method to a destination argument of 'clr'/'not'/'inc'/'dec'/'red'  instruction\n");
+			printf("*** ERROR *** \nline: %d: '%s' - Trying to assign an immediate addressing method to a destination argument of 'clr'/'not'/'inc'/'dec'/'red'  instruction\n",state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 
@@ -759,26 +754,22 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	case BNE:
 	case JSR:
 		if (contains_src_addressing) {
-			printf("Error on line: #%lu: ", state->_inst->line_number);
-			printf("Trying to assign a source argument addressing method to a 'jmp'/'bne'/'jsr' instruction\n");
+			printf("*** ERROR *** \nline: %d: '%s' - Trying to assign a source argument addressing method to a 'jmp'/'bne'/'jsr' instruction\n",state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 
 		if (contains_dest_addressing) {
-			printf("Error on line: #%lu: ", state->_inst->line_number);
-			printf("Multiple assignment attempts for a destination argument addressing method of a 'jmp'/'bne'/'jsr' instruction\n");
+			printf("*** ERROR *** \nline: %d: '%s' - Multiple assignment attempts for a destination argument addressing method of a 'jmp'/'bne'/'jsr' instruction\n",state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 
 		if (_addressing_method == IMMEDIATE) {
-			printf("Error on line: #%lu: ", state->_inst->line_number);
-			printf("Trying to assign an immediate addressing method to a destination argument of 'jmp'/'bne'/'jsr'  instruction\n");
+			printf("*** ERROR *** \nline: %d: '%s' - Trying to assign an immediate addressing method to a destination argument of 'jmp'/'bne'/'jsr'  instruction\n",state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 
 		if (_addressing_method == DIRECT_REGISTER) {
-			printf("Error on line: #%lu: ", state->_inst->line_number);
-			printf("Trying to assign an indirect register addressing method to a destination argument of 'jmp'/'bne'/'jsr'  instruction\n");
+			printf("*** ERROR *** \nline: %d: '%s' - Trying to assign an indirect register addressing method to a destination argument of 'jmp'/'bne'/'jsr'  instruction\n",state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 
@@ -787,14 +778,12 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 
 	case PRN:
 		if (contains_src_addressing) {
-			printf("Error on line: #%lu: ", state->_inst->line_number);
-			printf("Trying to assign a source argument addressing method to a 'prn' instruction\n");
+			printf("*** ERROR *** \nline: %d: '%s' - Trying to assign a source argument addressing method to a 'prn' instruction\n",state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 
 		if (contains_dest_addressing) {
-			printf("Error on line: #%lu: ", state->_inst->line_number);
-			printf("Multiple assignment attempts for a destination argument addressing method of a 'prn' instruction\n");
+			printf("*** ERROR *** \nline: %d: '%s' - Multiple assignment attempts for a destination argument addressing method of a 'prn' instruction\n",state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 		state->_inst->dest_addressing_method = _addressing_method;
@@ -802,21 +791,19 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	case RTS:
 	case STOP:
 		if (contains_src_addressing) {
-			printf("Error on line: #%lu: ", state->_inst->line_number);
-			printf("Trying to assign a source argument addressing method to a 'rts'/'stop' instruction\n");
+			printf("*** ERROR *** \nline: %d: '%s' - Trying to assign a source argument addressing method to a 'rts'/'stop' instruction\n",state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 
 		if (contains_dest_addressing) {
-			printf("Error on line: #%lu: ", state->_inst->line_number);
-			printf("Trying to assign a destination argument addressing method to a 'rts','stop' instruction\n");
+			printf("*** ERROR *** \nline: %d: '%s' - Trying to assign a destination argument addressing method to a 'rts','stop' instruction\n",state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 
 		break;
 
 	default:
-		printf("Could not assign addressing method to arguments on line #%lu\n", state->_inst->line_number);
+		printf("*** ERROR *** \nline: %d: '%s' - Could not assign addressing method to arguments\n",state->line_number,state->buffer_without_offset);
 		return invalid;
 	}
 
@@ -877,15 +864,14 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 
 	if (_addressing_method == DIRECT) {
 		if (validate_label_name(state, _label_table, keyword_table) != valid) {
-			printf("Error on line: #%lu: ", state->_inst->line_number);
-			printf("Trying to use an invalid label name as an argument\n");
+			printf("*** ERROR *** \nline: %d: '%s' -Trying to use an invalid label name as an argument\n",state->line_number,state->buffer_without_offset);
 			return invalid;
 		}
 
 		for (i = 0;i < _label_table->size;i++) {
 			tmp_label = get_label_by_name(_label_table, argument);
 			if (tmp_label != NULL) {
-				found_label_with_matching_name = true;
+				found_label_with_matching_name = TRUE;
 				break;
 			}
 		}
@@ -895,16 +881,16 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 				if (state->_inst->direct_label_key_src == -1) {
 					state->_inst->direct_label_key_src = tmp_label->key;
 					strcpy(state->_inst->direct_label_name_src, tmp_label->name);
-					if (tmp_label->is_entry) state->_inst->is_src_entry = true;
-					else if (tmp_label->is_extern) state->_inst->is_src_extern = true;
+					if (tmp_label->is_entry) state->_inst->is_src_entry = TRUE;
+					else if (tmp_label->is_extern) state->_inst->is_src_extern = TRUE;
 				}
 			}
 			if (state->_inst->dest_addressing_method == DIRECT) {
 				if (state->_inst->direct_label_key_dest == -1) {
 					state->_inst->direct_label_key_dest = tmp_label->key;
 					strcpy(state->_inst->direct_label_name_dest, tmp_label->name);
-					if (tmp_label->is_entry) state->_inst->is_dest_entry = true;
-					else if (tmp_label->is_extern) state->_inst->is_dest_extern = true;
+					if (tmp_label->is_entry) state->_inst->is_dest_entry = TRUE;
+					else if (tmp_label->is_extern) state->_inst->is_dest_extern = TRUE;
 				}
 			}
 
@@ -1031,7 +1017,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 
 static validation_state validate_label_name(syntax_state *state, label_table *_label_table, keyword *keyword_table) {
 	int i;
-	bool label_found = false;
+	int label_found = FALSE;
 	label *_label = NULL;
 	int cmd_key = state->_inst->cmd_key;
 	if (!strcmp(keyword_table[cmd_key].name, ".entry") || !strcmp(keyword_table[cmd_key].name, ".extern")) {
@@ -1056,10 +1042,10 @@ static validation_state validate_label_name(syntax_state *state, label_table *_l
 		_label = get_label_by_name(_label_table, state->buffer);
 		if (_label != NULL)
 			if (_label->is_entry || _label->is_extern) {
-				label_found = true;
+				label_found = TRUE;
 			}
-		if (label_found == false) {
-			printf("Error on line %d: The name '%s' is an invalid label name.\n", state->line_number, state->buffer);
+		if (label_found == FALSE) {
+			printf("*** ERROR *** \nline: %d: '%s' - The name '%s' is an invalid label name.\n", state->line_number,state->buffer_without_offset, state->buffer);
 			return invalid;
 		}
 	}
@@ -1068,30 +1054,30 @@ static validation_state validate_label_name(syntax_state *state, label_table *_l
 
 static validation_state validate_data_members(syntax_state *state) {
 	size_t i;
-	bool minus_or_plus = false;
-	bool number = false;
+	int minus_or_plus = FALSE;
+	int number = FALSE;
 	char *buffer = state->_inst->tokens[1];
 
 
 	for (i = 0; buffer[i] != '\0' && buffer[i] != '\n'; i++) {
 		trim_whitespace(&buffer[i]);
 		if (buffer[i] == '-' || buffer[i] == '+') {
-			if (number == true && minus_or_plus == true) { /*in case of 1,2,3-,4 or 1,+-2,3,4*/
+			if (number == TRUE && minus_or_plus == TRUE) { /*in case of 1,2,3-,4 or 1,+-2,3,4*/
 				return invalid;
 			}
-			minus_or_plus = true;
-			number = false;
+			minus_or_plus = TRUE;
+			number = FALSE;
 		}
 		else if (buffer[i] == ',') {
-			if (minus_or_plus == true) { /*in case of 1,-,2,3 */
+			if (minus_or_plus == TRUE) { /*in case of 1,-,2,3 */
 				return invalid;
 			}
-			number = false;
-			minus_or_plus = false;
+			number = FALSE;
+			minus_or_plus = FALSE;
 		}
 		else {   /*data_buffer[i] == number*/
-			number = true;
-			minus_or_plus = false;
+			number = TRUE;
+			minus_or_plus = FALSE;
 		}
 	}
 

@@ -1,7 +1,7 @@
 #include "text_util.h"
 
 /* Syntax State Utility */
-syntax_state *create_syntax_state() {
+syntax_state *create_syntax_state(void) {
     char *buffer = NULL;
     syntax_state *state = (syntax_state *)malloc(sizeof(syntax_state));
 
@@ -17,30 +17,30 @@ syntax_state *create_syntax_state() {
 
     state->buffer_without_offset = buffer;
     state->index = -1;
-    state->continue_reading = false;
+    state->continue_reading = FALSE;
     state->_validation_state = invalid;
     state->extern_or_entry = NEITHER_EXTERN_NOR_ENTRY;
     state->buffer = buffer;
     state->line_number = -1;
     state->_inst = NULL;
-    state->label_name = false;
+    state->label_name = FALSE;
     state->label_key = -1;
-    state->comma = false;
-    state->whitespace = false;
-    state->null_terminator = false;
-    state->new_line = false;
-    state->minus_sign = false;
-    state->plus_sign = false;
-    state->end_of_argument_by_space = false;
-    state->end_of_argument = false;
-    state->end_of_string = false;
-    state->first_quatiotion_mark = false;
-    state->last_quatiotion_mark = false;
-    state->digit = false;
-    state->is_data = false;
-    state->is_string = false;
-    state->is_entry = false;
-    state->is_extern = false;
+    state->comma = FALSE;
+    state->whitespace = FALSE;
+    state->null_terminator = FALSE;
+    state->new_line = FALSE;
+    state->minus_sign = FALSE;
+    state->plus_sign = FALSE;
+    state->end_of_argument_by_space = FALSE;
+    state->end_of_argument = FALSE;
+    state->end_of_string = FALSE;
+    state->first_quatiotion_mark = FALSE;
+    state->last_quatiotion_mark = FALSE;
+    state->digit = FALSE;
+    state->is_data = FALSE;
+    state->is_string = FALSE;
+    state->is_entry = FALSE;
+    state->is_extern = FALSE;
     return state;
 }
 
@@ -55,32 +55,32 @@ void reset_syntax_state(syntax_state *state) {
     state->_validation_state = invalid;
     state->extern_or_entry = NEITHER_EXTERN_NOR_ENTRY;
     state->_inst = NULL;
-    state->continue_reading = false;
-    state->label_name = false;
+    state->continue_reading = FALSE;
+    state->label_name = FALSE;
     state->label_key = -1;
-    state->comma = false;
-    state->whitespace = false;
-    state->null_terminator = false;
-    state->new_line = false;
-    state->minus_sign = false;
-    state->plus_sign = false;
-    state->end_of_argument_by_space = false;
-    state->end_of_argument = false;
-    state->end_of_string = false;
-    state->first_quatiotion_mark = false;
-    state->last_quatiotion_mark = false;
-    state->digit = false;
-    state->is_data = false;
-    state->is_string = false;
-    state->is_entry = false;
-    state->is_extern = false;
+    state->comma = FALSE;
+    state->whitespace = FALSE;
+    state->null_terminator = FALSE;
+    state->new_line = FALSE;
+    state->minus_sign = FALSE;
+    state->plus_sign = FALSE;
+    state->end_of_argument_by_space = FALSE;
+    state->end_of_argument = FALSE;
+    state->end_of_string = FALSE;
+    state->first_quatiotion_mark = FALSE;
+    state->last_quatiotion_mark = FALSE;
+    state->digit = FALSE;
+    state->is_data = FALSE;
+    state->is_string = FALSE;
+    state->is_entry = FALSE;
+    state->is_extern = FALSE;
 }
 
 void initialize_command(syntax_state *data) {
-    data->is_data = false;
-    data->is_string = false;
-    data->is_entry = false;
-    data->is_extern = false;
+    data->is_data = FALSE;
+    data->is_string = FALSE;
+    data->is_entry = FALSE;
+    data->is_extern = FALSE;
 }
 
 void destroy_syntax_state(syntax_state **state) {
@@ -100,33 +100,33 @@ void destroy_syntax_state(syntax_state **state) {
 
 void update_command(syntax_state *state, keyword *keyword_table, int command_key) {
     if (!strcmp(keyword_table[command_key].name, ".data")) {
-        state->is_data = true;
+        state->is_data = TRUE;
     }
     else if (!strcmp(keyword_table[command_key].name, ".string")) {
-        state->is_string = true;
+        state->is_string = TRUE;
     }
     else if (!strcmp(keyword_table[command_key].name, ".entry")) {
-        state->is_entry = true;
+        state->is_entry = TRUE;
     }
     else if (!strcmp(keyword_table[command_key].name, ".extern")) {
-        state->is_extern = true;
+        state->is_extern = TRUE;
     }
 }
 
-bool continue_reading(char *instruction_buffer, syntax_state *state) {
+int continue_reading(char *instruction_buffer, syntax_state *state) {
     size_t index = state->index;
     size_t instruction_length = strlen(instruction_buffer);
     if (index >= instruction_length) {
-        return false;
+        return FALSE;
     }
 
     /* If we reached a null terminator or a new line, break out of the loop */
     if (instruction_buffer[index] == '\0' || instruction_buffer[index] == '\n') {
-        return false;
+        return FALSE;
     }
 
     /* Otherwise, continue reading */
-    return true;
+    return TRUE;
 }
 
 char *trim_whitespace(char *str) {
@@ -185,7 +185,7 @@ char *skip_ent_or_ext(char *_buffer) {
     char *ptr = _buffer;
 
     if (_buffer == NULL) {
-        printf("ERROR- Trying to skip '.entry' on a null buffer.\n");
+        printf("*** ERROR ***\nTrying to skip '.entry' on a null buffer.\n");
         return NULL;
     }
 
@@ -194,7 +194,7 @@ char *skip_ent_or_ext(char *_buffer) {
     }
 
     if (strncmp(_buffer, ".entry", 6) != 0 && strncmp(_buffer, ".extern", 7) != 0) {
-        printf("Error- '.entry' or '.extern' directive must be at the beginning of the line.\n");
+        printf("*** ERROR ***\n '.entry' or '.extern' directive must be at the beginning of the line.\n");
         return NULL;
     }
 
@@ -216,20 +216,20 @@ void skip_label_name(syntax_state *state, label_table *_label_table) {
 
     if (strncmp(line, ".entry", 6) == 0) {
         state->extern_or_entry = CONTAINS_ENTRY;
-        state->is_entry = true;
+        state->is_entry = TRUE;
         return;
     }
 
     if (strncmp(line, ".extern", 7) == 0) {
         state->extern_or_entry = CONTAINS_EXTERN;
-        state->is_extern = true;
+        state->is_extern = TRUE;
         return;
     }
 
     /** Find the first letter after the label name */
     for (i = 0; i < _label_table->size; i++) {
         if (_label_table->labels[i]->instruction_line == current_line) {
-            state->label_name = true;
+            state->label_name = TRUE;
             state->label_key = _label_table->labels[i]->key;
             offset = 1 + strlen(_label_table->labels[i]->name);  /** another 1 for ':' */
             break;  /** Exit loop once the label is found */
@@ -280,7 +280,7 @@ int *convert_twodim_array_to_onedim(int **two_dim_array) {
     /* Allocate memory for the 1D array plus one additional space for the FLAG */
     one_dim_array = (int *)malloc((elements + 1) * sizeof(int));
     if (one_dim_array == NULL) {
-        printf("ERROR-Memory allocation failed\n");
+        printf("*** ERROR ***\nMemory allocation failed\n");
         return NULL;
     }
 
@@ -317,16 +317,16 @@ void print_array_in_binary(int *arr) {
     printf("\n");
 }
 
-bool is_empty_line(char *str) {
+int is_empty_line(char *str) {
     /* Remove the newline character at the end of the line, if there is one */
     str[strcspn(str, "\n")] = '\0';
 
     /* Check if the line is empty */
     if (strlen(str) == 0) {
-        return true; /* Line is empty */
+        return TRUE; /* Line is empty */
     }
 
-    return false; /* Line is not empty */
+    return FALSE; /* Line is not empty */
 }
 
 int char_to_int(char c) {
@@ -343,7 +343,7 @@ int char_to_int(char c) {
         return  COMMA;
     }
     else {
-        printf("Error: The character is not a digit.\n");
+        printf("*** ERROR ***\nThe character is not a digit.\n");
         return -1; /* Return an error code if the character is not a digit */
     }
 }
@@ -360,7 +360,7 @@ int *convert_to_int_array(char *str) {
         /* Reallocate memory for the integer array */
         result = (int *)realloc(result, (index + 1) * sizeof(int));
         if (result == NULL) {
-            printf("Memory allocation failed\n");
+            printf("*** ERROR ***\nMemory allocation failed\n");
             exit(1);
         }
 
@@ -374,7 +374,7 @@ int *convert_to_int_array(char *str) {
     /* Reallocate memory to add the FLAG at the end */
     result = (int *)realloc(result, (index + 1) * sizeof(int));
     if (result == NULL) {
-        printf("Memory allocation failed\n");
+        printf("*** ERROR ***\nMemory allocation failed\n");
         exit(1);
     }
 

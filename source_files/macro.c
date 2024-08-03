@@ -8,7 +8,7 @@
  */
 status create_macro(char *macro_name, macro **new_macro) {
     *new_macro = (macro *)malloc(sizeof(macro));
-    if (*new_macro == NULL) err(errno, "Failed to allocate memory for a new macro");
+    if (*new_macro == NULL) err(errno, "*** ERROR ***\nFailed to allocate memory for a new macro");
     (*new_macro)->name = my_strdup(macro_name);
     (*new_macro)->lines = NULL;
     (*new_macro)->line_capacity = 0;
@@ -21,7 +21,7 @@ status insert_line_to_macro(macro *mac, char *line) {
 
     if (mac->lines == NULL) {
         mac->lines = (char **)malloc(sizeof(char *) * INITIAL_MACRO_CAPACITY);
-        if (mac->lines == NULL) err(errno, "Failed to reallocate memory for macro lines");
+        if (mac->lines == NULL) err(errno, "*** ERROR ***\nFailed to reallocate memory for macro lines");
         mac->line_capacity = INITIAL_MACRO_CAPACITY;
     }
 
@@ -29,7 +29,7 @@ status insert_line_to_macro(macro *mac, char *line) {
         mac->line_capacity = mac->line_count + 1;
         mac->lines = (char **)realloc(mac->lines, mac->line_capacity * sizeof(char *));
         if (mac->lines == NULL) {
-            err(errno, "Failed to allocate memory for macro lines");
+            err(errno, "*** ERROR ***\nFailed to allocate memory for macro lines");
         }
     }
 
@@ -43,11 +43,11 @@ status insert_line_to_macro(macro *mac, char *line) {
  *
  * @return macro_table*
  */
-macro_table *create_macro_table() {
+macro_table *create_macro_table(void) {
 
     macro_table *m_table = (macro_table *)malloc(sizeof(macro_table));
     if (m_table == NULL) {
-        err(errno, "Failed to allocate memory for macro table");
+        err(errno, "*** ERROR ***\nFailed to allocate memory for macro table");
     }
 
     m_table->macros = NULL;
@@ -65,7 +65,7 @@ macro_table *create_macro_table() {
  */
 status insert_macro_to_table(macro_table *table, macro *macr) {
     if (table == NULL) {
-        printf("Trying to insert macro to a NULL table. Exiting...");
+        printf("*** ERROR ***\nTrying to insert macro to a NULL table. Exiting...");
         return STATUS_ERROR;
     }
 
@@ -113,7 +113,7 @@ macro *get_macro(macro_table *table, char *name) {
  *
  * @return macro_table*
  */
-macro_table *get_macro_table() {
+macro_table *get_macro_table(void) {
 
     static macro_table *table = NULL;
     if (table == NULL) {
@@ -192,7 +192,7 @@ status print_macro_table(macro_table *table) {
         current_macro = table->macros[index];
         printf("\n***Macro name: %s***\n\n", current_macro->name);
         if (print_macro_lines(current_macro) != STATUS_OK) {
-            printf("Error while printing macro %s Exiting...", current_macro->name);
+            printf("*** ERROR ***\nError while printing macro %s Exiting...", current_macro->name);
             return STATUS_ERROR;
         }
     }
