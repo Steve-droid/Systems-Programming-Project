@@ -170,156 +170,24 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
 
 }
 
-macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames, keyword *keyword_table) {
+macro_table *fill_macro_table(char *am_filename, char *as_filename, keyword *keyword_table) {
     macro_table *m_table = NULL;
     status result = STATUS_ERROR;
-    size_t i = 0;
-    size_t file_amount = argc - 1;
-    char **as_filenames = NULL;
-    char **backup_filenames = NULL;
-    char **generic_filenames = argv + 1;
-
-
-    if (file_amount < 1) {
-        printf("Usage: %s <filename>\n", argv[0]);
-        return NULL;
-    }
-
-    as_filenames = (char **)calloc(file_amount, sizeof(char *));
-    if (as_filenames == NULL) {
-        generic_filenames = NULL;
-        return NULL;
-    }
-
-    backup_filenames = (char **)calloc(file_amount, sizeof(char *));
-    if (backup_filenames == NULL) {
-        delete_filenames(file_amount, &as_filenames);
-        as_filenames = NULL;
-        generic_filenames = NULL;
-        return NULL;
-    }
-
-    *(am_filenames) = (char **)calloc(file_amount, sizeof(char *));
-    if (*(am_filenames) == NULL) {
-        delete_filenames(file_amount, &as_filenames);
-        delete_filenames(file_amount, &backup_filenames);
-        delete_filenames(file_amount, am_filenames);
-        generic_filenames = NULL;
-        as_filenames = NULL;
-        backup_filenames = NULL;
-        return NULL;
-    }
-
-    for (i = 0;i < file_amount;i++) {
-
-        as_filenames[i] = create_file_name(generic_filenames[i], ".as");
-
-        if (as_filenames[i] == NULL) {
-            printf("*** ERROR ***\n .as file creation for %s did not execute properly.\nExiting...\n", generic_filenames[i]);
-            delete_filenames(file_amount, &as_filenames);
-            delete_filenames(file_amount, &backup_filenames);
-            delete_filenames(file_amount, am_filenames);
-            generic_filenames = NULL;
-            as_filenames = NULL;
-            backup_filenames = NULL;
-            return NULL;
-        }
-    }
-
-    if (duplicate_files(&backup_filenames, file_amount, as_filenames, ".bk") != STATUS_OK) {
-        printf("*** ERROR ***\nFile backup did not execute properly. Exiting..");
-        delete_filenames(file_amount, &as_filenames);
-        delete_filenames(file_amount, &backup_filenames);
-        delete_filenames(file_amount, am_filenames);
-        generic_filenames = NULL;
-        as_filenames = NULL;
-        backup_filenames = NULL;
-        return NULL;
-    }
-
-    for (i = 0;i < file_amount;i++) {
-        *(am_filenames)[i] = create_file_name(generic_filenames[i], ".am");
-
-        if (*(am_filenames)[i] == NULL) {
-            printf("*** ERROR ***\n.am file creation for the file '%s.as' did not execute properly.\nExiting...\n", generic_filenames[i]);
-            delete_filenames(file_amount, &as_filenames);
-            delete_filenames(file_amount, &backup_filenames);
-            delete_filenames(file_amount, am_filenames);
-            generic_filenames = NULL;
-            as_filenames = NULL;
-            backup_filenames = NULL;
-            return NULL;
-        }
-    }
-
-
 
     m_table = create_macro_table();
     if (m_table == NULL) {
-        printf("*** ERROR ***\nCould not create macro table. Exiting...\n");
-        delete_filenames(file_amount, &as_filenames);
-        delete_filenames(file_amount, &backup_filenames);
-        delete_filenames(file_amount, am_filenames);
-        generic_filenames = NULL;
-        as_filenames = NULL;
-        backup_filenames = NULL;
-        return NULL;
+        printf("Error: Could not create macro table. Exiting...\n");
+      return NULL;
     }
-    for (i = 0;i < file_amount;i++) {
-
-        result = pre_assemble(as_filenames[i], (*am_filenames)[i], m_table, keyword_table);
 
 
-        switch (result) {
-        case STATUS_OK:
-            printf("Pre-assembly of '%s' completed successfully.\n", as_filenames[i]);
-            break;
-        case STATUS_ERROR_OPEN_SRC:
-            printf("*** ERROR ***\nCould not open source file.\n");
-            break;
-        case STATUS_ERROR_OPEN_DEST:
-            printf("*** ERROR ***\nCould not open destination file.\n");
-            break;
-        case STATUS_ERROR_READ:
-            printf("*** ERROR ***\nCould not read from source file.\n");
-            break;
-        case STATUS_ERROR_WRITE:
-            printf("*** ERROR ***\nCould not write to destination file.\n");
-            break;
-        case STATUS_ERROR_MACRO_REDEFINITION:
-            printf("*** ERROR ***\nMacro redefinition detected.\n");
-            break;
-        case STATUS_ERROR_MEMORY_ALLOCATION:
-            printf("*** ERROR ***\nMemory allocation failed.\n");
-            break;
-        case STATUS_ERROR_MACRO_NOT_FOUND:
-            printf("*** ERROR ***\nMacro not found.\n");
-            break;
-        default:
-            printf("*** ERROR ***\nUnknown error.\n");
-    }
+    result = pre_assemble(as_filename, am_filename, m_table, keyword_table);
 
     if (result != STATUS_OK) {
-        delete_filenames(file_amount, &as_filenames);
-        delete_filenames(file_amount, &backup_filenames);
-        delete_filenames(file_amount, am_filenames);
-        generic_filenames = NULL;
-        as_filenames = NULL;
-        backup_filenames = NULL;
+        macro_table_destructor(&m_table);
         return NULL;
-    }
-    }
-
-    for (i = 0;i < file_amount;i++) {
-        remove(as_filenames[i]);
-        rename(backup_filenames[i], strcat(generic_filenames[i], ".as"));
-    }
 
 
-    delete_filenames(file_amount, &as_filenames);
-    delete_filenames(file_amount, &backup_filenames);
-    generic_filenames = NULL;
-    as_filenames = NULL;
-    backup_filenames = NULL;
+
     return m_table;
 }

@@ -32,9 +32,6 @@ static validation_state validate_label_name(syntax_state *state, label_table *_l
 static status assign_addresses(inst_table *_inst_table, label_table *_label_table, keyword *_keyword_table);
 
 
-
-
-
 inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_table) {
 	syntax_state *state = NULL;
 	inst_table *_inst_table = NULL;
@@ -114,8 +111,9 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 		/* If the command does not exist, exit */
 		if (state->cmd_key == UNDEFINED) {
-			printf("\n*** ERROR *** \nline: %d: '%s' - Undefined command name. Aborting lexer...\n", state->line_number,state->buffer_without_offset);
-			fclose(file);
+			printf("\nError on line %d: '%s'- Undefined command name. Aborting lexer...\n", state->line_number, state->buffer_without_offset);
+
+		
 			destroy_instruction(&(state->_inst));
 			state->buffer = state->buffer_without_offset;
 			state->buffer_without_offset = NULL;
@@ -138,8 +136,7 @@ inst_table *lex(char *am_filename, label_table *_label_table, keyword *keyword_t
 
 		/* Insert the instruction to the instruction table */
 		if (insert_inst_to_table(_inst_table, state->_inst) != STATUS_OK) {
-			printf("*** ERROR ***\nFailed to insert instruction to table\n");
-			fclose(file);
+			printf("ERROR- Failed to insert instruction to table\n");
 			destroy_instruction(&state->_inst);
 			destroy_instruction_table(&_inst_table);
 			destroy_syntax_state(&state);

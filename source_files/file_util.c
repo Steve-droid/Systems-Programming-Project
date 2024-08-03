@@ -299,17 +299,15 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
         }
 
         if (copy_file_contents(current_filename, filename_copy) != STATUS_OK) {
-            printf("*** ERROR ***\nError while creating a backup file for %s. Exiting...\n", current_filename);
-            printf("*** ERROR ***\nError while backing up files. Removing created backups...\n");
-            for (i = 0;i < backup_filenames_count;i++) {
-                if (*backup_filenames[i] != NULL) free(*backup_filenames[i]);
-            }
+            printf("Error while creating a backup file for %s. Exiting...\n", current_filename);
+            printf("Error while backing up files. Removing created backups...\n");
+
             free(filename_copy);
 
             return STATUS_ERROR_WHILE_CREATING_FILENAME;
         }
 
-        *backup_filenames[i] = filename_copy;
+        (*backup_filenames)[i] = filename_copy;
         backup_filenames_count++;
     }
 

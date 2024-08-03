@@ -10,6 +10,5 @@
 #define MAX_MACRO_AMOUNT 100
 #define DEFINE_SEQUENCE_LEN 5
 
-macro_table *fill_macro_table(int argc, char *argv[], char ***am_filenames, keyword *keyword_table);
-
+macro_table *fill_macro_table(char *am_filename, char *as_filename, keyword *keyword_table);
 #endif
