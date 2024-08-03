@@ -430,7 +430,6 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 				return STATUS_ERROR;
 			}
 			if (assign_addressing_method(state, state->_inst->tokens[arg_count], _label_table, keyword_table) != valid) {
-				printf("*** ERROR *** \nline: %d: '%s' - The argument '%s' has an invalid addressing method\n", state->line_number,state->buffer_without_offset,state->_inst->tokens[arg_count]);
 				return STATUS_ERROR;
 			}
 			break;
@@ -457,12 +456,6 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 		if ((state->null_terminator || state->new_line) && arg_count != (state->_inst->num_tokens - 1)) {
 			/* If the argument count is less than the number of expected arguments, there is a missing comma */
 			printf("*** ERROR *** \nline: %d: '%s' - Missing ',' between arguments of the instruction\n",state->line_number,state->buffer_without_offset);
-			return STATUS_ERROR;
-		}
-
-
-		if (assign_addressing_method(state, state->_inst->tokens[arg_count], _label_table, keyword_table) != valid) {
-			printf("*** ERROR *** \nline: %d: '%s' - The argument '%s' has an invalid addressing method\n", state->line_number,state->buffer_without_offset,state->_inst->tokens[arg_count]);
 			return STATUS_ERROR;
 		}
 
@@ -703,8 +696,8 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 		break;
 	case LEA:
 		if (contains_src_addressing) {
-			if (_addressing_method == IMMEDIATE) {
-				printf("*** ERROR *** \nline: %d: '%s' - Trying to assign an immediate addressing method to a destination argument of 'lea' instruction\n", state->line_number,state->buffer_without_offset);
+			if (_addressing_method != DIRECT) {
+				printf("*** ERROR *** \nline: %d: '%s' - Trying to assign an non-direct addressing method to a source argument of 'lea' instruction\n", state->line_number,state->buffer_without_offset);
 				return invalid;
 			}
 
@@ -714,17 +707,13 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 		}
 
 		if (contains_dest_addressing) {
-			printf("*** ERROR *** \nline: %d: '%s' - Wrong order of addressing method assignment.\n", state->line_number,state->buffer_without_offset);
-			return invalid;
+			if(_addressing_method == IMMEDIATE){
+				printf("*** ERROR *** \nline: %d: '%s' - Trying to assign an non-direct addressing method to a destination argument of 'lea' instruction.\n", state->line_number,state->buffer_without_offset);
+				return invalid;
+			}
+			/*If we got here it means that the argument is a dest argument with a valid addressing method*/
+			state->_inst->dest_addressing_method = _addressing_method;
 		}
-
-		if (_addressing_method != DIRECT) {
-			printf("*** ERROR *** \nline: %d: '%s' - Trying to assign an an invalid addressing method to a source argument of 'lea' instruction\n", state->line_number,state->buffer_without_offset);
-			return invalid;
-		}
-
-		/*If we got here it means that the argument is a source argument with a valid addressing method*/
-		state->_inst->src_addressing_method = _addressing_method;
 		break;
 	case CLR:
 	case NOT:

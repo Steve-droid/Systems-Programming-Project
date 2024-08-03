@@ -186,6 +186,7 @@ macro_table *fill_macro_table(char *am_filename, char *as_filename, keyword *key
     if (result != STATUS_OK) {
         macro_table_destructor(&m_table);
         return NULL;
+    }
 
 
 

@@ -217,27 +217,26 @@ void skip_label_name(syntax_state *state, label_table *_label_table) {
     if (strncmp(line, ".entry", 6) == 0) {
         state->extern_or_entry = CONTAINS_ENTRY;
         state->is_entry = TRUE;
-        return;
     }
 
     if (strncmp(line, ".extern", 7) == 0) {
         state->extern_or_entry = CONTAINS_EXTERN;
         state->is_extern = TRUE;
-        return;
     }
 
     /** Find the first letter after the label name */
     for (i = 0; i < _label_table->size; i++) {
-        if (_label_table->labels[i]->instruction_line == current_line) {
-            state->label_name = TRUE;
-            state->label_key = _label_table->labels[i]->key;
-            offset = 1 + strlen(_label_table->labels[i]->name);  /** another 1 for ':' */
-            break;  /** Exit loop once the label is found */
+        if (_label_table->labels[i]->instruction_line == current_line &&
+           ( 0 == strncmp( state->buffer_without_offset , _label_table->labels[i]->name, strlen(_label_table->labels[i]->name)))) {
+                state->label_name = TRUE;
+                state->label_key = _label_table->labels[i]->key;
+                offset = 1 + strlen(_label_table->labels[i]->name);  /** another 1 for ':' */
+                break;  /** Exit loop once the label is found */
         }
     }
 
     /** Point to the new "array" */
-    state->buffer += offset;
+    state->buffer = &state->buffer[offset];
 }
 
 int binary_array_to_int(int *array) {
