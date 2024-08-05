@@ -1,0 +1,5 @@
+1. Using a label name as an argument when the label does not exist
+2. Redefinition of a label name
+3. Using a register with a number greater than 8 
+4. Using a register name with a number smaller than 0
+5. 
