@@ -3,7 +3,7 @@
     "configurations": [
         {
             "name": "Debug Assembler",
-            "type": "lldb",
+            "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/assembler",
             "args": ["ex1", "ex2"],
