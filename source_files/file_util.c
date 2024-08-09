@@ -1,8 +1,6 @@
 #include "file_util.h"
-#define MAX_PATH_LENGTH 30
 #include <dirent.h>
-
-
+#define MAX_PATH_LENGTH 30
 
 char *add_extension(char *initial_filename, char *extension) {
     size_t initial_name_len = strlen(initial_filename);
@@ -86,7 +84,7 @@ status copy_file_contents(char *src_filename, char *dest_filename) {
     char buffer[BUFSIZ] = { 0 };
     size_t bytes_read = 0;
     size_t bytes_written = 0;
-    int write_success = TRUE;
+    int write_success = true;
 
     if (src_filename == NULL || dest_filename == NULL) {
         printf("Error:  Trying to copy to/from a null file path\n");
@@ -112,7 +110,7 @@ status copy_file_contents(char *src_filename, char *dest_filename) {
         /* If we failed to write exactly what we read, data was lost in the process */
         if (bytes_written != bytes_read) {
             fprintf(stderr, "Error writing to file %s\n", dest_filename);
-            write_success = FALSE;
+            write_success = false;
             break;
         }
     }
@@ -121,7 +119,7 @@ status copy_file_contents(char *src_filename, char *dest_filename) {
     fclose(dest_file);
 
     /* If the operation resulted in a partial copy, we remove the destination file */
-    if (write_success == FALSE) {
+    if (write_success == false) {
         remove(dest_filename);
         return STATUS_ERROR_WRITE;
     }
@@ -137,12 +135,12 @@ status remove_whitespace(char *filename) {
     char *tmp;
     size_t i;
     char tmp_filename[] = "tmpfileXXXXXX";
-    char test_path[MAX_LINE_LENGTH] = "tests/";
+    char test_path[MAX_LINE_LENGTH] = "input/";
     int temp_file_descriptor;
     char line[BUFSIZ];
     int original_line_count = 0;
     int cleaned_line_count = 0;
-    int line_contains_only_whitespace = FALSE;
+    int line_contains_only_whitespace = false;
 
     file = my_fopen(filename, "r");
     if (file == NULL) return STATUS_ERROR;
@@ -168,17 +166,17 @@ status remove_whitespace(char *filename) {
 
         start = line;
         end = start + strlen(start) - 1;
-        line_contains_only_whitespace = TRUE;
+        line_contains_only_whitespace = true;
 
         /*Check if the line contains only whitespace. If so, skip the line*/
-        for (i = 0, tmp = start;line_contains_only_whitespace == TRUE && i < strlen(start) && tmp != NULL;i++, tmp++) {
+        for (i = 0, tmp = start;line_contains_only_whitespace == true && i < strlen(start) && tmp != NULL;i++, tmp++) {
             if (!isspace(*tmp)) {
-                line_contains_only_whitespace = FALSE;
+                line_contains_only_whitespace = false;
                 break;
             }
         }
 
-        if (line_contains_only_whitespace == TRUE) continue;
+        if (line_contains_only_whitespace == true) continue;
 
 
 
@@ -314,7 +312,6 @@ status duplicate_files(char ***backup_filenames, int file_count, char *filenames
     return STATUS_OK;
 }
 
-
 status create_fname_vec(int file_amount, char ***p1, ...) {
     va_list args;
     char ***ptr;
@@ -338,18 +335,24 @@ status create_fname_vec(int file_amount, char ***p1, ...) {
 
 FILE *my_fopen(const char *filename, const char *mode) {
     FILE *fp = NULL;
-    char test_path[MAX_LINE_LENGTH] = "tests/";
+    char input_path[MAX_LINE_LENGTH] = "input/";
+    char output_path[MAX_LINE_LENGTH] = "output/";
 
     if (filename == NULL || mode == NULL) return NULL;
+
+    strcat(input_path, filename);
+    strcat(output_path, filename);
 
     if (strcmp(mode, "r") == 0) {
         fp = fopen(filename, mode);
         if (fp == NULL) {
-            strcat(test_path, filename);
-            fp = fopen(test_path, mode);
+            fp = fopen(input_path, mode);
             if (fp == NULL) {
-                printf("Error: Trying to open the file '%s' with mode 'r' but the file cannot be found in the project directory\n", filename);
-                return NULL;
+                fp = fopen(output_path, mode);
+                if (fp == NULL) {
+                    printf("Error: Trying to open the file '%s' with mode 'r' but the file cannot be found in the project directory\n", filename);
+                    return NULL;
+                }
             }
         }
 
@@ -357,7 +360,7 @@ FILE *my_fopen(const char *filename, const char *mode) {
     }
 
     if (strcmp(mode, "w") == 0) {
-        fp = fopen(filename, mode);
+        fp = fopen(output_path, mode);
         if (fp == NULL) {
             printf("Error: Trying to open the file '%s' with mode 'w' with no success\n", filename);
             return NULL;
@@ -464,7 +467,6 @@ void close_files(FILE *p1, ...) {
 void free_filenames(char *p1, ...) {
     va_list args;
     char *current_filename;
-
     va_start(args, p1);
 
     current_filename = p1;
@@ -472,6 +474,5 @@ void free_filenames(char *p1, ...) {
         free(current_filename);
         current_filename = va_arg(args, char *);
     }
-
     va_end(args);
 }

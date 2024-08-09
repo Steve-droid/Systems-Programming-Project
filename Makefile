@@ -14,7 +14,7 @@ SRCDIR = source_files
 OBJDIR = object_files
 
 # Output directory
-OUTDIR = output_files
+OUTDIR = output
 
 # Source files
 SRCS = $(wildcard $(SRCDIR)/*.c)
@@ -48,11 +48,13 @@ $(OBJDIR):
 # Clean up
 clean:
 	rm -f $(OBJDIR)/*.o $(EXEC) *.am 
+	rm  $(OUTDIR)/*
 	rm -f *.ent *.ext *.ob *.binary
 	@echo "Clean complete."
 
 reset:
 	rm -f *.ent *.ext *.ob  *.am
+	rm  $(OUTDIR)/*
 	@echo "Reset complete"	
 
 # Phony targets

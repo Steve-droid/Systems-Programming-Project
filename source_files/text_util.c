@@ -18,30 +18,30 @@ syntax_state *create_syntax_state(void) {
     state->index = -1;
     state->am_filename = NULL;
     state->as_filename = NULL;
-    state->continue_reading = FALSE;
+    state->continue_reading = false;
     state->_validation_state = invalid;
     state->extern_or_entry = NEITHER_EXTERN_NOR_ENTRY;
     state->buffer = buffer;
     state->line_number = -1;
     state->_inst = NULL;
-    state->label_name = FALSE;
+    state->label_name = false;
     state->label_key = -1;
-    state->comma = FALSE;
-    state->whitespace = FALSE;
-    state->null_terminator = FALSE;
-    state->new_line = FALSE;
-    state->minus_sign = FALSE;
-    state->plus_sign = FALSE;
-    state->end_of_argument_by_space = FALSE;
-    state->end_of_argument = FALSE;
-    state->end_of_string = FALSE;
-    state->first_quatiotion_mark = FALSE;
-    state->last_quatiotion_mark = FALSE;
-    state->digit = FALSE;
-    state->is_data = FALSE;
-    state->is_string = FALSE;
-    state->is_entry = FALSE;
-    state->is_extern = FALSE;
+    state->comma = false;
+    state->whitespace = false;
+    state->null_terminator = false;
+    state->new_line = false;
+    state->minus_sign = false;
+    state->plus_sign = false;
+    state->end_of_argument_by_space = false;
+    state->end_of_argument = false;
+    state->end_of_string = false;
+    state->first_quatiotion_mark = false;
+    state->last_quatiotion_mark = false;
+    state->digit = false;
+    state->is_data = false;
+    state->is_string = false;
+    state->is_entry = false;
+    state->is_extern = false;
     return state;
 }
 
@@ -57,63 +57,69 @@ void reset_syntax_state(syntax_state *state) {
     state->_validation_state = invalid;
     state->extern_or_entry = NEITHER_EXTERN_NOR_ENTRY;
     state->_inst = NULL;
-    state->continue_reading = FALSE;
-    state->label_name = FALSE;
+    state->continue_reading = false;
+    state->label_name = false;
     state->label_key = -1;
-    state->comma = FALSE;
-    state->whitespace = FALSE;
-    state->null_terminator = FALSE;
-    state->new_line = FALSE;
-    state->minus_sign = FALSE;
-    state->plus_sign = FALSE;
-    state->end_of_argument_by_space = FALSE;
-    state->end_of_argument = FALSE;
-    state->end_of_string = FALSE;
-    state->first_quatiotion_mark = FALSE;
-    state->last_quatiotion_mark = FALSE;
-    state->digit = FALSE;
-    state->is_data = FALSE;
-    state->is_string = FALSE;
-    state->is_entry = FALSE;
-    state->is_extern = FALSE;
+    state->comma = false;
+    state->whitespace = false;
+    state->null_terminator = false;
+    state->new_line = false;
+    state->minus_sign = false;
+    state->plus_sign = false;
+    state->end_of_argument_by_space = false;
+    state->end_of_argument = false;
+    state->end_of_string = false;
+    state->first_quatiotion_mark = false;
+    state->last_quatiotion_mark = false;
+    state->digit = false;
+    state->is_data = false;
+    state->is_string = false;
+    state->is_entry = false;
+    state->is_extern = false;
 }
 
 void initialize_command(syntax_state *data) {
-    data->is_data = FALSE;
-    data->is_string = FALSE;
-    data->is_entry = FALSE;
-    data->is_extern = FALSE;
+    data->is_data = false;
+    data->is_string = false;
+    data->is_entry = false;
+    data->is_extern = false;
 }
 
 void destroy_syntax_state(syntax_state **state) {
+    syntax_state *st = NULL;
+
     if (state == NULL || (*state) == NULL)
         return;
 
-    if ((*state)->buffer) {
-        free((*state)->buffer);
-        (*state)->buffer = NULL;
+    st = (*state);
+    if (st->buffer != NULL) {
+        st->buffer = st->buffer_without_offset;
+        st->buffer_without_offset = NULL;
+        free(st->buffer);
+        st->buffer = NULL;
     }
 
-    if ((*state)->_inst) {
-        (*state)->_inst = NULL;
-    }
+    if (st->_inst)
+        st->_inst = NULL;
 
-    free((*state));
+
+    free(st);
+    st = NULL;
     (*state) = NULL;
 }
 
 void update_command(syntax_state *state, keyword *keyword_table, int command_key) {
     if (!strcmp(keyword_table[command_key].name, ".data")) {
-        state->is_data = TRUE;
+        state->is_data = true;
     }
     else if (!strcmp(keyword_table[command_key].name, ".string")) {
-        state->is_string = TRUE;
+        state->is_string = true;
     }
     else if (!strcmp(keyword_table[command_key].name, ".entry")) {
-        state->is_entry = TRUE;
+        state->is_entry = true;
     }
     else if (!strcmp(keyword_table[command_key].name, ".extern")) {
-        state->is_extern = TRUE;
+        state->is_extern = true;
     }
 }
 
@@ -121,16 +127,16 @@ int continue_reading(char *instruction_buffer, syntax_state *state) {
     size_t index = state->index;
     size_t instruction_length = strlen(instruction_buffer);
     if (index >= instruction_length) {
-        return FALSE;
+        return false;
     }
 
     /* If we reached a null terminator or a new line, break out of the loop */
     if (instruction_buffer[index] == '\0' || instruction_buffer[index] == '\n') {
-        return FALSE;
+        return false;
     }
 
     /* Otherwise, continue reading */
-    return TRUE;
+    return true;
 }
 
 char *trim_whitespace(char *str) {
@@ -138,7 +144,7 @@ char *trim_whitespace(char *str) {
     char *ptr_leading;
     char *ptr_trailing;
 
-    if (str == NULL || *str == '\0') return NULL;
+    if (str == NULL) return NULL;
 
     ptr_leading = str;
     ptr_trailing = str + strlen(str) - 1;
@@ -220,19 +226,19 @@ void skip_label_name(syntax_state *state, label_table *_label_table) {
 
     if (strncmp(line, ".entry", 6) == 0) {
         state->extern_or_entry = CONTAINS_ENTRY;
-        state->is_entry = TRUE;
+        state->is_entry = true;
     }
 
     if (strncmp(line, ".extern", 7) == 0) {
         state->extern_or_entry = CONTAINS_EXTERN;
-        state->is_extern = TRUE;
+        state->is_extern = true;
     }
 
     /** Find the first letter after the label name */
     for (i = 0; i < _label_table->size; i++) {
         if (_label_table->labels[i]->instruction_line == current_line &&
             (0 == strncmp(state->buffer_without_offset, _label_table->labels[i]->name, strlen(_label_table->labels[i]->name)))) {
-            state->label_name = TRUE;
+            state->label_name = true;
             state->label_key = _label_table->labels[i]->key;
             offset = 1 + strlen(_label_table->labels[i]->name);  /** another 1 for ':' */
             break;  /** Exit loop once the label is found */
@@ -326,10 +332,10 @@ int is_empty_line(char *str) {
 
     /* Check if the line is empty */
     if (strlen(str) == 0) {
-        return TRUE; /* Line is empty */
+        return true; /* Line is empty */
     }
 
-    return FALSE; /* Line is not empty */
+    return false; /* Line is not empty */
 }
 
 int char_to_int(char c) {

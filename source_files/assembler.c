@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
         }
 
         /* Lex the assembly code */
-        _inst_table = lex(fnames->am[i], _label_table, keyword_table);
+        _inst_table = lex(fnames->am[i], fnames->as[i], _label_table, keyword_table);
 
         if (_inst_table == NULL) {
             quit_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);

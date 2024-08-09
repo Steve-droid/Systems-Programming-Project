@@ -48,13 +48,16 @@
 #define PLUS -50001
 #define MINUS -50002
 #define COMMA -50003
-#define TRUE 1
-#define FALSE 0
+
 
  /*---Enums---*/
 typedef enum {
     invalid, valid
 } validation_state;
+
+typedef enum {
+    false = 0, true
+} bool;
 
 typedef enum {
     STATUS_OK,
@@ -82,6 +85,8 @@ typedef enum {
     NEITHER_EXTERN_NOR_ENTRY,
     DUPLICATED
 } status;
+
+
 
 
 typedef enum addressing_method {
@@ -273,6 +278,7 @@ typedef struct syntax_state {
     char *am_filename;
     char *as_filename;
 
+    int arg_count;
     int continue_reading;
     int label_name;
     int comma;
