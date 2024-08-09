@@ -6,10 +6,23 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/assembler",
-            "args": ["ex1", "ex2"],
-            "stopAtEntry": false,
+            "args": ["gen1"],
+            "stopAtEntry": "false",
             "cwd": "${workspaceFolder}",
-            "preLaunchTask": "build"
+            "preLaunchTask": "build",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "logging": {
+                "engineLogging": true
+            }
         }
     ]
 }

@@ -111,7 +111,7 @@ status create_empty_token(inst *instruction) {
     /* Allocate memory for the empty token */
     empty_token = (char *)calloc(MAX_TOKEN_SIZE, sizeof(char));
     if (empty_token == NULL) {
-        printf("*** ERROR ***\nError while allocating memory for empty token. Exiting...\n");
+        printf("Error while allocating memory for empty token. Exiting...\n");
         return STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -128,7 +128,7 @@ status create_instruction_table(inst_table **new_instruction_table) {
     /* Allocate memory for the new instruction table */
     new_table = (inst_table *)calloc(1, sizeof(inst_table));
     if (new_table == NULL) {
-        printf("*** ERROR ***\nError while allocating memory for new instruction table. Exiting...\n");
+        printf("Error while allocating memory for new instruction table. Exiting...\n");
         return STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
@@ -151,7 +151,7 @@ status create_instruction_table(inst_table **new_instruction_table) {
 /* Insert functions */
 status insert_token_to_inst(inst *instruction, char *token) {
     if (token == NULL) {
-        printf("*** ERROR ***\n Trying to insert NULL token to instruction. Exiting...\n");
+        printf(" Trying to insert NULL token to instruction. Exiting...\n");
         return STATUS_ERROR;
     }
 
@@ -160,7 +160,7 @@ status insert_token_to_inst(inst *instruction, char *token) {
         instruction->capacity += 1;
         instruction->tokens = (char **)realloc(instruction->tokens, sizeof(char *) * instruction->capacity);
         if (instruction->tokens == NULL) {
-            printf("*** ERROR ***\nError while reallocating memory for tokens. Exiting...\n");
+            printf("Error while reallocating memory for tokens. Exiting...\n");
             return STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -175,13 +175,13 @@ status insert_token_to_inst(inst *instruction, char *token) {
 
 status insert_inst_to_table(inst_table *_inst_table, inst *instruction) {
     if (_inst_table == NULL) {
-        printf("*** ERROR ***\n Trying to insert instruction to NULL table. Exiting...\n");
+        printf(" Trying to insert instruction to NULL table. Exiting...\n");
         destroy_instruction(&instruction);
         return ERROR_NULL_TABLE;
     }
 
     if (instruction == NULL) {
-        printf("*** ERROR ***\n Trying to insert NULL instruction to table. Exiting...\n");
+        printf(" Trying to insert NULL instruction to table. Exiting...\n");
         return ERROR_NULL_INSTRUCTION;
     }
 
@@ -190,7 +190,7 @@ status insert_inst_to_table(inst_table *_inst_table, inst *instruction) {
         _inst_table->capacity += 1;
         _inst_table->inst_vec = (inst **)realloc(_inst_table->inst_vec, sizeof(inst *) * _inst_table->capacity);
         if (_inst_table->inst_vec == NULL) {
-            printf("*** ERROR ***\nError while reallocating memory for instructions. Exiting...\n");
+            printf("Error while reallocating memory for instructions. Exiting...\n");
             destroy_instruction(&instruction);
             destroy_instruction_table(&_inst_table);
             return STATUS_ERROR;
@@ -261,14 +261,14 @@ void print_instruction(inst *_inst, label_table *_label_table) {
     char addressing_method_dest[MAX_LINE_LENGTH] = { 0 };
     label *tmp_label = NULL;
     if (_inst == NULL) {
-        printf("*** ERROR ***\n Trying to print NULL instruction\n");
+        printf(" Trying to print NULL instruction\n");
         return;
     }
 
     if (_inst->is_entry || _inst->is_extern) return;
 
     if (_inst->tokens == NULL) {
-        printf("*** ERROR ***\n Trying to print instruction with NULL tokens\n");
+        printf(" Trying to print instruction with NULL tokens\n");
         return;
     }
 
@@ -384,7 +384,7 @@ void print_instruction(inst *_inst, label_table *_label_table) {
 void print_instruction_table(inst_table *_inst_table, label_table *_label_table) {
     size_t i;
     if (_inst_table == NULL) {
-        printf("*** ERROR ***\nTrying to print NULL instruction table\n");
+        printf("Trying to print NULL instruction table\n");
         return;
     }
     printf("\n######################################################\n");
@@ -405,4 +405,36 @@ void print_instruction_table(inst_table *_inst_table, label_table *_label_table)
     printf("\n######################################################\n");
     printf("End of instruction table");
     printf("\n######################################################\n\n\n");
+}
+
+size_t DC(char *prompt, size_t amount)
+{
+    static size_t _DC = 0;
+    if (!strcmp(prompt, "reset")) {
+        _DC = 0;
+        return _DC;
+    }
+
+    if (!strcmp(prompt, "get"))
+        return _DC;
+    if (!strcmp(prompt, "increment")) {
+        _DC += amount;
+    }
+    return _DC;
+}
+
+size_t IC(char *prompt, size_t amount)
+{
+    static size_t _IC = 100;
+    if (!strcmp(prompt, "reset")) {
+        _IC = 100;
+        return _IC;
+    }
+    if (!strcmp(prompt, "get"))
+        return _IC;
+    if (!strcmp(prompt, "increment")) {
+        _IC += amount;
+    }
+
+    return _IC;
 }

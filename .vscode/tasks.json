@@ -1,21 +1,16 @@
 {
     "version": "2.0.0",
     "tasks": [
-        {
+        {  
             "label": "build",
             "type": "shell",
-            "command": "gcc",
-            "args": [
-                "-g",
-                "${workspaceFolder}/main.c",
-                "-o",
-                "${workspaceFolder}/assembler"
-            ],
+            "command": "make",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": ["$gcc"]
+            "problemMatcher": ["$gcc"],
+            "detail": "Generated task by VS Code"
         }
     ]
 }

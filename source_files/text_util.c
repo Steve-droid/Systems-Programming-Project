@@ -94,7 +94,9 @@ void destroy_syntax_state(syntax_state **state) {
         (*state)->buffer = NULL;
     }
 
-    free((*state)->_inst);
+    if ((*state)->_inst) {
+        (*state)->_inst = NULL;
+    }
 
     free((*state));
     (*state) = NULL;
@@ -187,7 +189,7 @@ char *skip_ent_or_ext(char *_buffer) {
     char *ptr = _buffer;
 
     if (_buffer == NULL) {
-        printf("*** ERROR ***\nTrying to skip '.entry' on a null buffer.\n");
+        printf("Trying to skip '.entry' on a null buffer.\n");
         return NULL;
     }
 
@@ -196,7 +198,7 @@ char *skip_ent_or_ext(char *_buffer) {
     }
 
     if (strncmp(_buffer, ".entry", 6) != 0 && strncmp(_buffer, ".extern", 7) != 0) {
-        printf("*** ERROR ***\n '.entry' or '.extern' directive must be at the beginning of the line.\n");
+        printf(" '.entry' or '.extern' directive must be at the beginning of the line.\n");
         return NULL;
     }
 
@@ -229,11 +231,11 @@ void skip_label_name(syntax_state *state, label_table *_label_table) {
     /** Find the first letter after the label name */
     for (i = 0; i < _label_table->size; i++) {
         if (_label_table->labels[i]->instruction_line == current_line &&
-           ( 0 == strncmp( state->buffer_without_offset , _label_table->labels[i]->name, strlen(_label_table->labels[i]->name)))) {
-                state->label_name = TRUE;
-                state->label_key = _label_table->labels[i]->key;
-                offset = 1 + strlen(_label_table->labels[i]->name);  /** another 1 for ':' */
-                break;  /** Exit loop once the label is found */
+            (0 == strncmp(state->buffer_without_offset, _label_table->labels[i]->name, strlen(_label_table->labels[i]->name)))) {
+            state->label_name = TRUE;
+            state->label_key = _label_table->labels[i]->key;
+            offset = 1 + strlen(_label_table->labels[i]->name);  /** another 1 for ':' */
+            break;  /** Exit loop once the label is found */
         }
     }
 
@@ -281,7 +283,7 @@ int *convert_twodim_array_to_onedim(int **two_dim_array) {
     /* Allocate memory for the 1D array plus one additional space for the FLAG */
     one_dim_array = (int *)malloc((elements + 1) * sizeof(int));
     if (one_dim_array == NULL) {
-        printf("*** ERROR ***\nMemory allocation failed\n");
+        printf("Memory allocation failed\n");
         return NULL;
     }
 
@@ -344,7 +346,7 @@ int char_to_int(char c) {
         return  COMMA;
     }
     else {
-        printf("*** ERROR ***\nThe character is not a digit.\n");
+        printf("The character is not a digit.\n");
         return -1; /* Return an error code if the character is not a digit */
     }
 }
@@ -361,7 +363,7 @@ int *convert_to_int_array(char *str) {
         /* Reallocate memory for the integer array */
         result = (int *)realloc(result, (index + 1) * sizeof(int));
         if (result == NULL) {
-            printf("*** ERROR ***\nMemory allocation failed\n");
+            printf("Memory allocation failed\n");
             exit(1);
         }
 
@@ -375,7 +377,7 @@ int *convert_to_int_array(char *str) {
     /* Reallocate memory to add the FLAG at the end */
     result = (int *)realloc(result, (index + 1) * sizeof(int));
     if (result == NULL) {
-        printf("*** ERROR ***\nMemory allocation failed\n");
+        printf("Memory allocation failed\n");
         exit(1);
     }
 

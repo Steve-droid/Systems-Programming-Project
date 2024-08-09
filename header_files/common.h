@@ -297,4 +297,13 @@ typedef struct syntax_state {
     int is_extern;
 } syntax_state;
 
+
+typedef struct {
+    char **am;
+    char **generic;
+    size_t amount;
+    char **as;
+    char **backup;
+}filenames;
+
 #endif

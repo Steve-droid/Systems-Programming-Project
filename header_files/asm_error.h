@@ -8,6 +8,7 @@
 #include "symbols.h"
 #include "instruction.h"
 
-void terminate(int file_amount, char ***am_filenames, macro_table **_macro_table, keyword **keyword_table, label_table **_label_table, inst_table **_instruction_table);
+void quit_main(int file_amount, filenames **fnames, macro_table **_macro_table, keyword **keyword_table, label_table **_label_table, inst_table **_instruction_table);
+void quit_filename_creation(filenames **fnames);
 
 #endif

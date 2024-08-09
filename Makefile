@@ -52,7 +52,7 @@ clean:
 	@echo "Clean complete."
 
 reset:
-	rm -f *.ent *.ext *.ob *.binary
+	rm -f *.ent *.ext *.ob  *.am
 	@echo "Reset complete"	
 
 # Phony targets

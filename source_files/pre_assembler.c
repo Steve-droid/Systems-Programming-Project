@@ -54,6 +54,7 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
     syntax_state *state = NULL;
     char *token = NULL;
 
+
     state = create_syntax_state();
 
     if (state == NULL) {
@@ -65,19 +66,19 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
     state->am_filename = am_filename;
 
     if (remove_whitespace(as_filename) != STATUS_OK) {
-        printf("*** ERROR ***\nError while removing whitespace from %s\nExiting...\n", as_filename);
+        printf("Error while removing whitespace from %s\nExiting...\n", as_filename);
         destroy_syntax_state(&state);
         return STATUS_ERROR;
     }
 
-    as_file = fopen(as_filename, "r");
+    as_file = my_fopen(as_filename, "r");
     if (as_file == NULL) {
         printf("*** ERROR ***\nCould not open file called: %s\nExiting...", as_filename);
         destroy_syntax_state(&state);
         return STATUS_ERROR_OPEN_SRC;
     }
 
-    am_file = fopen(am_filename, "w");
+    am_file = my_fopen(am_filename, "w");
     if (am_file == NULL) {
         printf("*** ERROR ***\nCould not open file called: %s\nExiting...", am_filename);
         fclose(as_file);
@@ -161,7 +162,7 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
             }
 
             /* Is a valid definition of a new macro */
-            result = add_macro_to_table(macro_name, as_file, m_table);
+            result = add_macro_to_table(state->buffer, as_file, m_table);
 
             if (result != STATUS_OK) {
                 printf("*** ERROR ***\nfile: %s, line %d: '%s':", as_filename, state->line_number, state->buffer_without_offset);
@@ -177,7 +178,7 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
         }
         /* Neither a macro call or definition */
         else fprintf(am_file, "%s\n", state->buffer); /* Write the line to the .am file */
-
+        state->buffer = state->buffer_without_offset;
         reset_syntax_state(state);
     }
 

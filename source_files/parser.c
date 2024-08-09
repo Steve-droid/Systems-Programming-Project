@@ -283,7 +283,7 @@ void assign_bits_operation(inst_table *_inst_table, size_t index) {
             _inst->binary_word_vec[2] = (_inst->binary_word_vec[2] | _inst->bin_ARE);
             return;
         case INDIRECT_REGISTER:
-            _inst->bin_ARE = 2;
+            _inst->bin_ARE = 4;
             if (_inst->num_words_to_generate == 2) {
                 _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] |
                     _inst->indirect_reg_num_dest << DEST_SHIFT);
@@ -295,7 +295,7 @@ void assign_bits_operation(inst_table *_inst_table, size_t index) {
             _inst->binary_word_vec[2] = (_inst->binary_word_vec[2] | _inst->bin_ARE);
             return;
         case DIRECT_REGISTER:
-            _inst->bin_ARE = 2;
+            _inst->bin_ARE = 4;
             if (_inst->num_words_to_generate == 2) {
                 _inst->binary_word_vec[1] = (_inst->binary_word_vec[1] |
                     _inst->direct_reg_num_dest << DEST_SHIFT);
@@ -354,7 +354,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     size_t am_filename_len = strlen(am_filename);
     inst *tmp_inst = NULL;
     char *object_output_filename = NULL;
-    char *binary_output_filename = "output.binary";
+    char binary_output_filename[MAX_LINE_LENGTH] = "binary_";
     char *extern_output_filename = NULL;
     char *entry_output_filename = NULL;
     FILE *object_file_ptr = NULL;
@@ -367,8 +367,9 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     int create_ent = FALSE;
     data_image *_data_image = NULL;
 
+    strcat(binary_output_filename, am_filename);
 
-    bin_file_ptr = fopen(binary_output_filename, "w");
+    bin_file_ptr = my_fopen(binary_output_filename, "w");
     if (bin_file_ptr == NULL) {
         return STATUS_ERROR;
     }
@@ -388,7 +389,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
         tmp_ptr = NULL;
     }
 
-    object_file_ptr = fopen(object_output_filename, "w");
+    object_file_ptr = my_fopen(object_output_filename, "w");
     if (object_file_ptr == NULL) {
         free_filenames(object_output_filename, NULL);
         close_files(bin_file_ptr, NULL);
@@ -502,7 +503,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
             tmp_ptr[4] = '\0';
         }
 
-        entry_file_ptr = fopen(entry_output_filename, "w");
+        entry_file_ptr = my_fopen(entry_output_filename, "w");
         if (entry_file_ptr == NULL) {
             free_filenames(entry_output_filename, NULL);
             entry_output_filename = NULL;
@@ -543,7 +544,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
         }
 
 
-        extern_file_ptr = fopen(extern_output_filename, "w");
+        extern_file_ptr = my_fopen(extern_output_filename, "w");
         if (extern_file_ptr == NULL) {
             free_filenames(extern_output_filename, NULL);
             object_file_ptr = NULL;
