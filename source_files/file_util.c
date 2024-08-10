@@ -381,6 +381,8 @@ filenames *generate_filenames(int file_amount, char **argv, filenames *fnames) {
     int i;
     char **as = NULL, **am = NULL, **generic = NULL, **backup = NULL;
     status _status = STATUS_ERROR;
+    char output_path[MAX_LINE_LENGTH] = "output/";
+
 
 
     fnames = (filenames *)malloc(sizeof(filenames));
@@ -435,7 +437,8 @@ filenames *generate_filenames(int file_amount, char **argv, filenames *fnames) {
     }
 
     for (i = 0;i < file_amount;i++) {
-        remove(fnames->backup[i]);
+        remove(strcat(output_path, fnames->backup[i]));
+        strcpy(output_path, "output/");
         free(fnames->backup[i]);
     }
 

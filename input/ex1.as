@@ -4,7 +4,7 @@ LOOP:   prn    #48
 cmp    r3, #-6
 bne    END
 lea    STR, r6
-inc    r8
+inc    r0
 mov    *r6, K
 sub    r1, r4
 dec    K

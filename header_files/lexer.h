@@ -32,6 +32,6 @@
 #define SECOND_ARG 1
 
 
-inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table, keyword *keyword_table);
+inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table, keyword *keyword_table, int *syntax_error_count);
 
 #endif 

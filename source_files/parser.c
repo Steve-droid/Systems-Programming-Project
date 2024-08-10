@@ -109,7 +109,6 @@ void destroy_data_image(data_image **_data_image) {
     (*_data_image) = NULL;
 }
 
-
 void assign_bits_operation(inst_table *_inst_table, size_t index) {
     inst *_inst = _inst_table->inst_vec[index];
     uint16_t combined_word = 0;
@@ -344,7 +343,6 @@ void print_octal(uint16_t number, FILE *file_ptr) {
     fprintf(file_ptr, "0%d\t%s\n", address, octal);
     address++;
 }
-
 
 status parse(inst_table *_inst_table, label_table *_label_table, keyword *keyword_table, char *am_filename) {
     size_t i;

@@ -72,7 +72,7 @@ int get_command_argument_count(int command_name);
  * @return The keyword for the command, or UNDEFINED_KEYWORD if no match is found.
  */
 
-addressing_method get_addressing_method(char *sub_inst, label_table *_label_table);
+addressing_method get_addressing_method(syntax_state *state, char *sub_inst, label_table *_label_table);
 keyword_name identify_command(syntax_state *state, label_table *_label_table, keyword *keyword_table);
 label *new_empty_label(label **new_label);
 label *get_label_by_name(label_table *_lable_table, char *label_name);

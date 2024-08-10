@@ -9,6 +9,7 @@ int main(int argc, char **argv) {
     label_table *_label_table = NULL;
     inst_table *_inst_table = NULL;
     filenames *fnames = NULL;
+    int syntax_error_count = 0;
     int i;
 
     if (argc < 2) {
@@ -35,9 +36,9 @@ int main(int argc, char **argv) {
     }
 
     for (i = 0;i < argc - 1;i++) {
-
-        IC("reset", 0);
-        DC("reset", 0);
+        syntax_error_count = 0;
+        IC(RESET, 0);
+        DC(RESET, 0);
 
         /*Initialize the macro table*/
         m_table = fill_macro_table(fnames->am[i], fnames->as[i], keyword_table);
@@ -49,14 +50,22 @@ int main(int argc, char **argv) {
         /* Initialize the label table */
         _label_table = fill_label_table(fnames->am[i], m_table, keyword_table);
         if (_label_table == NULL) {
+            printf("Assembly of the file '%s' has failed\n", fnames->generic[i]);
             quit_main(argc - 1, NULL, &m_table, NULL, &_label_table, NULL);
             continue;
         }
 
         /* Lex the assembly code */
-        _inst_table = lex(fnames->am[i], fnames->as[i], _label_table, keyword_table);
+        _inst_table = lex(fnames->am[i], fnames->as[i], _label_table, keyword_table, &syntax_error_count);
+
+        if (syntax_error_count != 0) {
+            printf("Assembly of the file '%s' has failed as a result of %d syntax errors.\n", fnames->generic[i], syntax_error_count);
+            quit_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
+            continue;
+        }
 
         if (_inst_table == NULL) {
+            printf("Assembly of the file '%s' has failed as a result of an internal system error.\n", fnames->generic[i]);
             quit_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
             continue;
         }
@@ -66,8 +75,10 @@ int main(int argc, char **argv) {
             printf("Assembly of the file '%s' has failed.\n", fnames->generic[i]);
             continue;
         }
+        else {
+            printf("Assembly of the file '%s' completed successfully.\n", fnames->generic[i]);
+        }
 
-        printf("Assembly of the file '%s' completed successfully.\n", fnames->generic[i]);
         quit_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
 
     }

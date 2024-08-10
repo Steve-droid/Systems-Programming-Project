@@ -3,7 +3,6 @@
 #define INITIAL_CAPACITY 10
 #define UNSET -1
 
-
 static void table_memory_error(inst_table *_inst_table, inst *_inst) {
     destroy_instruction(&_inst);
     destroy_instruction_table(&_inst_table);
@@ -206,7 +205,6 @@ status insert_inst_to_table(inst_table *_inst_table, inst *instruction) {
     return STATUS_OK;
 }
 
-
 void destroy_instruction(inst **_inst) {
     size_t i;
     if (_inst == NULL) {
@@ -251,8 +249,6 @@ void destroy_instruction_table(inst_table **_inst_table) {
     free((*_inst_table));
     (*_inst_table) = NULL;
 }
-
-
 
 void print_instruction(inst *_inst, label_table *_label_table) {
     size_t i;
@@ -407,32 +403,35 @@ void print_instruction_table(inst_table *_inst_table, label_table *_label_table)
     printf("\n######################################################\n\n\n");
 }
 
-size_t DC(char *prompt, size_t amount)
+size_t DC(int prompt, size_t amount)
 {
     static size_t _DC = 0;
-    if (!strcmp(prompt, "reset")) {
+    if (prompt == RESET) {
         _DC = 0;
         return _DC;
     }
 
-    if (!strcmp(prompt, "get"))
+    if (prompt == GET)
         return _DC;
-    if (!strcmp(prompt, "increment")) {
+
+    if (prompt == INCREMENT) {
         _DC += amount;
     }
+
     return _DC;
 }
 
-size_t IC(char *prompt, size_t amount)
+size_t IC(int prompt, size_t amount)
 {
     static size_t _IC = 100;
-    if (!strcmp(prompt, "reset")) {
+
+    if (prompt == RESET) {
         _IC = 100;
         return _IC;
     }
-    if (!strcmp(prompt, "get"))
+    if (prompt == GET)
         return _IC;
-    if (!strcmp(prompt, "increment")) {
+    if (prompt == INCREMENT) {
         _IC += amount;
     }
 

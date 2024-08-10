@@ -47,14 +47,12 @@ $(OBJDIR):
 
 # Clean up
 clean:
-	rm -f $(OBJDIR)/*.o $(EXEC) *.am 
-	rm  $(OUTDIR)/*
-	rm -f *.ent *.ext *.ob *.binary
+	rm -f $(OBJDIR)/*.o $(EXEC) 
+	rm -f $(OUTDIR)/*.am  $(OUTDIR)/*.ent  $(OUTDIR)/*.ext  $(OUTDIR)/*.ob 
 	@echo "Clean complete."
 
 reset:
-	rm -f *.ent *.ext *.ob  *.am
-	rm  $(OUTDIR)/*
+	rm -f $(OUTDIR)/*.am $(OUTDIR)/*.ent $(OUTDIR)/*.ext $(OUTDIR)/*.ob 
 	@echo "Reset complete"	
 
 # Phony targets

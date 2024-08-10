@@ -3,7 +3,7 @@
 /* Syntax State Utility */
 syntax_state *create_syntax_state(void) {
     char *buffer = NULL;
-    syntax_state *state = (syntax_state *)malloc(sizeof(syntax_state));
+    syntax_state *state = (syntax_state *)calloc(1, sizeof(syntax_state));
 
     if (state == NULL)
         return NULL;
@@ -14,7 +14,9 @@ syntax_state *create_syntax_state(void) {
         state = NULL;
         return NULL;
     }
+
     state->buffer_without_offset = buffer;
+    state->k_table = NULL;
     state->index = -1;
     state->am_filename = NULL;
     state->as_filename = NULL;
@@ -76,6 +78,7 @@ void reset_syntax_state(syntax_state *state) {
     state->is_string = false;
     state->is_entry = false;
     state->is_extern = false;
+    state->tmp_arg = NULL;
 }
 
 void initialize_command(syntax_state *data) {
@@ -101,6 +104,9 @@ void destroy_syntax_state(syntax_state **state) {
 
     if (st->_inst)
         st->_inst = NULL;
+
+    if (st->k_table)
+        st->k_table = NULL;
 
 
     free(st);
@@ -425,7 +431,6 @@ void print_binary_to_file(uint16_t word, FILE *file_ptr) {
     fprintf(file_ptr, "\n");
 }
 
-
 void print_binary_2(int num) {
     int i;
     unsigned int mask;
@@ -453,7 +458,6 @@ void print_binary_2(int num) {
     /** Print the resulting binary string */
     printf("%s\n", binary);
 }
-
 
 char *my_strdup(char *s) {
     char *d = NULL;

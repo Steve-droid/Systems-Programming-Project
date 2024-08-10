@@ -24,4 +24,5 @@ END:     stop
 LIST:    .data 6,-9
 .data -100, -99, -98, -97, -96, 1,2,3,4,5,6,7
 K:       .data 31
+submarine r1,r4
 .extern L3

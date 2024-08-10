@@ -43,12 +43,9 @@
 #define MAX_LABEL_LENGTH 33 /* max label len is 31 , + 1 for ':' , + 1 for '\0' */ /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
 #define MAX_MACRO_NAME 20
 #define UNDEFINED -1
-#define ERR -1
-#define FLAG -50000
-#define PLUS -50001
-#define MINUS -50002
-#define COMMA -50003
-
+#define INCREMENT 1
+#define GET -1
+#define RESET -2
 
  /*---Enums---*/
 typedef enum {
@@ -254,8 +251,8 @@ typedef struct label_table {
 }label_table;
 
 
-size_t DC(char *prompt, size_t amount);
-size_t IC(char *prompt, size_t amount);
+size_t DC(int prompt, size_t amount);
+size_t IC(int prompt, size_t amount);
 
 typedef struct data_image {
     size_t num_words;
@@ -277,7 +274,10 @@ typedef struct syntax_state {
     char *buffer_without_offset;
     char *am_filename;
     char *as_filename;
+    char *tmp_arg;
+    keyword *k_table;
 
+    int tmp_len;
     int arg_count;
     int continue_reading;
     int label_name;
