@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/assembler",
-            "args": ["ex2"],
+            "args": ["ex5"],
             "stopAtEntry": "false",
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "build",

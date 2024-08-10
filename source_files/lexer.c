@@ -381,7 +381,6 @@ static status assign_data(syntax_state *state, label_table *_label_table, keywor
 
 static status assign_args(syntax_state *state, label_table *_label_table, keyword *keyword_table) {
 
-	int arg_index = 0;
 	int arg_section_len = 0;
 	int arg_len = 0;
 	char *_instruction_args = NULL;
@@ -396,15 +395,14 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 	_instruction_args = state->buffer;
 
 
-	arg_index = 0;
 
 	/* Check each argument- look for syntax errors */
 	for (state->arg_count = 1; state->arg_count < state->_inst->num_tokens; state->arg_count++) {
-		arg_index = 0;
+		state->index = 0;
 		arg_len = 0;
 
 		/* Check if the intruction terminated before any arguments arguments are found */
-		if (_instruction_args && (_instruction_args[arg_index] == '\0' || _instruction_args[arg_index] == '\n')) {
+		if (_instruction_args && (_instruction_args[state->index] == '\0' || _instruction_args[state->index] == '\n')) {
 			my_perror(state, e5_missing_args);
 			return STATUS_ERROR;
 		}
@@ -418,10 +416,10 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 		do {
 
 			if (_instruction_args) {
-				state->comma = _instruction_args[arg_index] == ',';
-				state->null_terminator = _instruction_args[arg_index] == '\0';
-				state->new_line = _instruction_args[arg_index] == '\n';
-				state->whitespace = isspace(_instruction_args[arg_index]);
+				state->comma = _instruction_args[state->index] == ',';
+				state->null_terminator = _instruction_args[state->index] == '\0';
+				state->new_line = _instruction_args[state->index] == '\n';
+				state->whitespace = isspace(_instruction_args[state->index]);
 
 				state->continue_reading = !(state->comma || state->null_terminator || state->new_line || state->whitespace);
 
@@ -434,10 +432,10 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 				break;
 			}
 
-			state->_inst->tokens[state->arg_count][arg_len] = _instruction_args[arg_index];
+			state->_inst->tokens[state->arg_count][arg_len] = _instruction_args[state->index];
 
 			arg_len++;
-			arg_index++;
+			state->index++;
 
 		} while (_instruction_args && state->continue_reading && (arg_len < arg_section_len));
 
@@ -669,10 +667,10 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 		return invalid;
 	}
 
-	_addressing_method = get_addressing_method(state,argument, _label_table);
+	state->tmp_arg = argument;
+	_addressing_method = get_addressing_method(state, argument, _label_table);
 
 	if (!(_addressing_method == IMMEDIATE || _addressing_method == DIRECT || _addressing_method == INDIRECT_REGISTER || _addressing_method == DIRECT_REGISTER)) {
-		state->tmp_arg = argument;
 		return invalid;
 	}
 

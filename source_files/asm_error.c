@@ -297,8 +297,10 @@ void my_perror(syntax_state *state, error_code e_code) {
 
    case e50_direct_reg_num_not_in_range:
       printf("The character following 'r' in '%s' is not a digit between 0 and 7\n", state->buffer);
-
       break;
+
+   case e51_unknown_label:
+      printf("A label with the name '%s' is not declared as external and is not defined in the current file\n", state->tmp_arg);
 
    default:
       break;

@@ -72,6 +72,7 @@ typedef enum {
    e48_no_num_after_dir_reg,
    e49_ext_chars_after_direct_reg,
    e50_direct_reg_num_not_in_range,
+   e51_unknown_label,
    /* Notes  */
    n1_prefix_op
 

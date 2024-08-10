@@ -530,13 +530,16 @@ addressing_method get_addressing_method(syntax_state *state, char *sub_inst, lab
             return UNDEFINED_METHOD;
         }
         if (sub_inst[2] != '\0') {
-            my_perror(state,e49_ext_chars_after_direct_reg);
+            my_perror(state, e49_ext_chars_after_direct_reg);
             return UNDEFINED_METHOD;
         }
         return DIRECT_REGISTER;
     }
 
-    /* else */
+
+    /* else - not direct */
+
+    my_perror(state, e51_unknown_label);
     return UNDEFINED_METHOD;
 }
 
