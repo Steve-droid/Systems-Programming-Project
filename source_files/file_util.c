@@ -43,11 +43,6 @@ status remove_file_extension(char **full_filename, char **generic_filename) {
 
     if (generic_filename == NULL) {
         printf("Trying to remove extention from an empty filename\nExiting...\n");
-        if (generic_filename) {
-            free(*generic_filename);
-            (*generic_filename) = NULL;
-        }
-
         return STATUS_ERROR_INVALID_EXTENSION;
     }
 
@@ -382,8 +377,11 @@ filenames *generate_filenames(int file_amount, char **argv, filenames *fnames) {
     char **as = NULL, **am = NULL, **generic = NULL, **backup = NULL;
     status _status = STATUS_ERROR;
     char output_path[MAX_LINE_LENGTH] = "output/";
+    syntax_state *state = NULL;
 
+    state = create_syntax_state();
 
+    if (state == NULL) return NULL;
 
     fnames = (filenames *)malloc(sizeof(filenames));
     if (fnames == NULL) return NULL;
@@ -447,9 +445,9 @@ filenames *generate_filenames(int file_amount, char **argv, filenames *fnames) {
     }
 
     free(fnames->backup);
-
+    destroy_syntax_state(&state);
+    state = NULL;
     return fnames;
-
 }
 
 void close_files(FILE *p1, ...) {

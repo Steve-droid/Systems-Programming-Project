@@ -305,11 +305,6 @@ void my_perror(syntax_state *state, error_code e_code) {
    default:
       break;
 
-
-
-
-
-
    }
 
 

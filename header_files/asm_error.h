@@ -69,7 +69,7 @@ typedef enum {
    e45_inval_name_after_astr_r,
    e46_imm_inv_after_pm,
    e47_ext_chars_after_indirect_reg,
-   e48_no_num_after_dir_reg,
+   e48_no_num_after_dir_reg,  
    e49_ext_chars_after_direct_reg,
    e50_direct_reg_num_not_in_range,
    e51_unknown_label,
