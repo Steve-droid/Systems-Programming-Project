@@ -40,12 +40,12 @@ static validation_state init_lexer(char *am_filename, char *as_filename, label_t
 
 	if (am_filename == NULL) {
 		printf("Trying to run lexer with a null '.am' filename.\n");
-		am_filename = invalid;
+		am_filename = (char*)invalid;
 	}
 
 	if (as_filename == NULL) {
 		printf("Trying to run lexer with a null '.as' filename.\n");
-		as_filename = invalid;
+		as_filename = (char*)invalid;
 	}
 
 	if (_label_table == NULL) {
