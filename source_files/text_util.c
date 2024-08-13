@@ -20,6 +20,7 @@ syntax_state *create_syntax_state(void) {
     state->index = -1;
     state->am_filename = NULL;
     state->as_filename = NULL;
+    state->generic_filename = NULL;
     state->continue_reading = false;
     state->_validation_state = invalid;
     state->extern_or_entry = NEITHER_EXTERN_NOR_ENTRY;

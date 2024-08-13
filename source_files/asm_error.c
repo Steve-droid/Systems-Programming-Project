@@ -56,7 +56,7 @@ void quit_lex(syntax_state **state, inst_table **_inst_table, FILE *am_file_ptr)
 
 void my_perror(syntax_state *state, error_code e_code) {
    char *ptr = NULL;
-   if (state == NULL || e_code < 0) return;
+   if (e_code < 0) return;
 
 
 
@@ -64,7 +64,7 @@ void my_perror(syntax_state *state, error_code e_code) {
 
       /* Memory handling errors */
    case m1_general_memerr:
-      printf("Failed to allocate memory for assembly process.\n");
+      printf("Failed to allocate memory in assembly process.\n");
       break;
    case m2_syntax_state:
       printf("Failed to allocate memory for syntax state structre.\n");
@@ -73,18 +73,74 @@ void my_perror(syntax_state *state, error_code e_code) {
       printf("Failed to allocate memory for the instruction table structre.\n");
       break;
    case m5_inst_insert:
-      printf("Error in file %s: line %d: '%s' - ", state->as_filename, state->line_number, state->buffer_without_offset);
+      if (state)
+         printf("Error in file %s: line %d: '%s' - ", state->as_filename, state->line_number, state->buffer_without_offset);
       printf("Failed to insert instruction to instruction table.\n");
       break;
    case m6_tok_gen_mem:
       printf("Failed to allocate memory for tokens while lexing instruction.\n");
       break;
 
+   case m7_generic_creation:
+      if (state)
+         printf("Failed to duplicte original filename recieved as command line argument: '%s'\n", state->generic_filename);
+      else printf("Failed to duplicte original filename recieved as command line argumen\n");
+      break;
+
+   case m8_rmv_ext:
+      printf("Memory Error: ");
+      if (state) {
+         printf("In function 'remove_file_extention' - Could not allocate memory for a duplicate of the filename '%s' without extention\n", state->tmp_arg);
+      }
+
+      else printf("In function 'remove_file_extention' - Failed to allocate memory for a duplicate of the original filename without extention\n");
+
+
+
+
 
 
       /* File handling errors */
    case f1_file_open:
       break;
+
+   case f2_as_creation:
+      printf("File Handling Error:  ");
+      printf("Failed to add a '.as' extention for the file '%s'\n", state->generic_filename);
+      break;
+   case f3_backup:
+      printf("File Handling Error: ");
+      printf("File backup did not execute properly\n");
+      break;
+   case f4_am_creation:
+      printf("File Handling Error:  ");
+      printf("Failed to add a '.am' extention for the file '%s'\n", state->generic_filename);
+      break;
+
+   case f5_tmp_file:
+
+      break;
+   case f6_open_tmp_file:
+
+      break;
+
+   case f7_write_to_tmp_file:
+
+      break;
+
+   case f8_line_mismatch:
+
+      break;
+
+   case f9_rmv_original:
+
+      break;
+
+   case f10_rename_tmp:
+
+      break;
+
+
    default:
       break;
    }
@@ -301,6 +357,11 @@ void my_perror(syntax_state *state, error_code e_code) {
 
    case e51_unknown_label:
       printf("A label with the name '%s' is not declared as external and is not defined in the current file\n", state->tmp_arg);
+
+   case e52_inval_ext:
+      printf("Trying to remove extention from a filename '%s' that has no extention\n", state->tmp_arg);
+      break;
+
 
    default:
       break;

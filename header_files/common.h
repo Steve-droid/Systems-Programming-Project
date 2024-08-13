@@ -274,6 +274,7 @@ typedef struct syntax_state {
     char *buffer_without_offset;
     char *am_filename;
     char *as_filename;
+    char *generic_filename;
     char *tmp_arg;
     keyword *k_table;
 

@@ -65,7 +65,7 @@ static status pre_assemble(char *as_filename, char *am_filename, macro_table *m_
     state->as_filename = as_filename;
     state->am_filename = am_filename;
 
-    if (remove_whitespace(as_filename) != STATUS_OK) {
+    if (remove_whitespace_from_file(as_filename) != STATUS_OK) {
         printf("Error while removing whitespace from %s\nExiting...\n", as_filename);
         destroy_syntax_state(&state);
         return STATUS_ERROR;

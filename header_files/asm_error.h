@@ -17,13 +17,24 @@ typedef enum {
    m4_inst_creation,
    m5_inst_insert,
    m6_tok_gen_mem,
+   m7_generic_creation,
+   m8_rmv_ext,
 
    /* File handling errors */
    f1_file_open,
-
+   f2_as_creation,
+   f3_backup,
+   f4_am_creation,
+   f5_tmp_file,
+   f6_open_tmp_file,
+   f7_write_to_tmp_file,
+   f8_line_mismatch,
+   f9_rmv_original,
+   f10_rename_tmp,
+   
    /* General errors */
    e1_undef_cmd,
-   e2_tokgen,
+   e2_tokgen, 
    e3_addr_assign,
    e4_extra_comma,
    e5_missing_args,
@@ -69,10 +80,13 @@ typedef enum {
    e45_inval_name_after_astr_r,
    e46_imm_inv_after_pm,
    e47_ext_chars_after_indirect_reg,
-   e48_no_num_after_dir_reg,  
+   e48_no_num_after_dir_reg,
    e49_ext_chars_after_direct_reg,
    e50_direct_reg_num_not_in_range,
    e51_unknown_label,
+   e52_inval_ext,
+
+
    /* Notes  */
    n1_prefix_op
 

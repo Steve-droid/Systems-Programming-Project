@@ -12,7 +12,6 @@ char *add_extension(char *initial_filename, char *extension) {
     /* Allocate memory for the new filename */
     new_filename = (char *)calloc(new_filename_len + 1, sizeof(char));
     if (new_filename == NULL) {
-        printf("Memory allocation error while creating a new filename for %s\nExiting...\n", initial_filename);
         return NULL;
     }
 
@@ -23,26 +22,18 @@ char *add_extension(char *initial_filename, char *extension) {
 }
 
 status remove_file_extension(char **full_filename, char **generic_filename) {
-
+    syntax_state *state = NULL;
     size_t full_filename_length = 0;
     char *extension = NULL;
 
-    if (full_filename == NULL || (*full_filename) == NULL) {
-        printf("Trying to remove extention from an empty filename\nExiting...\n");
-        if (generic_filename) {
-            free(*generic_filename);
-            (*generic_filename) = NULL;
-        }
+    state = create_syntax_state();
+    if (state == NULL) return STATUS_ERROR_MEMORY_ALLOCATION;
 
-        if (full_filename) {
-            free(*full_filename);
-            (*full_filename) = NULL;
-        }
+    if (full_filename == NULL || (*full_filename) == NULL) {
         return STATUS_ERROR_INVALID_EXTENSION;
     }
 
     if (generic_filename == NULL) {
-        printf("Trying to remove extention from an empty filename\nExiting...\n");
         return STATUS_ERROR_INVALID_EXTENSION;
     }
 
@@ -52,7 +43,8 @@ status remove_file_extension(char **full_filename, char **generic_filename) {
     *(generic_filename) = (char *)calloc((full_filename_length + 1), sizeof(char));
 
     if (*(generic_filename) == NULL) {
-        printf("Memory allocation error while creating generic filename for %s\nExiting...\n", (*full_filename));
+        state->tmp_arg = full_filename;
+        my_perror(state, m8_rmv_ext);
         return STATUS_ERROR_INVALID_EXTENSION;
     }
 
@@ -61,15 +53,16 @@ status remove_file_extension(char **full_filename, char **generic_filename) {
 
 
     if (extension == NULL) {
-        printf("Trying to remove extention from a filename with no extention\nExiting...\n");
-        free(*full_filename);
+        state->tmp_arg = full_filename;
+        my_perror(state, e52_inval_ext);
         free(*generic_filename);
-        (*full_filename) = NULL;
         (*generic_filename) = NULL;
         return STATUS_ERROR_INVALID_EXTENSION;
     }
 
     *extension = '\0'; /*Null quit_filename_creation the generic filename*/
+    state->tmp_arg = NULL;
+    destroy_syntax_state(&state);
     return STATUS_OK;
 }
 
@@ -122,7 +115,7 @@ status copy_file_contents(char *src_filename, char *dest_filename) {
     return STATUS_OK;
 }
 
-status remove_whitespace(char *filename) {
+status remove_whitespace_from_file(char *filename) {
     FILE *file;
     FILE *tmp_file;
     char *start;
@@ -136,14 +129,18 @@ status remove_whitespace(char *filename) {
     int original_line_count = 0;
     int cleaned_line_count = 0;
     int line_contains_only_whitespace = false;
+    syntax_state *state = NULL;
 
     file = my_fopen(filename, "r");
     if (file == NULL) return STATUS_ERROR;
 
+    state = create_syntax_state();
+    if (state == NULL) return STATUS_ERROR_MEMORY_ALLOCATION;
+
     /* Create a temporary file to write the cleaned lines */
     temp_file_descriptor = mkstemp(tmp_filename);
     if (temp_file_descriptor == -1) {
-        fprintf(stderr, "Failed to create temporary file\n");
+        
         fclose(file);
         return STATUS_ERROR_OPEN_DEST;
     }
@@ -328,6 +325,120 @@ status create_fname_vec(int file_amount, char ***p1, ...) {
 
 }
 
+/* Main function that creates '.as', '.am' and '.bk' filenames from command line args */
+filenames *generate_filenames(int file_amount, char **argv, filenames *fnames) {
+    int i;
+    char **as = NULL, **am = NULL, **generic = NULL, **backup = NULL;
+    status _status = STATUS_ERROR;
+    char output_path[MAX_LINE_LENGTH] = "output/";
+    syntax_state *state = NULL;
+
+    state = create_syntax_state();
+
+    if (state == NULL) return NULL;
+
+    fnames = (filenames *)malloc(sizeof(filenames));
+    if (fnames == NULL) return NULL;
+
+    fnames->amount = file_amount;
+
+    _status = create_fname_vec(file_amount, &as, &am, &generic, &backup, NULL);
+    if (_status != STATUS_OK) {
+        free(fnames);
+        fnames = NULL;
+        return NULL;
+    }
+
+    fnames->am = am;
+    fnames->as = as;
+    fnames->generic = generic;
+    fnames->backup = backup;
+    _status = STATUS_ERROR;
+
+
+    /* Create a vector that holds generic filenames- a duplicate of argv */
+    for (i = 0;i < file_amount;i++) {
+        fnames->generic[i] = my_strdup(argv[i + 1]);
+        if (fnames->generic[i] == NULL) {
+            state->generic_filename = argv[i + 1];
+            my_perror(state, m7_generic_creation);
+        }
+    }
+
+    for (i = 0;i < file_amount;i++) {
+
+        fnames->as[i] = add_extension(fnames->generic[i], ".as");
+
+        if (fnames->as[i] == NULL) {
+            state->generic_filename = fnames->generic[i];
+            my_perror(state, f2_as_creation);
+            quit_filename_creation(&fnames);
+            return NULL;
+        }
+    }
+    _status = duplicate_files(&fnames->backup, file_amount, fnames->as, ".bk");
+    if (_status != STATUS_OK) {
+        my_perror(state, f3_backup);
+        quit_filename_creation(&fnames);
+        return NULL;
+    }
+
+    for (i = 0;i < file_amount;i++) {
+        fnames->am[i] = add_extension(fnames->generic[i], ".am");
+
+        if (fnames->am[i] == NULL) {
+            state->generic_filename = fnames ->generic[i];
+            my_perror(state, f4_am_creation);
+            quit_filename_creation(&fnames);
+            return NULL;
+        }
+    }
+
+    for (i = 0;i < file_amount;i++) {
+        remove(strcat(output_path, fnames->backup[i]));
+        strcpy(output_path, "output/");
+        free(fnames->backup[i]);
+    }
+
+    for (i = 0;i < file_amount;i++) {
+        fnames->backup[i] = NULL;
+    }
+
+    free(fnames->backup);
+    destroy_syntax_state(&state);
+    state = NULL;
+    return fnames;
+}
+
+/* Basic util functions used for file handling */
+void close_files(FILE *p1, ...) {
+    va_list args;
+    FILE *current_file;
+
+    va_start(args, p1);
+
+    current_file = p1;
+    while (current_file != NULL) {
+        fclose(current_file);
+        current_file = va_arg(args, FILE *);
+    }
+
+    va_end(args);
+}
+
+void free_filenames(char *p1, ...) {
+    va_list args;
+    char *current_filename;
+    va_start(args, p1);
+
+    current_filename = p1;
+    while (current_filename != NULL) {
+        free(current_filename);
+        current_filename = va_arg(args, char *);
+    }
+    va_end(args);
+}
+
 FILE *my_fopen(const char *filename, const char *mode) {
     FILE *fp = NULL;
     char input_path[MAX_LINE_LENGTH] = "input/";
@@ -368,112 +479,4 @@ FILE *my_fopen(const char *filename, const char *mode) {
 
 
     return NULL;
-
-
-}
-
-filenames *generate_filenames(int file_amount, char **argv, filenames *fnames) {
-    int i;
-    char **as = NULL, **am = NULL, **generic = NULL, **backup = NULL;
-    status _status = STATUS_ERROR;
-    char output_path[MAX_LINE_LENGTH] = "output/";
-    syntax_state *state = NULL;
-
-    state = create_syntax_state();
-
-    if (state == NULL) return NULL;
-
-    fnames = (filenames *)malloc(sizeof(filenames));
-    if (fnames == NULL) return NULL;
-
-    fnames->amount = file_amount;
-
-    _status = create_fname_vec(file_amount, &as, &am, &generic, &backup, NULL);
-    if (_status != STATUS_OK) {
-        free(fnames);
-        fnames = NULL;
-        return NULL;
-    }
-
-    fnames->am = am;
-    fnames->as = as;
-    fnames->generic = generic;
-    fnames->backup = backup;
-    _status = STATUS_ERROR;
-
-
-    /* Create a vector that holds generic filenames- a duplicate of argv */
-    for (i = 0;i < file_amount;i++) {
-        fnames->generic[i] = my_strdup(argv[i + 1]);
-    }
-
-    for (i = 0;i < file_amount;i++) {
-
-        fnames->as[i] = add_extension(fnames->generic[i], ".as");
-
-        if (fnames->as[i] == NULL) {
-            printf("Error: .as file creation for %s did not execute properly.\nExiting...\n", fnames->generic[i]);
-            quit_filename_creation(&fnames);
-            return NULL;
-        }
-    }
-    _status = duplicate_files(&fnames->backup, file_amount, fnames->as, ".bk");
-    if (_status != STATUS_OK) {
-        printf("Error: File backup did not execute properly. Exiting..");
-        quit_filename_creation(&fnames);
-        return NULL;
-    }
-
-    for (i = 0;i < file_amount;i++) {
-        fnames->am[i] = add_extension(fnames->generic[i], ".am");
-
-        if (fnames->am[i] == NULL) {
-            printf("Error: .am file creation for the file '%s.as' did not execute properly.Exiting...\n", fnames->generic[i]);
-            quit_filename_creation(&fnames);
-            return NULL;
-        }
-    }
-
-    for (i = 0;i < file_amount;i++) {
-        remove(strcat(output_path, fnames->backup[i]));
-        strcpy(output_path, "output/");
-        free(fnames->backup[i]);
-    }
-
-    for (i = 0;i < file_amount;i++) {
-        fnames->backup[i] = NULL;
-    }
-
-    free(fnames->backup);
-    destroy_syntax_state(&state);
-    state = NULL;
-    return fnames;
-}
-
-void close_files(FILE *p1, ...) {
-    va_list args;
-    FILE *current_file;
-
-    va_start(args, p1);
-
-    current_file = p1;
-    while (current_file != NULL) {
-        fclose(current_file);
-        current_file = va_arg(args, FILE *);
-    }
-
-    va_end(args);
-}
-
-void free_filenames(char *p1, ...) {
-    va_list args;
-    char *current_filename;
-    va_start(args, p1);
-
-    current_filename = p1;
-    while (current_filename != NULL) {
-        free(current_filename);
-        current_filename = va_arg(args, char *);
-    }
-    va_end(args);
 }

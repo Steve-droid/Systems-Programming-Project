@@ -39,7 +39,7 @@ void close_files(FILE *p1, ...);
 char *add_extension(char *initial_name, char *extension);
 status remove_file_extension(char **full_filename, char **generic_filename);
 status copy_file_contents(char *src_filename, char *dest_filename);
-status remove_whitespace(char *filename);
+status remove_whitespace_from_file(char *filename);
 status duplicate_files(char ***backup_filenames, int file_count, char *filenames[], char *extention);
 void delete_filenames(size_t file_amount, char ***filenames);
 FILE *open_file_in_directories(const char *filename, const char *mode);
