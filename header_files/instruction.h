@@ -24,12 +24,6 @@ status init_instruction_table(inst_table *_inst_table);
 status insert_token_to_inst(inst *_inst, char *token);
 status insert_inst_to_table(inst_table *_inst_table, inst *_inst);
 
-/* Get functions */
-char **get_tokens(inst *_inst);
-int get_num_tokens(inst *inst);
-inst **get_instructions(inst_table *_inst_table);
-int get_num_instructions(inst_table *_inst_table);
-
 /* Destroy functions */
 void destroy_instruction_table(inst_table **_inst_table);
 void destroy_instruction(inst **_inst);

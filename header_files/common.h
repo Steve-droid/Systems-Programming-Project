@@ -118,7 +118,7 @@ typedef enum {
     JSR_OPCODE,    /* 13->1101 */
     RTS_OPCODE,    /* 14->1110 */
     STOP_OPCODE    /* 15->1111 */
-} commands_opcodes;
+} opcode;
 
 typedef enum register_name {
     UNDEFINED_REGISTER = -1, r0, r1, r2, r3, r4, r5, r6, r7
@@ -131,37 +131,6 @@ typedef struct {
     int length;
 }keyword;
 
-/**
- * struct instruction - Represents an assembly instruction or directive.
- *
- * @tokens: An array of strings representing tokens in the instruction.
- *          - For .data/.string directives:
- *            - tokens[0]: Directive name (e.g., ".data", ".string").
- *            - tokens[1]: Data as a single string (e.g., integers or characters).
- *          - For operations:
- *            - tokens[0]: Command name (e.g., add, mov).
- *            - tokens[1]: First argument, if it exists.
- *            - tokens[2]: Second argument, if it exists.
- * @cmd_key: An integer key representing the command (operation).
- * @label_key: An integer key representing the label.
- * @address: The memory address associated with this instruction.
- * @num_tokens: The number of tokens in the tokens array.
- * @capacity: The capacity of the tokens array (for dynamic memory management).
- * @line_number: The line number in the source code where this instruction appears.
- * @num_words_to_generate: The number of words this instruction will generate in machine code.
- * @num_dot_data_members: The number of members in a .data directive.
- * @num_dot_string_members: The number of characters in a .string directive.
- * @src_addressing_method: The addressing method for the source operand.
- * @dest_addressing_method: The addressing method for the destination operand.
- * @direct_label_name_src: The direct label name for the source operand (if used).
- * @direct_label_name_dest: The direct label name for the destination operand (if used).
- * @direct_label_key_src: The key for the direct label source operand.
- * @direct_label_key_dest: The key for the direct label destination operand.
- * @is_dot_data: A boolean indicating if this instruction is a .data directive.
- * @is_dot_string: A boolean indicating if this instruction is a .string directive.
- * @is_entry: A boolean indicating if this instruction is an entry point.
- * @is_extern: A boolean indicating if this instruction is an external reference.
- */
 
 typedef struct instruction {
 
@@ -170,7 +139,7 @@ typedef struct instruction {
     size_t num_tokens;
     size_t capacity;
     size_t num_words_to_generate;
-    commands_opcodes opcode;
+    opcode opcode;
     int cmd_key;
     int label_key;
     int address;
@@ -326,5 +295,7 @@ typedef struct {
     char **as;
     char **backup;
 }filenames;
+
+
 
 #endif

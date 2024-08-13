@@ -79,7 +79,7 @@ macro_table *pre_assemble(char *as_filename, char *am_filename, keyword *keyword
     status result = STATUS_ERROR;
     syntax_state *state = NULL;
     char *token = NULL;
-
+    char *token_without_offset = NULL;
 
     m_table = create_macro_table();
     if (m_table == NULL) {
@@ -138,17 +138,21 @@ macro_table *pre_assemble(char *as_filename, char *am_filename, keyword *keyword
         else if (is_macro_definition(state)) {
 
             state->buffer += strlen("macro");
+            strcpy(macro_name, state->buffer);
 
-            token = state->buffer;
-            token = strchr(token, ' ');
+            token_without_offset = my_strdup(state->buffer);
+            token = strchr(token_without_offset, ' ');
             while (token != NULL && (*token) != '\n' && (*token) != '\0') {
                 if (!isspace(*token)) {
                     print_syntax_error(state, e56_macro_name_not_valid);
+                    free(token_without_offset);
                     quit_pre_assembler(&state, &m_table, am_file, as_file);
                     return NULL;
                 }
                 token++;
             }
+
+            free(token_without_offset);
 
             /*
              Check if definition is valid.

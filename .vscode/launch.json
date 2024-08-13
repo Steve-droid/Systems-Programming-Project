@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/assembler",
             "args": ["ex5"],
-            "stopAtEntry": "false",
+            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "build",
             "externalConsole": false,

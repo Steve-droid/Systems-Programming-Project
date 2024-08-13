@@ -274,7 +274,6 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 
 }
 
-/* Process commands that declare an unknown number of arguments: .data, .string, .entry, .extern */
 static status assign_data(syntax_state *state, label_table *_label_table, keyword *keyword_table) {
 	int command_key = state->cmd_key;
 	char *line = state->buffer;
@@ -679,7 +678,14 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	case SUB:
 		if (contains_src_addressing) {/*Check dest addressing */
 			if (_addressing_method == IMMEDIATE) {
-				print_syntax_error(state, e28_inval_method_mov_add_sub);
+
+				if (command == MOV)
+					print_syntax_error(state, ex28_inval_method_mov);
+				else if (command == ADD)
+					print_syntax_error(state, ex28_inval_method_add);
+				else if (command == SUB)
+					print_syntax_error(state, ex28_inval_method_sub);
+
 				return invalid;
 			}
 
@@ -730,22 +736,94 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 		}
 
 	case CLR:
-	case NOT:
-	case INC:
-	case DEC:
-	case RED:
 		if (contains_src_addressing) {
-			print_syntax_error(state, e30_ext_arg_clr_not_inc_dec_red);
+			print_syntax_error(state, ex30_ext_arg_clr);
 			return invalid;
 		}
-
 		if (contains_dest_addressing) {
-			print_syntax_error(state, e31_mult_assign_clr_not_inc_dec_red);
+			print_syntax_error(state, ex31_mult_assign_clr);
 			return invalid;
 		}
 
 		if (_addressing_method == IMMEDIATE) {
-			print_syntax_error(state, e32_imm_clr_not_inc_dec_red);
+			print_syntax_error(state, ex32_imm_clr);
+			return invalid;
+		}
+		/*If we got here it means that the argument is a destination argument with a valid addressing method*/
+		state->_inst->dest_addressing_method = _addressing_method;
+		break;
+
+	case NOT:
+		if (contains_src_addressing) {
+			print_syntax_error(state, ex30_ext_arg_not);
+			return invalid;
+		}
+		if (contains_dest_addressing) {
+			print_syntax_error(state, ex31_mult_assign_not);
+			return invalid;
+		}
+
+		if (_addressing_method == IMMEDIATE) {
+			print_syntax_error(state, ex32_imm_not);
+			return invalid;
+		}
+
+		/*If we got here it means that the argument is a destination argument with a valid addressing method*/
+		state->_inst->dest_addressing_method = _addressing_method;
+		break;
+
+	case INC:
+		if (contains_src_addressing) {
+			print_syntax_error(state, ex30_ext_arg_inc);
+			return invalid;
+		}
+		if (contains_dest_addressing) {
+			print_syntax_error(state, ex31_mult_assign_inc);
+			return invalid;
+		}
+
+		if (_addressing_method == IMMEDIATE) {
+			print_syntax_error(state, ex32_imm_inc);
+			return invalid;
+		}
+
+
+		/*If we got here it means that the argument is a destination argument with a valid addressing method*/
+		state->_inst->dest_addressing_method = _addressing_method;
+		break;
+
+	case DEC:
+		if (contains_src_addressing) {
+			print_syntax_error(state, ex30_ext_arg_dec);
+			return invalid;
+		}
+		if (contains_dest_addressing) {
+			print_syntax_error(state, ex31_mult_assign_dec);
+			return invalid;
+		}
+
+		if (_addressing_method == IMMEDIATE) {
+			print_syntax_error(state, ex32_imm_dec);
+			return invalid;
+		}
+
+		/*If we got here it means that the argument is a destination argument with a valid addressing method*/
+		state->_inst->dest_addressing_method = _addressing_method;
+		break;
+
+	case RED:
+		if (contains_src_addressing) {
+			print_syntax_error(state, ex30_ext_arg_red);
+			return invalid;
+		}
+
+		if (contains_dest_addressing) {
+			print_syntax_error(state, ex31_mult_assign_red);
+			return invalid;
+		}
+
+		if (_addressing_method == IMMEDIATE) {
+			print_syntax_error(state, ex32_imm_red);
 			return invalid;
 		}
 
@@ -757,23 +835,75 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	case BNE:
 	case JSR:
 		if (contains_src_addressing) {
-			print_syntax_error(state, e33_tomany_jmp_bne_jsr);
-			return invalid;
+			if (command == JMP) {
+				print_syntax_error(state, ex33_toomany_jmp);
+				return invalid;
+			}
+			if (command == BNE) {
+				print_syntax_error(state, ex33_toomany_bne);
+				return invalid;
+			}
+			if (command == JSR) {
+				print_syntax_error(state, ex33_toomany_jsr);
+				return invalid;
+			}
 		}
 
 		if (contains_dest_addressing) {
-			print_syntax_error(state, e34_mul_assign_jmp_bne_jsr);
-			return invalid;
+
+			if (command == JMP) {
+				print_syntax_error(state, ex34_mul_assign_jmp);
+				return invalid;
+			}
+
+			if (command == BNE) {
+				print_syntax_error(state, ex34_mul_assign_bne);
+				return invalid;
+			}
+
+			if (command == JSR) {
+				print_syntax_error(state, ex34_mul_assign_jsr);
+				return invalid;
+			}
+
 		}
 
 		if (_addressing_method == IMMEDIATE) {
-			print_syntax_error(state, e35_imm_jmp_bne_jsr);
-			return invalid;
+
+
+			if (command == JMP) {
+				print_syntax_error(state, ex35_imm_jmp);
+				return invalid;
+			}
+
+			if (command == BNE) {
+				print_syntax_error(state, ex35_imm_bne);
+				return invalid;
+			}
+
+			if (command == JSR) {
+				print_syntax_error(state, ex35_imm_jsr);
+				return invalid;
+			}
+
 		}
 
 		if (_addressing_method == DIRECT_REGISTER) {
-			print_syntax_error(state, e36_dir_jmp_bne_jsr);
-			return invalid;
+
+			if (command == JMP) {
+				print_syntax_error(state, ex36_dir_jmp);
+				return invalid;
+			}
+
+			if (command == BNE) {
+				print_syntax_error(state, ex36_dir_bne);
+				return invalid;
+			}
+
+			if (command == JSR) {
+				print_syntax_error(state, ex36_dir_jsr);
+				return invalid;
+			}
 		}
 
 		state->_inst->dest_addressing_method = _addressing_method;
@@ -792,11 +922,17 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 		state->_inst->dest_addressing_method = _addressing_method;
 		break;
 	case RTS:
-	case STOP:
 		if (contains_src_addressing || contains_dest_addressing) {
-			print_syntax_error(state, e40_toomany_rts_stop);
+			print_syntax_error(state, ex40_toomany_rts);
 			return invalid;
 		}
+		break;
+	case STOP:
+		if (contains_src_addressing || contains_dest_addressing) {
+			print_syntax_error(state, ex40_toomany_stop);
+			return invalid;
+		}
+
 		break;
 
 	default:

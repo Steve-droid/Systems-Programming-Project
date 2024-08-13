@@ -20,6 +20,10 @@ typedef enum {
    m7_generic_creation,
    m9_create_sys_state,
    m10_create_backup_filename,
+   m11_create_keyword_table,
+   m12_create_label_table,
+   m13_create_label,
+
 
 
    /* File handling errors */
@@ -63,19 +67,55 @@ typedef enum {
    e25_ent_ex_args,
    e26_third_assignment,
    e27_inval_addr_mehod,
+
    e28_inval_method_mov_add_sub,
+   ex28_inval_method_mov,
+   ex28_inval_method_add,
+   ex28_inval_method_sub,
+
    e29_inval_method_imm_lea,
+
    e30_ext_arg_clr_not_inc_dec_red,
+   ex30_ext_arg_clr,
+   ex30_ext_arg_not,
+   ex30_ext_arg_inc,
+   ex30_ext_arg_dec,
+   ex30_ext_arg_red,
+   
    e31_mult_assign_clr_not_inc_dec_red,
+   ex31_mult_assign_clr,
+   ex31_mult_assign_not,
+   ex31_mult_assign_inc,
+   ex31_mult_assign_dec,
+   ex31_mult_assign_red,
    e32_imm_clr_not_inc_dec_red,
+   ex32_imm_clr,
+   ex32_imm_not,
+   ex32_imm_inc,
+   ex32_imm_dec,
+   ex32_imm_red,
    e33_tomany_jmp_bne_jsr,
+   ex33_toomany_jmp,
+   ex33_toomany_bne,
+   ex33_toomany_jsr,
    e34_mul_assign_jmp_bne_jsr,
+   ex34_mul_assign_jmp,
+   ex34_mul_assign_bne,
+   ex34_mul_assign_jsr,
    e35_imm_jmp_bne_jsr,
+   ex35_imm_jmp,
+   ex35_imm_bne,
+   ex35_imm_jsr,
    e36_dir_jmp_bne_jsr,
+   ex36_dir_jmp,
+   ex36_dir_bne,
+   ex36_dir_jsr,
    e37_toomany_prn,
    e38_addr_mult_assign_prn,
    e39_cmp_extra_args,
    e40_toomany_rts_stop,
+   ex40_toomany_rts,
+   ex40_toomany_stop,
    e41_lbl_arg,
    e42_imm_val_not_digit,
    e43_inval_indirect_reg,
@@ -94,6 +134,7 @@ typedef enum {
    e56_macro_name_not_valid,
    e57_macroname_same_as_keyword,
    e58_cannot_insert_macro,
+   e59_label_redef,
 
 
 
@@ -106,6 +147,8 @@ void reset_main(int file_amount, filenames **fnames, macro_table **_macro_table,
 void quit_filename_creation(filenames **fnames);
 void quit_lex(syntax_state **state, inst_table **_inst_table, FILE *am_file_ptr);
 void quit_pre_assembler(syntax_state **state, macro_table **_macro_table, FILE *am_file_ptr, FILE *as_file_ptr);
+void quit_label_parsing(label_table **_label_table, syntax_state **state, FILE *am_file_ptr, char *label_name);
+
 
 
 

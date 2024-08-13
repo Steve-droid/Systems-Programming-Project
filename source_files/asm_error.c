@@ -14,8 +14,6 @@ void quit_filename_creation(filenames **fnames) {
    if (fnames == NULL || (*fnames == NULL) || (*fnames)->amount == 0)
       return; /* Memory already freed */
 
-
-
    names = (*fnames);
    if (names->am) {
       for (i = 0;i < (*fnames)->amount;i++) {
@@ -63,6 +61,12 @@ void quit_pre_assembler(syntax_state **state, macro_table **_macro_table, FILE *
    if (as_file_ptr) fclose(as_file_ptr);
 }
 
+void quit_label_parsing(label_table **_label_table, syntax_state **state, FILE *am_file_ptr, char *label_name) {
+   destroy_label_table(_label_table);
+   destroy_syntax_state(state);
+   if (am_file_ptr) fclose(am_file_ptr);
+}
+
 
 void print_system_error(system_state *sys_state, syntax_state *syn_state, error_code e_code) {
 
@@ -105,12 +109,20 @@ void print_system_error(system_state *sys_state, syntax_state *syn_state, error_
       printf("Memory allocation error while creating a backup '%s' filename for '%s'\n", sys_state->tmp, sys_state->generic_filename);
       break;
 
+   case m11_create_keyword_table:
+      printf("In 'symbols.c' -> 'create_keyword_table': ");
+      printf("Failed to allocate memory for keyword table\n");
+      break;
 
+   case m12_create_label_table:
+      printf("In 'symbols.c' -> 'create_label_table': ");
+      printf("Failed to allocate memory for label table\n");
+      break;
 
-
-
-
-
+   case m13_create_label:
+      printf("In 'symbols.c' -> 'create_label': ");
+      printf("Failed to allocate memory for label\n");
+      break;
 
 
 
@@ -305,9 +317,18 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       printf("Trying to pass an invalid argument '%s' that does not match any addressing method.\n", state->tmp_arg);
       break;
 
-   case e28_inval_method_mov_add_sub:
-      printf("Trying to assign an immediate addressing method to a destination argument of a 'mov'/'add'/'sub' instruction\n");
+   case ex28_inval_method_mov:
+      printf("Trying to assign an immediate addressing method to a destination argument of a 'mov' instruction\n");
       break;
+
+   case ex28_inval_method_add:
+      printf("Trying to assign an immediate addressing method to a destination argument of an 'add' instruction\n");
+      break;
+
+   case ex28_inval_method_sub:
+      printf("Trying to assign an immediate addressing method to a destination argument of a 'sub' instruction\n");
+      break;
+
 
    case e39_cmp_extra_args:
       printf("Trying to pass more than one argument to a 'cmp' instruction.\n");
@@ -317,31 +338,118 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       printf("Trying to assign an immediate addressing method to destination argument of a 'lea' instruction\n");
       break;
 
-   case e30_ext_arg_clr_not_inc_dec_red:
-      printf("Trying to pass more than one argument as input to a 'clr'/'not'/'inc'/'dec'/'red' instruction\n");
+   case ex30_ext_arg_clr:
+      printf("Trying to pass more than one argument as input to a 'clr' instruction\n");
       break;
 
-   case e31_mult_assign_clr_not_inc_dec_red:
-      printf("Multiple assignment attempts for a destination argument addressing method of a 'clr'/'not'/'inc'/'dec'/'red' instruction\n");
-      break;
-   case e32_imm_clr_not_inc_dec_red:
-      printf("Trying to assign an immediate addressing method to a destination argument of 'clr'/'not'/'inc'/'dec'/'red'  instruction\n");
+   case ex30_ext_arg_not:
+      printf("Trying to pass more than one argument as input to a 'not' instruction\n");
       break;
 
-   case e33_tomany_jmp_bne_jsr:
-      printf("Trying to pass more than one argument as input to a 'jmp'/'bne'/'jsr' instruction\n");
+   case ex30_ext_arg_inc:
+      printf("Trying to pass more than one argument as input to a 'inc' instruction\n");
+      break;
+
+   case ex30_ext_arg_dec:
+      printf("Trying to pass more than one argument as input to a 'dec' instruction\n");
+      break;
+
+   case ex30_ext_arg_red:
+      printf("Trying to pass more than one argument as input to a 'red' instruction\n");
+      break;
+
+
+   case ex31_mult_assign_clr:
+      printf("Trying to assign more than one addressing method to a destination argument of a 'clr' instruction\n");
+      break;
+
+   case ex31_mult_assign_not:
+      printf("Trying to assign more than one addressing method to a destination argument of a 'not' instruction\n");
+      break;
+
+   case ex31_mult_assign_inc:
+      printf("Trying to assign more than one addressing method to a destination argument of a 'inc' instruction\n");
+      break;
+
+   case ex31_mult_assign_dec:
+      printf("Trying to assign more than one addressing method to a destination argument of a 'dec' instruction\n");
+      break;
+
+   case ex31_mult_assign_red:
+      printf("Trying to assign more than one addressing method to a destination argument of a 'red' instruction\n");
+      break;
+
+
+   case ex32_imm_clr:
+      printf("Trying to assign an immediate addressing method to a destination argument of a 'clr' instruction\n");
+      break;
+
+   case ex32_imm_not:
+      printf("Trying to assign an immediate addressing method to a destination argument of a 'not' instruction\n");
+      break;
+
+   case ex32_imm_inc:
+      printf("Trying to assign an immediate addressing method to a destination argument of a 'inc' instruction\n");
+      break;
+
+   case ex32_imm_dec:
+      printf("Trying to assign an immediate addressing method to a destination argument of a 'dec' instruction\n");
+      break;
+
+   case ex32_imm_red:
+      printf("Trying to assign an immediate addressing method to a destination argument of a 'red' instruction\n");
+      break;
+
+   case ex33_toomany_jmp:
+      printf("Trying to pass more than one argument as input to a 'jmp' instruction\n");
+      break;
+
+   case ex33_toomany_bne:
+      printf("Trying to pass more than one argument as input to a 'bne' instruction\n");
+      break;
+
+   case ex33_toomany_jsr:
+      printf("Trying to pass more than one argument as input to a 'jsr' instruction\n");
       break;
 
    case e34_mul_assign_jmp_bne_jsr:
       printf("Multiple assignment attempts for a destination argument addressing method of a 'jmp'/'bne'/'jsr' instruction\n");
       break;
 
-   case e35_imm_jmp_bne_jsr:
-      printf("Trying to assign an immediate addressing method to a destination argument of 'jmp'/'bne'/'jsr'  instruction\n");
+   case ex34_mul_assign_jmp:
+      printf("Trying to assign more than one addressing method to a destination argument of a 'jmp' instruction\n");
       break;
 
-   case e36_dir_jmp_bne_jsr:
-      printf("Trying to assign a direct register addressing method to a destination argument of 'jmp'/'bne'/'jsr'  instruction\n");
+   case ex34_mul_assign_bne:
+      printf("Trying to assign more than one addressing method to a destination argument of a 'bne' instruction\n");
+      break;
+
+   case ex34_mul_assign_jsr:
+      printf("Trying to assign more than one addressing method to a destination argument of a 'jsr' instruction\n");
+      break;
+
+   case ex35_imm_jmp:
+      printf("Trying to assign an immediate addressing method to a destination argument of a 'jmp' instruction\n");
+      break;
+
+   case ex35_imm_bne:
+      printf("Trying to assign an immediate addressing method to a destination argument of a 'bne' instruction\n");
+      break;
+
+   case ex35_imm_jsr:
+      printf("Trying to assign an immediate addressing method to a destination argument of a 'jsr' instruction\n");
+      break;
+
+   case ex36_dir_jmp:
+      printf("Trying to assign a direct register addressing method to a destination argument of a 'jmp' instruction\n");
+      break;
+
+   case ex36_dir_bne:
+      printf("Trying to assign a direct register addressing method to a destination argument of a 'bne' instruction\n");
+      break;
+
+   case ex36_dir_jsr:
+      printf("Trying to assign a direct register addressing method to a destination argument of a 'jsr' instruction\n");
       break;
 
    case e37_toomany_prn:
@@ -354,6 +462,15 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
    case e40_toomany_rts_stop:
       printf("Trying to pass an argument as input to a 'rts'/'stop' instruction\n");
       break;
+
+   case ex40_toomany_rts:
+      printf("Trying to pass an argument as input to a 'rts' instruction\n");
+      break;
+
+   case ex40_toomany_stop:
+      printf("Trying to pass an argument as input to a 'stop' instruction\n");
+      break;
+
    case e41_lbl_arg:
       printf("Trying to use an invalid label name as an argument\n");
       break;
@@ -391,13 +508,14 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
 
    case e51_unknown_label:
       printf("A label with the name '%s' is not declared as external and is not defined in the current file\n", state->tmp_arg);
+      break;
 
    case e52_inval_ext:
       printf("Trying to remove extention from a filename '%s' that has no extention\n", state->tmp_arg);
       break;
 
    case e53_ext_chars_after_endmacr:
-      printf("Detected additional characters after 'endmacr'\n");
+      printf("Additional characters after 'endmacr' are not allowed\n");
       break;
 
    case e54_macr_already_defined:
@@ -419,14 +537,20 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
    case e58_cannot_insert_macro:
       printf("Failed to insert macro '%s' to macro table\n", state->tmp_arg);
       break;
+
+   case e59_label_redef:
+      printf("Label with the name '%s' is already defined\n", state->tmp_arg);
+      break;
+
+
+
+
+
+
+
    default:
       break;
 
    }
-
-
-
-
-
 
 }

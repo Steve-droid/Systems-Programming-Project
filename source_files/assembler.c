@@ -38,15 +38,14 @@ int main(int argc, char **argv) {
         /*Initialize the macro table*/
         m_table = pre_assemble(fnames->as[i], fnames->am[i], keyword_table);
         if (m_table == NULL) {
-            printf("Pre assembly of the file '%s.as' has failed.\n", argv[1]);
-            reset_main(0, NULL, NULL, &keyword_table, NULL, NULL);
+            printf("Pre assembly of the file '%s.as' has failed.\n", argv[i]);
             continue;
         }
         /* Initialize the label table */
         _label_table = fill_label_table(fnames->am[i], m_table, keyword_table);
         if (_label_table == NULL) {
             printf("Assembly of the file '%s.as' has failed\n", fnames->generic[i]);
-            reset_main(argc - 1, NULL, &m_table, NULL, &_label_table, NULL);
+            reset_main(argc - 1, NULL, &m_table, NULL, NULL, NULL);
             continue;
         }
 
