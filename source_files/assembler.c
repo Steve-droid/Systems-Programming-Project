@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
         /* Initialize the label table */
         _label_table = fill_label_table(fnames->am[i], m_table, keyword_table);
         if (_label_table == NULL) {
-            printf("Assembly of the file '%s' has failed\n", fnames->generic[i]);
+            printf("Assembly of the file '%s.as' has failed\n", fnames->generic[i]);
             reset_main(argc - 1, NULL, &m_table, NULL, &_label_table, NULL);
             continue;
         }
@@ -54,24 +54,24 @@ int main(int argc, char **argv) {
         _inst_table = lex(fnames->am[i], fnames->as[i], _label_table, keyword_table, &syntax_error_count);
 
         if (syntax_error_count != 0) {
-            printf("Assembly of the file '%s' has failed as a result of %d syntax errors.\n", fnames->generic[i], syntax_error_count);
+            printf("Assembly of the file '%s.as' has failed as a result of %d syntax errors.\n", fnames->generic[i], syntax_error_count);
             reset_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
             continue;
         }
 
         if (_inst_table == NULL) {
-            printf("Assembly of the file '%s' has failed as a result of an internal system error.\n", fnames->generic[i]);
+            printf("Assembly of the file '%s.as' has failed as a result of an internal system error.\n", fnames->generic[i]);
             reset_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
             continue;
         }
 
         if (parse(_inst_table, _label_table, keyword_table, fnames->am[i]) != STATUS_OK) {
             reset_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
-            printf("Assembly of the file '%s' has failed.\n", fnames->generic[i]);
+            printf("Assembly of the file '%s.as' has failed.\n", fnames->generic[i]);
             continue;
         }
         else {
-            printf("Assembly of the file '%s' completed successfully.\n", fnames->generic[i]);
+            printf("Assembly of the file '%s.as' completed successfully.\n", fnames->generic[i]);
         }
 
         reset_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
