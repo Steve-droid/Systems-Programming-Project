@@ -196,7 +196,6 @@ filenames *generate_filenames(int file_amount, char **argv, filenames *fnames) {
     fnames->am = am;
     fnames->as = as;
     fnames->generic = generic;
-    _status = STATUS_ERROR;
 
 
     /* Create a vector that holds generic filenames- a duplicate of argv */

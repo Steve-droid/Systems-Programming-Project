@@ -386,10 +386,10 @@ void print_instruction_table(inst_table *_inst_table, label_table *_label_table)
     printf("\n######################################################\n");
     printf("Printing instruction table:");
     printf("\n######################################################\n");
-    printf("Number of instructions: %ld\n", _inst_table->num_instructions);
-    printf("Capacity: %ld\n", _inst_table->capacity);
-    printf("IC: %ld\n", _inst_table->IC);
-    printf("DC: %ld\n", _inst_table->DC);
+    printf("Number of instructions: %lu\n", _inst_table->num_instructions);
+    printf("Capacity: %lu\n", _inst_table->capacity);
+    printf("IC: %lu\n", _inst_table->IC);
+    printf("DC: %lu\n", _inst_table->DC);
     printf("\n---------------------------------------------------------\n");
     printf("Printing instructions:");
     printf("\n---------------------------------------------------------\n");
@@ -405,7 +405,7 @@ void print_instruction_table(inst_table *_inst_table, label_table *_label_table)
 
 size_t DC(int prompt, size_t amount)
 {
-    static size_t _DC = 0;
+    static int _DC = 0;
     if (prompt == RESET) {
         _DC = 0;
         return _DC;
@@ -423,7 +423,7 @@ size_t DC(int prompt, size_t amount)
 
 size_t IC(int prompt, size_t amount)
 {
-    static size_t _IC = 100;
+    static int _IC = 100;
 
     if (prompt == RESET) {
         _IC = 100;

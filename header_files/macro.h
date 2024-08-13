@@ -89,9 +89,6 @@ void destroy_macro_table(macro_table **table);
 void destroy_macro(macro **macro);
 
 
-status print_macro_lines(macro *mac);
-
-status print_macro_table(macro_table *table);
 
 
 #endif

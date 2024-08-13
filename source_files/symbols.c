@@ -1,6 +1,6 @@
 #include "symbols.h"
 #define PADDING 2
-#define INITIAL_CAPACITY 10
+#define INITIAL_CAPACITY 15
 
 /**
  *@brief Creates a table of keywords and their corresponding keys

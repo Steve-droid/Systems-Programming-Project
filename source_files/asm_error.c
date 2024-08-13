@@ -64,6 +64,7 @@ void quit_pre_assembler(syntax_state **state, macro_table **_macro_table, FILE *
 void quit_label_parsing(label_table **_label_table, syntax_state **state, FILE *am_file_ptr, char *label_name) {
    destroy_label_table(_label_table);
    destroy_syntax_state(state);
+   free(label_name);
    if (am_file_ptr) fclose(am_file_ptr);
 }
 
@@ -83,9 +84,8 @@ void print_system_error(system_state *sys_state, syntax_state *syn_state, error_
       printf("Failed to allocate memory for the instruction table structre.\n");
       break;
    case m5_inst_insert:
-
-
-      printf("Error in file %s: line %d: '%s' - ", syn_state->as_filename, syn_state->line_number, syn_state->buffer_without_offset);
+      if (syn_state)
+         printf("Error in file %s: line %d: '%s' - ", syn_state->as_filename, syn_state->line_number, syn_state->buffer_without_offset);
       printf("Failed to insert instruction to instruction table.\n");
       break;
    case m6_tok_gen_mem:
@@ -214,7 +214,7 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
    }
 
 
-   printf("Syntax Error: In file %s: On line %d: '%s': ", state->as_filename, state->line_number, state->buffer_without_offset);
+   printf("(%s on line %d)~ '%s': ", state->as_filename, state->line_number, state->buffer_without_offset);
    switch (e_code) {
 
       /* General errors */

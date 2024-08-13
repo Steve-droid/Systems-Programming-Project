@@ -121,6 +121,10 @@ macro_table *pre_assemble(char *as_filename, char *am_filename, keyword *keyword
 
         state->buffer[strcspn(state->buffer, "\n")] = '\0'; /* Null terminate line */
 
+        state->buffer = trim_whitespace(state->buffer); /* Remove leading and trailing whitespace */
+
+        if (state->buffer[0] == '\0' || state->buffer[0] == '\n' || state->buffer[0] == ';') continue; /* Skip empty lines and comments */
+
 
         sscanf(state->buffer, "%s", first_word); /* Extract first word in the line */
 
