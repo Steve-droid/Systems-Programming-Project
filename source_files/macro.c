@@ -8,7 +8,8 @@
  */
 status create_macro(char *macro_name, macro **new_macro) {
     *new_macro = (macro *)malloc(sizeof(macro));
-    if (*new_macro == NULL) err(errno, "*** ERROR ***\nFailed to allocate memory for a new macro");
+    if (*new_macro == NULL)
+        return STATUS_ERROR_MEMORY_ALLOCATION;
     (*new_macro)->name = my_strdup(macro_name);
     (*new_macro)->lines = NULL;
     (*new_macro)->line_capacity = 0;
@@ -21,7 +22,8 @@ status insert_line_to_macro(macro *mac, char *line) {
 
     if (mac->lines == NULL) {
         mac->lines = (char **)malloc(sizeof(char *) * INITIAL_MACRO_CAPACITY);
-        if (mac->lines == NULL) err(errno, "*** ERROR ***\nFailed to reallocate memory for macro lines");
+        if (mac->lines == NULL)
+            return STATUS_ERROR_MEMORY_ALLOCATION;
         mac->line_capacity = INITIAL_MACRO_CAPACITY;
     }
 
@@ -29,11 +31,14 @@ status insert_line_to_macro(macro *mac, char *line) {
         mac->line_capacity = mac->line_count + 1;
         mac->lines = (char **)realloc(mac->lines, mac->line_capacity * sizeof(char *));
         if (mac->lines == NULL) {
-            err(errno, "*** ERROR ***\nFailed to allocate memory for macro lines");
+            return STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
 
     mac->lines[mac->line_count] = my_strdup(line);
+    if (mac->lines[mac->line_count] == NULL) {
+        return STATUS_ERROR_MEMORY_ALLOCATION;
+    }
     mac->line_count++;
     return STATUS_OK;
 }
@@ -43,11 +48,11 @@ status insert_line_to_macro(macro *mac, char *line) {
  *
  * @return macro_table*
  */
-macro_table *create_macro_table(void) {
+macro_table *create_macro_table() {
 
     macro_table *m_table = (macro_table *)malloc(sizeof(macro_table));
     if (m_table == NULL) {
-        err(errno, "*** ERROR ***\nFailed to allocate memory for macro table");
+        return NULL;
     }
 
     m_table->macros = NULL;
@@ -80,7 +85,7 @@ status insert_macro_to_table(macro_table *table, macro *macr) {
         table->capacity = table->macro_count + 1;
         table->macros = (macro **)realloc(table->macros, table->capacity * sizeof(macro *));
         if (table->macros == NULL) {
-            macro_table_destructor(&table);
+            destroy_macro_table(&table);
             return STATUS_ERROR_MEMORY_ALLOCATION;
         }
     }
@@ -127,7 +132,7 @@ macro_table *get_macro_table(void) {
  *
  * @param macro The macro to destroy
  */
-void macro_destructor(macro **mac) {
+void destroy_macro(macro **mac) {
     int index;
 
     for (index = 0;index < (*mac)->line_count;index++) {
@@ -145,7 +150,7 @@ void macro_destructor(macro **mac) {
  *
  * @param table The macro table to destroy
  */
-void macro_table_destructor(macro_table **table) {
+void destroy_macro_table(macro_table **table) {
     int i;
 
     if (table == NULL) return;
@@ -153,7 +158,7 @@ void macro_table_destructor(macro_table **table) {
     if ((*table) && (*table)->macros) {
 
         for (i = 0; i < (*table)->macro_count; i++) {
-            macro_destructor(&((*table)->macros[i]));
+            destroy_macro(&((*table)->macros[i]));
 
         }
 

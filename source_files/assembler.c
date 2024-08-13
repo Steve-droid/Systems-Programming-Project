@@ -20,18 +20,13 @@ int main(int argc, char **argv) {
     fnames = generate_filenames(argc - 1, argv, fnames);
 
     if (fnames == NULL) {
-        printf("Failed to create filenames. Exiting...\n");
         return EXIT_FAILURE;
     }
 
     /*Initialize the keyword table*/
     keyword_table = fill_keyword_table();
     if (keyword_table == NULL) {
-        /**
-         *@todo Free all memory
-         *
-        */
-
+        reset_main(argc - 1, &fnames, NULL, NULL, NULL, NULL);
         return EXIT_FAILURE;
     }
 
@@ -41,17 +36,17 @@ int main(int argc, char **argv) {
         DC(RESET, 0);
 
         /*Initialize the macro table*/
-        m_table = fill_macro_table(fnames->am[i], fnames->as[i], keyword_table);
+        m_table = pre_assemble(fnames->as[i], fnames->am[i], keyword_table);
         if (m_table == NULL) {
             printf("Pre assembly of the file '%s.as' has failed.\n", argv[1]);
-            quit_main(0, NULL, NULL, &keyword_table, NULL, NULL);
-            break;
+            reset_main(0, NULL, NULL, &keyword_table, NULL, NULL);
+            continue;
         }
         /* Initialize the label table */
         _label_table = fill_label_table(fnames->am[i], m_table, keyword_table);
         if (_label_table == NULL) {
             printf("Assembly of the file '%s' has failed\n", fnames->generic[i]);
-            quit_main(argc - 1, NULL, &m_table, NULL, &_label_table, NULL);
+            reset_main(argc - 1, NULL, &m_table, NULL, &_label_table, NULL);
             continue;
         }
 
@@ -60,18 +55,18 @@ int main(int argc, char **argv) {
 
         if (syntax_error_count != 0) {
             printf("Assembly of the file '%s' has failed as a result of %d syntax errors.\n", fnames->generic[i], syntax_error_count);
-            quit_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
+            reset_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
             continue;
         }
 
         if (_inst_table == NULL) {
             printf("Assembly of the file '%s' has failed as a result of an internal system error.\n", fnames->generic[i]);
-            quit_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
+            reset_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
             continue;
         }
 
         if (parse(_inst_table, _label_table, keyword_table, fnames->am[i]) != STATUS_OK) {
-            quit_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
+            reset_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
             printf("Assembly of the file '%s' has failed.\n", fnames->generic[i]);
             continue;
         }
@@ -79,12 +74,12 @@ int main(int argc, char **argv) {
             printf("Assembly of the file '%s' completed successfully.\n", fnames->generic[i]);
         }
 
-        quit_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
+        reset_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
 
     }
 
     printf("No more files to process.\n");
-    quit_main(argc - 1, &fnames, &m_table, &keyword_table, &_label_table, &_inst_table);
+    reset_main(argc - 1, &fnames, &m_table, &keyword_table, &_label_table, &_inst_table);
 
     return EXIT_SUCCESS;
 }

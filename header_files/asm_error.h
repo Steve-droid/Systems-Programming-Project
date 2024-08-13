@@ -18,7 +18,9 @@ typedef enum {
    m5_inst_insert,
    m6_tok_gen_mem,
    m7_generic_creation,
-   m8_rmv_ext,
+   m9_create_sys_state,
+   m10_create_backup_filename,
+
 
    /* File handling errors */
    f1_file_open,
@@ -26,15 +28,16 @@ typedef enum {
    f3_backup,
    f4_am_creation,
    f5_tmp_file,
-   f6_open_tmp_file,
+   f6_open_tmpfile,
    f7_write_to_tmp_file,
    f8_line_mismatch,
    f9_rmv_original,
    f10_rename_tmp,
-   
+   f11_bckup_null,
+
    /* General errors */
    e1_undef_cmd,
-   e2_tokgen, 
+   e2_tokgen,
    e3_addr_assign,
    e4_extra_comma,
    e5_missing_args,
@@ -85,6 +88,13 @@ typedef enum {
    e50_direct_reg_num_not_in_range,
    e51_unknown_label,
    e52_inval_ext,
+   e53_ext_chars_after_endmacr,
+   e54_macr_already_defined,
+   e55_macro_not_found,
+   e56_macro_name_not_valid,
+   e57_macroname_same_as_keyword,
+   e58_cannot_insert_macro,
+
 
 
    /* Notes  */
@@ -92,9 +102,19 @@ typedef enum {
 
 } error_code;
 
-void quit_main(int file_amount, filenames **fnames, macro_table **_macro_table, keyword **keyword_table, label_table **_label_table, inst_table **_instruction_table);
+void reset_main(int file_amount, filenames **fnames, macro_table **_macro_table, keyword **keyword_table, label_table **_label_table, inst_table **_instruction_table);
 void quit_filename_creation(filenames **fnames);
 void quit_lex(syntax_state **state, inst_table **_inst_table, FILE *am_file_ptr);
-void my_perror(syntax_state *state, error_code e_code);
+void quit_pre_assembler(syntax_state **state, macro_table **_macro_table, FILE *am_file_ptr, FILE *as_file_ptr);
+
+
+
+
+void print_syntax_error(syntax_state *state, error_code e_code);
+void print_system_error(system_state *sys_state, syntax_state *syn_state, error_code e_code);
+
+
+
+
 
 #endif

@@ -304,6 +304,20 @@ typedef struct syntax_state {
     int is_extern;
 } syntax_state;
 
+typedef struct {
+    char *am_filename;
+    char *as_filename;
+    char *generic_filename;
+    char *full_filename;
+    char *tmp;
+
+    int backup_fnames_count;
+    int filename_count;
+    int original_line_count;
+    int cleaned_line_count;
+
+}system_state;
+
 
 typedef struct {
     char **am;

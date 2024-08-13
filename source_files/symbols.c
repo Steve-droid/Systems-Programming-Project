@@ -56,7 +56,7 @@ keyword_name identify_command(syntax_state *state, label_table *_label_table, ke
             if (strlen(command_name) > strlen(keyword_table[i].name)) {
                 state->k_table = keyword_table;
                 state->index = i;
-                my_perror(state, n1_prefix_op);
+                print_syntax_error(state, n1_prefix_op);
                 return UNDEFINED;
             }
 
@@ -481,7 +481,7 @@ addressing_method get_addressing_method(syntax_state *state, char *sub_inst, lab
             return UNDEFINED_METHOD;
         }
         if (sub_inst[1] != '-' && sub_inst[1] != '+' && !isdigit(sub_inst[1])) {
-            my_perror(state, e42_imm_val_not_digit);
+            print_syntax_error(state, e42_imm_val_not_digit);
             return UNDEFINED_METHOD;
         }
         if (sub_inst[1] == '-' || sub_inst[1] == '+') {
@@ -491,7 +491,7 @@ addressing_method get_addressing_method(syntax_state *state, char *sub_inst, lab
         }
         for (i = 2; i < (int)strlen(sub_inst); i++) {
             if (!isdigit(sub_inst[i])) {
-                my_perror(state, e46_imm_inv_after_pm);
+                print_syntax_error(state, e46_imm_inv_after_pm);
                 return UNDEFINED_METHOD;
             }
         }
@@ -508,15 +508,15 @@ addressing_method get_addressing_method(syntax_state *state, char *sub_inst, lab
     /* case 2 */
     if (sub_inst[0] == '*') {
         if (sub_inst[1] == '\0' || sub_inst[1] != 'r') {
-            my_perror(state, e43_inval_indirect_reg);
+            print_syntax_error(state, e43_inval_indirect_reg);
             return UNDEFINED_METHOD;
         }
         if (sub_inst[2] == '\0' || sub_inst[2] < '0' || sub_inst[2] > '7') {
-            my_perror(state, e44_indirect_reg_number_not_in_range);
+            print_syntax_error(state, e44_indirect_reg_number_not_in_range);
             return UNDEFINED_METHOD;
         }
         if (sub_inst[3] != '\0') {
-            my_perror(state, e47_ext_chars_after_indirect_reg);
+            print_syntax_error(state, e47_ext_chars_after_indirect_reg);
             return UNDEFINED_METHOD;
         }
         return INDIRECT_REGISTER;
@@ -526,11 +526,11 @@ addressing_method get_addressing_method(syntax_state *state, char *sub_inst, lab
 
     if (sub_inst[0] == 'r') {
         if (sub_inst[1] == '\0' || sub_inst[1] < '0' || sub_inst[1] > '7') {
-            my_perror(state, e50_direct_reg_num_not_in_range);
+            print_syntax_error(state, e50_direct_reg_num_not_in_range);
             return UNDEFINED_METHOD;
         }
         if (sub_inst[2] != '\0') {
-            my_perror(state, e49_ext_chars_after_direct_reg);
+            print_syntax_error(state, e49_ext_chars_after_direct_reg);
             return UNDEFINED_METHOD;
         }
         return DIRECT_REGISTER;
@@ -539,7 +539,7 @@ addressing_method get_addressing_method(syntax_state *state, char *sub_inst, lab
 
     /* else - not direct */
 
-    my_perror(state, e51_unknown_label);
+    print_syntax_error(state, e51_unknown_label);
     return UNDEFINED_METHOD;
 }
 

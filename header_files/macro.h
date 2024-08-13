@@ -79,14 +79,14 @@ macro_table *get_macro_table(void);
  *
  * @param table The macro table to destroy
  */
-void macro_table_destructor(macro_table **table);
+void destroy_macro_table(macro_table **table);
 
 /**
  * @brief Destroy a macro object
  *
  * @param macro The macro to destroy
  */
-void macro_destructor(macro **macro);
+void destroy_macro(macro **macro);
 
 
 status print_macro_lines(macro *mac);

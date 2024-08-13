@@ -40,12 +40,12 @@ static validation_state init_lexer(char *am_filename, char *as_filename, label_t
 
 	if (am_filename == NULL) {
 		printf("Trying to run lexer with a null '.am' filename.\n");
-		am_filename = (char*)invalid;
+		am_filename = (char *)invalid;
 	}
 
 	if (as_filename == NULL) {
 		printf("Trying to run lexer with a null '.as' filename.\n");
-		as_filename = (char*)invalid;
+		as_filename = (char *)invalid;
 	}
 
 	if (_label_table == NULL) {
@@ -73,15 +73,11 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 
 	file = my_fopen(am_filename, "r");
 	if (file == NULL) {
-		my_perror(state, f1_file_open);
 		return NULL;
 	}
 
 	state = create_syntax_state();
-
-
 	if (state == NULL) {
-		my_perror(state, m2_syntax_state);
 		fclose(file);
 		return NULL;
 	}
@@ -91,14 +87,14 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 
 	/* Create an instance of an instruction table */
 	if (create_instruction_table(&_inst_table) != STATUS_OK) {
-		my_perror(state, m3_inst_tab_creation);
+		print_syntax_error(state, m3_inst_tab_creation);
 		quit_lex(&state, &_inst_table, file);
 		return NULL;
 	}
 
 	while (fgets(state->buffer, MAX_LINE_LENGTH, file)) { /* Read every line */
 		if (create_instruction(&state->_inst) != STATUS_OK) {
-			my_perror(state, m4_inst_creation);
+			print_syntax_error(state, m4_inst_creation);
 			quit_lex(&state, &_inst_table, file);;
 			return NULL;
 		}
@@ -140,7 +136,7 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 
 		/* If the command does not exist, exit */
 		if (state->cmd_key == UNDEFINED) {
-			my_perror(state, e1_undef_cmd);
+			print_syntax_error(state, e1_undef_cmd);
 			destroy_instruction(&(state->_inst));
 			state->buffer = state->buffer_without_offset;
 			state->buffer_without_offset = NULL;
@@ -165,7 +161,7 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 
 		/* Insert the instruction to the instruction table */
 		if (insert_inst_to_table(_inst_table, state->_inst) != STATUS_OK) {
-			my_perror(state, m5_inst_insert);
+			print_system_error(NULL, state, m5_inst_insert);
 			quit_lex(&state, &_inst_table, file);
 			return NULL;
 		}
@@ -206,7 +202,7 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 
 	/* Check if the command exists */
 	if (cmd_index == UNDEFINED_KEYWORD) {
-		my_perror(state, e1_undef_cmd);
+		print_syntax_error(state, e1_undef_cmd);
 		return STATUS_ERROR;
 	}
 
@@ -224,7 +220,7 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 
 		state->_inst->opcode = get_command_opcode(_keyword_table, state->cmd_key);
 		if (state->_inst->opcode < 0 || state->_inst->opcode>15) {
-			my_perror(state, e9_inval_opcode);
+			print_syntax_error(state, e9_inval_opcode);
 			return STATUS_ERROR;
 		}
 
@@ -264,7 +260,7 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 
 	/* Check if there is a comma between the command and the arguments */
 	if (state->buffer && state->buffer[FIRST_ARG] == ',') {
-		my_perror(state, e4_extra_comma);
+		print_syntax_error(state, e4_extra_comma);
 		return STATUS_ERROR;
 	}
 
@@ -293,7 +289,7 @@ static status assign_data(syntax_state *state, label_table *_label_table, keywor
 
 	/* If the command is neither .data, .string, .entry, nor .extern, return an error */
 	if (!state->is_data && !state->is_string && !state->is_entry && !state->is_extern) {
-		my_perror(state, e1_undef_cmd);
+		print_syntax_error(state, e1_undef_cmd);
 		return STATUS_ERROR;
 	}
 
@@ -403,7 +399,7 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 
 		/* Check if the intruction terminated before any arguments arguments are found */
 		if (_instruction_args && (_instruction_args[state->index] == '\0' || _instruction_args[state->index] == '\n')) {
-			my_perror(state, e5_missing_args);
+			print_syntax_error(state, e5_missing_args);
 			return STATUS_ERROR;
 		}
 
@@ -452,7 +448,7 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 		/* If we reached the end of the argument section, break out of the loop */
 		if (state->null_terminator || state->new_line) {
 			if (state->arg_count < (state->_inst->num_tokens - 1)) {
-				my_perror(state, e5_missing_args);
+				print_syntax_error(state, e5_missing_args);
 				return STATUS_ERROR;
 			}
 		}
@@ -474,14 +470,14 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 
 		/*Check if there are multiple consecutive commas*/
 		if ((state->comma == true) && _instruction_args && *(_instruction_args) == ',') {
-			my_perror(state, e10_series_of_commas);
+			print_syntax_error(state, e10_series_of_commas);
 			return STATUS_ERROR;
 		}
 
 		/* If there is no comma after the last argument check if there are any more arguments */
 		if ((state->comma == true) && (state->null_terminator || state->new_line) && state->arg_count == (state->_inst->num_tokens - 1)) {
 			/* If the argument count is less than the number of expected arguments, there is a missing comma */
-			my_perror(state, e11_missing_comma);
+			print_syntax_error(state, e11_missing_comma);
 			return STATUS_ERROR;
 		}
 
@@ -511,13 +507,13 @@ static status assign_args(syntax_state *state, label_table *_label_table, keywor
 	}
 
 	if (_instruction_args[0] != '\0' && _instruction_args[0] != '\n') {
-		my_perror(state, e12_too_much_args);
+		print_syntax_error(state, e12_too_much_args);
 		return STATUS_ERROR;
 	}
 
 	state->comma = *(_instruction_args) == ',';
 	if (state->comma == true) {
-		my_perror(state, e13_comma_after_last_arg);
+		print_syntax_error(state, e13_comma_after_last_arg);
 		return STATUS_ERROR;
 	}
 
@@ -536,19 +532,19 @@ static validation_state process_data_command(syntax_state *state, label_table *_
 
 	trim_whitespace(&line[i]);
 	/* 	if (line[0] == ',') {
-			my_perror(state, e14_comma_before_data);
+			print_syntax_error(state, e14_comma_before_data);
 			return invalid;
 		} */
 	if (!(isdigit(line[i]) || line[i] == '-' || line[i] == '+' || line[i] == ',' || line[i] == '\0' || line[i] == '\n' || isspace(line[i]))) {
-		my_perror(state, e15_inval_data_symbol);
+		print_syntax_error(state, e15_inval_data_symbol);
 		return invalid;
 	}
 	if (state->end_of_argument_by_space && line[i] != ',' && line[i] != '\0' && line[i] != '\n') {
-		my_perror(state, e16_no_comma_betw_ints_data);
+		print_syntax_error(state, e16_no_comma_betw_ints_data);
 		return invalid;
 	}
 	if (state->comma && line[i] == ',') {
-		my_perror(state, e17_extre_comma_data_mid);
+		print_syntax_error(state, e17_extre_comma_data_mid);
 		return invalid;
 	}
 
@@ -563,7 +559,7 @@ static validation_state process_data_command(syntax_state *state, label_table *_
 	}
 	if (line[i] == '\n' || line[i + 1] == '\n' || line[i] == '\0' || line[i + 1] == '\0') {
 		if (state->comma) {
-			my_perror(state, e18_extra_comma_data_end);
+			print_syntax_error(state, e18_extra_comma_data_end);
 			return invalid;
 		}
 		if (validate_data_members(state) == invalid) {
@@ -598,15 +594,15 @@ static validation_state process_string_command(syntax_state *state, label_table 
 
 	if (line[i + 1] == '\n' || line[i + 1] == '\0') {
 		if (!state->first_quatiotion_mark && !state->last_quatiotion_mark) {
-			my_perror(state, e21_str_no_qm);
+			print_syntax_error(state, e21_str_no_qm);
 			return invalid;
 		}
 		else if (!state->first_quatiotion_mark && state->last_quatiotion_mark) {
-			my_perror(state, e22_str_no_qm_start);
+			print_syntax_error(state, e22_str_no_qm_start);
 			return invalid;
 		}
 		if (state->first_quatiotion_mark && !state->last_quatiotion_mark) {
-			my_perror(state, e23_str_no_qm_end);
+			print_syntax_error(state, e23_str_no_qm_end);
 			return invalid;
 		}
 		{
@@ -663,7 +659,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	if (state->_inst->dest_addressing_method != NO_ADDRESSING_METHOD) contains_dest_addressing = true;
 
 	if (contains_dest_addressing && contains_src_addressing) {
-		my_perror(state, e26_third_assignment);
+		print_syntax_error(state, e26_third_assignment);
 		return invalid;
 	}
 
@@ -683,7 +679,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	case SUB:
 		if (contains_src_addressing) {/*Check dest addressing */
 			if (_addressing_method == IMMEDIATE) {
-				my_perror(state, e28_inval_method_mov_add_sub);
+				print_syntax_error(state, e28_inval_method_mov_add_sub);
 				return invalid;
 			}
 
@@ -692,7 +688,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 			break;
 		}
 		if (contains_dest_addressing) {
-			my_perror(state, e26_third_assignment);
+			print_syntax_error(state, e26_third_assignment);
 			return invalid;
 		}
 		state->_inst->src_addressing_method = _addressing_method;
@@ -704,7 +700,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 		}
 
 		if (contains_dest_addressing) {
-			my_perror(state, e39_cmp_extra_args);
+			print_syntax_error(state, e39_cmp_extra_args);
 			return invalid;
 		}
 
@@ -714,7 +710,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	case LEA:
 		if (!contains_src_addressing) {
 			if (_addressing_method != DIRECT) {
-				my_perror(state, e7_lea_nondir_src);
+				print_syntax_error(state, e7_lea_nondir_src);
 				return invalid;
 			}
 
@@ -725,7 +721,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 
 		if (!contains_dest_addressing) {
 			if (_addressing_method == IMMEDIATE) {
-				my_perror(state, e29_inval_method_imm_lea);
+				print_syntax_error(state, e29_inval_method_imm_lea);
 				return invalid;
 			}
 			/*If we got here it means that the argument is a dest argument with a valid addressing method*/
@@ -739,17 +735,17 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	case DEC:
 	case RED:
 		if (contains_src_addressing) {
-			my_perror(state, e30_ext_arg_clr_not_inc_dec_red);
+			print_syntax_error(state, e30_ext_arg_clr_not_inc_dec_red);
 			return invalid;
 		}
 
 		if (contains_dest_addressing) {
-			my_perror(state, e31_mult_assign_clr_not_inc_dec_red);
+			print_syntax_error(state, e31_mult_assign_clr_not_inc_dec_red);
 			return invalid;
 		}
 
 		if (_addressing_method == IMMEDIATE) {
-			my_perror(state, e32_imm_clr_not_inc_dec_red);
+			print_syntax_error(state, e32_imm_clr_not_inc_dec_red);
 			return invalid;
 		}
 
@@ -761,22 +757,22 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	case BNE:
 	case JSR:
 		if (contains_src_addressing) {
-			my_perror(state, e33_tomany_jmp_bne_jsr);
+			print_syntax_error(state, e33_tomany_jmp_bne_jsr);
 			return invalid;
 		}
 
 		if (contains_dest_addressing) {
-			my_perror(state, e34_mul_assign_jmp_bne_jsr);
+			print_syntax_error(state, e34_mul_assign_jmp_bne_jsr);
 			return invalid;
 		}
 
 		if (_addressing_method == IMMEDIATE) {
-			my_perror(state, e35_imm_jmp_bne_jsr);
+			print_syntax_error(state, e35_imm_jmp_bne_jsr);
 			return invalid;
 		}
 
 		if (_addressing_method == DIRECT_REGISTER) {
-			my_perror(state, e36_dir_jmp_bne_jsr);
+			print_syntax_error(state, e36_dir_jmp_bne_jsr);
 			return invalid;
 		}
 
@@ -785,12 +781,12 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 
 	case PRN:
 		if (contains_src_addressing) {
-			my_perror(state, e37_toomany_prn);
+			print_syntax_error(state, e37_toomany_prn);
 			return invalid;
 		}
 
 		if (contains_dest_addressing) {
-			my_perror(state, e38_addr_mult_assign_prn);
+			print_syntax_error(state, e38_addr_mult_assign_prn);
 			return invalid;
 		}
 		state->_inst->dest_addressing_method = _addressing_method;
@@ -798,7 +794,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	case RTS:
 	case STOP:
 		if (contains_src_addressing || contains_dest_addressing) {
-			my_perror(state, e40_toomany_rts_stop);
+			print_syntax_error(state, e40_toomany_rts_stop);
 			return invalid;
 		}
 		break;
@@ -865,7 +861,7 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 
 	if (_addressing_method == DIRECT) {
 		if (validate_label_name(state, _label_table, keyword_table) != valid) {
-			my_perror(state, e41_lbl_arg);
+			print_syntax_error(state, e41_lbl_arg);
 			return invalid;
 		}
 
@@ -1066,7 +1062,7 @@ static validation_state validate_data_members(syntax_state *state) {
 		trim_whitespace(&buffer[i]);
 		if (buffer[i] == '-' || buffer[i] == '+') {
 			if (number == true && minus_or_plus == true) { /*in case of 1,2,3-,4 or 1,+-2,3,4*/
-				my_perror(state, e19_pm_wrong_position);
+				print_syntax_error(state, e19_pm_wrong_position);
 				return invalid;
 			}
 			minus_or_plus = true;
@@ -1074,7 +1070,7 @@ static validation_state validate_data_members(syntax_state *state) {
 		}
 		else if (buffer[i] == ',') {
 			if (minus_or_plus == true) { /*in case of 1,-,2,3 */
-				my_perror(state, e20_pm_no_int);
+				print_syntax_error(state, e20_pm_no_int);
 				return invalid;
 			}
 			number = false;

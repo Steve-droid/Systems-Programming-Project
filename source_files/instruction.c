@@ -31,7 +31,7 @@ status create_instruction(inst **new_instruction) {
     _inst->tokens = (char **)calloc(INITIAL_NUM_TOKENS, sizeof(char *));
     if (_inst->tokens == NULL) {
         free(_inst);
-        printf("Error while allocating memory for new instruction. Exiting...\n");
+        printf("Error while allocating memory for new instruction\n");
         return STATUS_ERROR_MEMORY_ALLOCATION;
     }
 

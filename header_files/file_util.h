@@ -29,20 +29,12 @@
 #define PLUS -50001
 #define MINUS -50002
 #define COMMA -50003
-#define UNUSED(x) (void)(x)
-
-
 
  /* File Utilities */
 void free_filenames(char *p1, ...);
 void close_files(FILE *p1, ...);
 char *add_extension(char *initial_name, char *extension);
-status remove_file_extension(char **full_filename, char **generic_filename);
-status copy_file_contents(char *src_filename, char *dest_filename);
 status remove_whitespace_from_file(char *filename);
-status duplicate_files(char ***backup_filenames, int file_count, char *filenames[], char *extention);
-void delete_filenames(size_t file_amount, char ***filenames);
-FILE *open_file_in_directories(const char *filename, const char *mode);
 filenames *generate_filenames(int file_amount, char **argv, filenames *fnames);
 FILE *my_fopen(const char *filename, const char *mode);
 

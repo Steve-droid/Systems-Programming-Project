@@ -1,8 +1,8 @@
 #include "asm_error.h"
 
-void quit_main(int file_amount, filenames **fnames, macro_table **_macro_table, keyword **keyword_table, label_table **_label_table, inst_table **_instruction_table) {
+void reset_main(int file_amount, filenames **fnames, macro_table **_macro_table, keyword **keyword_table, label_table **_label_table, inst_table **_instruction_table) {
    quit_filename_creation(fnames);
-   macro_table_destructor(_macro_table);
+   destroy_macro_table(_macro_table);
    destroy_keyword_table(keyword_table);
    destroy_label_table(_label_table);
    destroy_instruction_table(_instruction_table);
@@ -13,6 +13,8 @@ void quit_filename_creation(filenames **fnames) {
    filenames *names = NULL;
    if (fnames == NULL || (*fnames == NULL) || (*fnames)->amount == 0)
       return; /* Memory already freed */
+
+
 
    names = (*fnames);
    if (names->am) {
@@ -54,11 +56,15 @@ void quit_lex(syntax_state **state, inst_table **_inst_table, FILE *am_file_ptr)
    if (am_file_ptr) fclose(am_file_ptr);
 }
 
-void my_perror(syntax_state *state, error_code e_code) {
-   char *ptr = NULL;
-   if (e_code < 0) return;
+void quit_pre_assembler(syntax_state **state, macro_table **_macro_table, FILE *am_file_ptr, FILE *as_file_ptr) {
+   destroy_syntax_state(state);
+   destroy_macro_table(_macro_table);
+   if (am_file_ptr) fclose(am_file_ptr);
+   if (as_file_ptr) fclose(as_file_ptr);
+}
 
 
+void print_system_error(system_state *sys_state, syntax_state *syn_state, error_code e_code) {
 
    switch (e_code) {
 
@@ -73,8 +79,9 @@ void my_perror(syntax_state *state, error_code e_code) {
       printf("Failed to allocate memory for the instruction table structre.\n");
       break;
    case m5_inst_insert:
-      if (state)
-         printf("Error in file %s: line %d: '%s' - ", state->as_filename, state->line_number, state->buffer_without_offset);
+
+
+      printf("Error in file %s: line %d: '%s' - ", syn_state->as_filename, syn_state->line_number, syn_state->buffer_without_offset);
       printf("Failed to insert instruction to instruction table.\n");
       break;
    case m6_tok_gen_mem:
@@ -82,18 +89,25 @@ void my_perror(syntax_state *state, error_code e_code) {
       break;
 
    case m7_generic_creation:
-      if (state)
-         printf("Failed to duplicte original filename recieved as command line argument: '%s'\n", state->generic_filename);
-      else printf("Failed to duplicte original filename recieved as command line argumen\n");
+
+      printf("Failed to duplicte original filename recieved as command line argument: '%s'\n", sys_state->generic_filename);
       break;
 
-   case m8_rmv_ext:
-      printf("Memory Error: ");
-      if (state) {
-         printf("In function 'remove_file_extention' - Could not allocate memory for a duplicate of the filename '%s' without extention\n", state->tmp_arg);
-      }
 
-      else printf("In function 'remove_file_extention' - Failed to allocate memory for a duplicate of the original filename without extention\n");
+   case m9_create_sys_state:
+      printf("In 'file_util.c' -> 'create_system_state': ");
+      printf("Failed to allocate memory for syntax state");
+      break;
+
+
+   case m10_create_backup_filename:
+      printf("In 'file_util.c' -> 'dup;icate_filenames': ");
+      printf("Memory allocation error while creating a backup '%s' filename for '%s'\n", sys_state->tmp, sys_state->generic_filename);
+      break;
+
+
+
+
 
 
 
@@ -105,46 +119,66 @@ void my_perror(syntax_state *state, error_code e_code) {
       break;
 
    case f2_as_creation:
-      printf("File Handling Error:  ");
-      printf("Failed to add a '.as' extention for the file '%s'\n", state->generic_filename);
+      printf("In 'file_util.c' -> 'generate_filenames': ");
+      printf("Failed to add a '.as' extention for the file '%s'\n", sys_state->generic_filename);
       break;
    case f3_backup:
-      printf("File Handling Error: ");
-      printf("File backup did not execute properly\n");
+      printf("In 'file_util.c' -> 'generate_filenames': ");
+      printf("File backup has failed\n");
       break;
    case f4_am_creation:
-      printf("File Handling Error:  ");
-      printf("Failed to add a '.am' extention for the file '%s'\n", state->generic_filename);
+      printf("In 'file_util.c' -> 'generate_filenames': ");
+      printf("Failed to add a '.am' extention for the file '%s'\n", sys_state->generic_filename);
       break;
 
    case f5_tmp_file:
-
+      printf("In 'file_util.c' -> 'remove_whitespace_from_file': ");
+      printf("Failed tp create a temporary file for '%s'\n", sys_state->full_filename);
       break;
-   case f6_open_tmp_file:
+   case f6_open_tmpfile:
+      printf("In 'file_util.c' -> 'remove_whitespace_from_file': ");
+      printf("Failed to open tmpfile while removing whitespace from '%s'\n", sys_state->as_filename);
 
       break;
 
    case f7_write_to_tmp_file:
-
+      printf("In 'file_util.c' -> 'remove_whitespace_from_file': ");
+      printf("Failed to write to temporary file while removing whitespace from '%s'\n", sys_state->as_filename);
       break;
 
    case f8_line_mismatch:
+      printf("In 'file_util.c' -> 'remove_whitespace_from_file': ");
+      printf("Line count mismatch: original=%d, cleaned=%d\n", sys_state->original_line_count, sys_state->cleaned_line_count);
 
       break;
 
    case f9_rmv_original:
-
+      printf("In 'file_util.c' -> 'remove_whitespace_from_file': ");
+      printf("Failed to remove original file '%s'\n", sys_state->as_filename);
       break;
 
    case f10_rename_tmp:
-
+      printf("In 'file_util.c' -> 'remove_whitespace_from_file': ");
+      printf("Failed to rename temporary filename to '%s'\n", sys_state->as_filename);
       break;
+   case f11_bckup_null:
+      printf("In 'file_util.c' -> 'duplicate_files': ");
+      printf("Filenames array contains a null filename.\n");
+
+
 
 
    default:
       break;
    }
 
+
+
+}
+
+void print_syntax_error(syntax_state *state, error_code e_code) {
+   char *ptr = NULL;
+   if (e_code < 0) return;
 
    switch (e_code) {
    case n1_prefix_op:
@@ -362,7 +396,29 @@ void my_perror(syntax_state *state, error_code e_code) {
       printf("Trying to remove extention from a filename '%s' that has no extention\n", state->tmp_arg);
       break;
 
+   case e53_ext_chars_after_endmacr:
+      printf("Detected additional characters after 'endmacr'\n");
+      break;
 
+   case e54_macr_already_defined:
+      printf("Macro with the name '%s' is already defined\n", state->tmp_arg);
+      break;
+
+   case e55_macro_not_found:
+      printf("Failed to expand macro with the name '%s'\n", state->tmp_arg);
+      break;
+
+   case e56_macro_name_not_valid:
+      printf("Macro name definition contains more than one word.\n");
+      break;
+
+   case e57_macroname_same_as_keyword:
+      printf("Trying to define a macro with the same name as a keyword '%s'\n", state->tmp_arg);
+      break;
+
+   case e58_cannot_insert_macro:
+      printf("Failed to insert macro '%s' to macro table\n", state->tmp_arg);
+      break;
    default:
       break;
 

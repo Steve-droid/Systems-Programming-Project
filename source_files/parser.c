@@ -489,7 +489,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     if (create_ent) {
         entry_output_filename = (char *)calloc(am_filename_len + 2, sizeof(char));
         if (entry_output_filename == NULL) {
-            return STATUS_ERROR;
+            return STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
         strncpy(entry_output_filename, am_filename, am_filename_len);
