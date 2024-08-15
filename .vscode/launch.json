@@ -2,17 +2,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug Assembler",
+            "name": "(lldb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/assembler",
-            "args": ["ex4"],
+            "program": "${workspaceFolder}/Test",  // Path to the executable
+            "args": ["test.as"],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}",  // Set the working directory to the project folder
+            "environment": [],
+            "externalConsole": false,  // Use internal console
+            "MIMode": "lldb",
             "preLaunchTask": "build",
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -21,8 +21,11 @@
                 }
             ],
             "logging": {
-                "engineLogging": true
-            }
+                "engineLogging": false,  // Disable engine logging
+                "trace": false,  // Disable tracing
+                "traceResponse": false  // Disable trace response
+            },
+            "internalConsoleOptions": "openOnSessionStart"  // Ensure internal console is used
         }
     ]
 }
