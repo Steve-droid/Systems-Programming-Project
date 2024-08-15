@@ -24,7 +24,7 @@ keyword *fill_keyword_table();
  * @param keywords_table The table of keywords and their corresponding keys
  * @return label_table* The table of labels created from the assembly file
  */
-label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *keywords_table);
+label_table *fill_label_table(char *am_filename,char* as_filename, macro_table *m_table, keyword *keywords_table);
 
 /**
  *@brief Get a keyword by its name
@@ -155,7 +155,7 @@ register_name get_register_number(char *register_as_string);
  * @param entry_or_ext A pointer to the status of the label (entry or external) to update
  * @return status The status of the validation operation
  */
-validation_state label_name_is_valid(label_table *_label_table, char *_buffer, keyword *keywords_table, macro_table *_macro_table, status *entry_or_ext);
+validation_state label_name_is_valid(label_table *_label_table, syntax_state* state, keyword *keywords_table, macro_table *_macro_table, status *entry_or_ext);
 
 
 /**

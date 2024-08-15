@@ -9,8 +9,8 @@ sub r1
 dec K,2
 jmp LOOP
 END: stopit!
-STR 34: .string "abcd"
-LIST: .data  6, -9
+ST<R34: .string "abcd"
+LIS`T: .data  6, -9
 .data -100
 K: .data  31
 add r1, r2

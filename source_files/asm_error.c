@@ -190,6 +190,7 @@ void print_system_error(system_state *sys_state, syntax_state *syn_state, error_
 
 void print_syntax_error(syntax_state *state, error_code e_code) {
    char *ptr = NULL;
+   char *tmp = NULL;
    if (e_code < 0) return;
 
    switch (e_code) {
@@ -542,11 +543,33 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       printf("Label with the name '%s' is already defined\n", state->tmp_arg);
       break;
 
+   case e60_label_name_is_too_long:
+      printf("Label name '%s' is too long. Max length is %d\n", state->buffer, MAX_LABEL_LENGTH);
+      break;
 
+   case e61_label_name_is_keyword:
+      printf("Label name cannot be the same as the keyword '%s'\n", state->buffer);
+      break;
 
+   case e62_label_name_is_macro:
+      printf("Label name '%s' is already defined as a macro\n", state->buffer);
+      break;
 
+   case e63_label_name_not_alphanumeric:
+      tmp = my_strdup(state->buffer);
+      ptr = strchr(tmp, ':');
+      if (ptr) *ptr = '\0';
+      printf("Label name '%s' contains non-alphanumeric characters\n", tmp);
+      free(tmp);
+      break;
 
-
+   case e64_whitespace_between_label_and_colon:
+      tmp = my_strdup(state->buffer);
+      ptr = strchr(tmp, ':');
+      if (ptr) *ptr = '\0';
+      printf("Label name '%s' contains whitespace between the name and the colon\n", tmp);
+      free(tmp);
+      break;
 
    default:
       break;

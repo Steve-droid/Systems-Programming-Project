@@ -135,6 +135,11 @@ typedef enum {
    e57_macroname_same_as_keyword,
    e58_cannot_insert_macro,
    e59_label_redef,
+   e60_label_name_is_too_long,
+   e61_label_name_is_keyword,
+   e62_label_name_is_macro,
+   e63_label_name_not_alphanumeric,
+   e64_whitespace_between_label_and_colon,
 
 
 

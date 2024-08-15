@@ -82,7 +82,7 @@ keyword *fill_keyword_table() {
     return keywords_table;
 }
 
-label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *keywords_table) {
+label_table *fill_label_table(char *am_filename, char *as_filename, macro_table *m_table, keyword *keywords_table) {
     char *label_name = NULL;
     FILE *am_file_ptr = NULL;
     label_table *_label_table = NULL;
@@ -98,6 +98,8 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
         print_system_error(NULL, NULL, m2_syntax_state);
         return NULL;
     }
+
+    state->as_filename = as_filename;
 
     /* Open the .am file for reading lines */
     am_file_ptr = my_fopen(am_filename, "r");
@@ -144,7 +146,7 @@ label_table *fill_label_table(char *am_filename, macro_table *m_table, keyword *
         }
 
 
-        _validation = label_name_is_valid(_label_table, label_name, keywords_table, m_table, &entry_or_external_definition);
+        _validation = label_name_is_valid(_label_table, state, keywords_table, m_table, &entry_or_external_definition);
 
         if (_validation != valid) {
             quit_label_parsing(&_label_table, &state, am_file_ptr, label_name);
@@ -647,30 +649,35 @@ register_name get_register_number(char *register_as_string) {
     return reg;
 }
 
-validation_state label_name_is_valid(label_table *_label_table, char *_buffer, keyword *keywords_table, macro_table *_macro_table, status *entry_or_ext) {
+validation_state label_name_is_valid(label_table *_label_table, syntax_state *state, keyword *keywords_table, macro_table *_macro_table, status *entry_or_ext) {
     int i;
     macro *result_macro = NULL;
     keyword *result_keyword = NULL;
-    char *label_name = _buffer;
+    char *label_name = NULL;
     label *tmp_label = NULL;
 
     /* Check if the label name is NULL or too long */
-    if (_buffer == NULL) {
-        printf("Checking a NULL label name.\n");
+    if (state == NULL) {
         return invalid;
     }
 
+    label_name = state->buffer;
+
     if (strlen(label_name) > MAX_LABEL_LENGTH) {
-        printf("Label name %s is too long. Max label length is %d.\n", label_name, MAX_LABEL_LENGTH);
+        print_syntax_error(state, e60_label_name_is_too_long);
         return invalid;
     }
 
 
 
     /*Check if the label name contains only alphabetical characters and digits */
-    for (i = 0; label_name[i] != '\0'; i++) {
+    for (i = 0; label_name[i] != '\0' && label_name[i] != ':'; i++) {
         if (!(isalpha(label_name[i]) || isdigit(label_name[i]))) {
-            printf("\nLabel name %s contains invalid characters.\n", label_name);
+            if (isspace(label_name[i])) {
+                print_syntax_error(state, e64_whitespace_between_label_and_colon);
+                return invalid;
+            }
+            print_syntax_error(state, e63_label_name_not_alphanumeric);
             return invalid;
         }
     }
@@ -678,14 +685,14 @@ validation_state label_name_is_valid(label_table *_label_table, char *_buffer, k
     /* Check if the label name is a keyword */
     result_keyword = get_keyword_by_name(keywords_table, label_name);
     if (result_keyword != NULL) {
-        printf("\nLabel name %s cannot be a keyword.\n", label_name);
+        print_syntax_error(state, e61_label_name_is_keyword);
         return invalid;
     }
 
     /* Check if the label name is a macro name */
     result_macro = get_macro(_macro_table, label_name);
     if (result_macro != NULL) {
-        printf("\n Label name '%s' cannot be the same as the '%s' macro name.\n", label_name, result_macro->name);
+        print_syntax_error(state, e62_label_name_is_macro);
         return invalid;
     }
 
@@ -694,7 +701,7 @@ validation_state label_name_is_valid(label_table *_label_table, char *_buffer, k
     if (tmp_label != NULL && (*entry_or_ext) == NEITHER_EXTERN_NOR_ENTRY) {
         if (tmp_label->is_entry)
             return valid;
-        printf("\nError- Label name '%s' is already in the label table.\n", label_name);
+        print_syntax_error(state, e59_label_redef);
         return invalid;
     }
 
