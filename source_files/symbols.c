@@ -85,11 +85,11 @@ keyword *fill_keyword_table() {
 
 
 
-label_table *fill_label_table(char *am_filename, char *as_filename, macro_table *m_table, keyword *keywords_table) {
+label_table *fill_label_table(char *am_filename, char *as_filename, macro_table *m_table, keyword *keywords_table, int *syntax_errors) {
     FILE *am_file_ptr = NULL;
     label_table *_label_table = NULL;
     syntax_state *state = NULL;
-    int next_key = 1;
+    int next_key = 0;
 
     state = create_syntax_state();
     if (state == NULL) {
@@ -156,6 +156,7 @@ label_table *fill_label_table(char *am_filename, char *as_filename, macro_table 
 
         state->tmp_arg = state->_label->name;
         if (validate_label_name(state) != valid) {
+            (*syntax_errors)++;
             destroy_label(&state->_label);
             state->buffer = state->buffer_without_offset;
             reset_syntax_state(state);
@@ -457,7 +458,7 @@ opcode get_command_opcode(keyword *keyword_table, int key) {
         val = UNKNOWN_NUMBER_OF_ARGUMENTS;
         break;
     default:
-        val = NO_NEED_TO_DECODE;
+        val = NONE;
         break;
     }
 

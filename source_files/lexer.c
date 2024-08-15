@@ -192,8 +192,6 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 	_inst_table->IC = IC(GET, 0);
 	_inst_table->DC = DC(GET, 0);
 
-	print_instruction_table(_inst_table, _label_table);
-	print_label_table(_label_table);
 	return _inst_table;
 }
 
@@ -1163,7 +1161,7 @@ static status assign_addresses(inst_table *_inst_table, label_table *_label_tabl
 		if (_inst_table->inst_vec) {
 			tmp_inst = _inst_table->inst_vec[inst_index];
 			tmp_inst->address = initial_address + words_generated;
-			if (tmp_inst->label_key != 0 && tmp_inst->label_key != UNSET) {
+			if (tmp_inst->label_key != UNSET) {
 
 				label_key = tmp_inst->label_key;
 				tmp_label = get_label_by_key(_label_table, label_key);

@@ -24,7 +24,7 @@ keyword *fill_keyword_table();
  * @param keywords_table The table of keywords and their corresponding keys
  * @return label_table* The table of labels created from the assembly file
  */
-label_table *fill_label_table(char *am_filename, char *as_filename, macro_table *m_table, keyword *keywords_table);
+label_table *fill_label_table(char *am_filename, char *as_filename, macro_table *m_table, keyword *keywords_table, int *syntax_errors);
 
 /**
  *@brief Get a keyword by its name

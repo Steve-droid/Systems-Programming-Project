@@ -14,13 +14,10 @@
 
 #define MAX_LINE_LENGTH 80
 #define UNKNOWN_NUMBER_OF_ARGUMENTS -2
-#define NO_NEED_TO_DECODE -10
+#define NONE -10
 #define OUTPUT_COMMAND_LEN 15
 #define OPCODE_LEN 4
 #define ADDRESSING_METHOD_LEN 4
-#define A 12
-#define R 13
-#define E 14 
 #define SOURCE 2
 #define DEST 1
 #define FIRST_ADDRESS 100
@@ -32,10 +29,7 @@
 #define REGISTER_KEYWORDS 8
 #define DIRECTIVE_KEYWORDS 4
 #define MACRO_KEYWORDS 2
-#define REGISTER_LEN 2
-#define MAX_NUMBER_OF_ARGUMENTS 2
 #define MAX_LABEL_LENGTH 33 /* max label len is 31 , + 1 for ':' , + 1 for '\0' */ /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
-#define MAX_MACRO_NAME 20
 #define UNDEFINED -1
 #define INCREMENT 1
 #define GET -1
@@ -138,38 +132,58 @@ typedef struct macro_table {
     int capacity;
 }macro_table;
 
+
 typedef struct label {
     char name[MAX_LABEL_LENGTH];
-    int key;
-    size_t instruction_line;
-    size_t address;
-    bool declared_as_entry;
-    bool declared_as_extern;
-    bool ignore;
-    bool missing_definition;
+    int key;                   /* Unique key for each label */
+    size_t instruction_line;   /* The line number of the instruction that the label is attached to */
+    size_t address;            /* The address of the label */
+    bool declared_as_entry;    /* True if the label is declared as an entry */
+    bool declared_as_extern;   /* True if the label is declared as an extern */
+    bool ignore;               /* True when label is declared than defined- allows to only create one of the two */
+    bool missing_definition;   /* True if the label is declared but not yet defined */
 }label;
 
 typedef struct label_table {
-    label **labels;
-    size_t size;
-    size_t capacity;
+    label **labels;             /* Vector of label pointers */
+    size_t size;                /* Number of labels in the table */
+    size_t capacity;            /* Capacity of the table */
 }label_table;
 
 
+
+/**
+ *@brief Holds all the information needed create a sequence of binary words from a string representation of an instruction
+ * variables:
+ * @tokens: A vector of strings- the tokens that the instruction is made of
+ * @num_tokens: The number of tokens in the instruction
+ * @capacity: The capacity of the tokens vector
+ * @num_words_to_generate: The number of binary words to generate for the instruction, range: 1-3
+ * @opcode: The opcode of the instruction
+ * @cmd_key: The key of the command in the keyword table
+ * @label_key: Holds the key of the label that the instruction is defined with
+ * @address: The address of the instruction
+ * @line_number: The line number of the instruction
+ *
+ * The rest of the arguments are flags and parameters used when scanning each character of label and arguments
+ * This allows the parser to directly generate the binary representation- all analysis is done by the lexer
+ * The struct also holds a partial binary representation of the instruction
+ */
 typedef struct instruction {
 
     /* General instruction parameters */
-    char **tokens;
-    size_t num_tokens;
-    size_t capacity;
-    size_t num_words_to_generate;
-    opcode opcode;
-    int cmd_key;
-    int label_key;
-    int address;
-    size_t line_number;
+    char **tokens;                 /* Vector of strings- the tokens that the instruction is made of */
+    size_t num_tokens;             /* Number of tokens in the instruction */
+    size_t capacity;               /* Capacity of the tokens vector */
+    size_t num_words_to_generate;  /* Number of binary words to generate for the instruction, range: 1-3 */
+    opcode opcode;                 /* The opcode of the instruction */
+    int cmd_key;                   /* The key of the command in the keyword table */
+    int label_key;                 /* Holds the key of the label that the instruction is defined with */
+    int address;                   /* The address of the instruction */
+    size_t line_number;            /* The line number of the instruction */
 
 
+    /* Flags used when scanning each character of label and arguments */
     bool is_src_entry;
     bool is_src_extern;
     bool is_dest_entry;
@@ -220,6 +234,18 @@ typedef struct instruction {
     uint16_t bin_address;
 
 } inst;
+
+/**
+ *@brief The instruction image created by the assembler
+ * The instruction image/table holds all non-directive instructions that are scanned by the lexer
+ * An instruction is only added to the table if it is found to be valid by the syntax analysis process(lexer)
+ * variables:
+ * @inst_vec: A vector of instruction pointers
+ * @num_instructions: The number of instructions in the table
+ * @capacity: The capacity of the table
+ * @IC: The instruction counter- holds the current address of the instruction
+ * @DC: The data counter- holds the current address of the data
+ */
 typedef struct instruction_table {
     inst **inst_vec;
     size_t num_instructions;
@@ -234,6 +260,16 @@ typedef struct instruction_table {
 size_t DC(int prompt, size_t amount);
 size_t IC(int prompt, size_t amount);
 
+
+/**
+ *@brief The struct that holds the data image- the binary words that are generated from the '.data' and '.string' directives
+ * The data image is being updated each time a '.data' or '.string' directive is scanned.
+ * variables:
+ * @num_words: The number of binary words in the data image
+ * @binary_word_vec: A vector of the binary words
+ * @names: A vector of directive names- used for memory safety and type checking
+ * @num_names: The number of directive names in the vector
+ */
 typedef struct data_image {
     size_t num_words;
     uint16_t *binary_word_vec;
@@ -242,14 +278,30 @@ typedef struct data_image {
 
 } data_image;
 
+
+/**
+ *@brief The struct that holds the state of the syntax analysis process
+ * This struct is used both when scanning labels in 'symbols.c' and when scanning arguments in 'lexer.c'
+ * variables:
+ * @inst: A pointer to the current instruction being scanned
+ * @label: A pointer to the current label being scanned
+ * @k_table: A pointer to the keyword table
+ * @m_table: A pointer to the macro table
+ * @l_table: A pointer to the label table
+ * @buffer: A buffer to hold the instruction when scanning for labels and arguments
+ * @buffer_without_offset: Used for memory safety when scanning for labels and arguments
+ * @am_filename: The expanded assembly file name
+ * @as_filename: The assembly file name
+ *
+ */
 typedef struct syntax_state {
 
     /* Pointers to data structures */
-    inst *_inst;
-    keyword *k_table;
-    label *_label;
-    macro_table *m_table;
-    label_table *l_table;
+    inst *_inst;          /* Pointer to the current instruction being scanned */
+    label *_label;        /* Pointer to the current label being scanned */
+    keyword *k_table;     /* Pointer to the keyword table */
+    macro_table *m_table; /* Pointer to the macro table */
+    label_table *l_table; /* Pointer to the label table */
 
     /* Buffers to hold instruction when scanning for labels and arguments */
     char *buffer;
@@ -258,7 +310,6 @@ typedef struct syntax_state {
     /* Pointers to filenames */
     char *am_filename;
     char *as_filename;
-    char *generic_filename;
 
 
     /* Temporary variables used when scanning for labels and arguments */
@@ -272,6 +323,11 @@ typedef struct syntax_state {
     int arg_count;
     int tmp_address;
 
+    /* Flags used to indicate '.data' and '.string' directives */
+    bool is_data;
+    bool is_string;
+
+
     /* Flags used when scanning each character of label and arguments */
     bool continue_reading;
     bool label_name_detected;
@@ -282,20 +338,12 @@ typedef struct syntax_state {
     bool minus_sign;
     bool plus_sign;
     bool end_of_argument_by_space;
-    bool end_of_argument;
-    bool end_of_string;
     bool first_quatiotion_mark;
     bool last_quatiotion_mark;
     bool digit;
-    bool is_data;
-    bool is_string;
 
-    /* Flags used when assigning addressing methods */
-    bool is_src_entry;
-    bool is_src_extern;
-    bool is_dest_entry;
-    bool is_dest_extern;
 } syntax_state;
+
 
 
 typedef struct {
@@ -312,13 +360,19 @@ typedef struct {
 
 }system_state;
 
-
+/**
+ *@brief A struct that holds all the filenames that are used in the program
+ * variables:
+ * @as: A vector of strings that holds the .as filenames
+ * @am: A vector of strings that holds the .am filenames
+ * @generic: A vector of strings that holds the generic filenames(without any extension)
+ * @amount: The amount of filenames in the vectors- vector size is the same for all vectors
+ */
 typedef struct {
-    char **am;
     char **generic;
-    size_t amount;
     char **as;
-    char **backup;
+    char **am;
+    size_t amount;
 }filenames;
 
 

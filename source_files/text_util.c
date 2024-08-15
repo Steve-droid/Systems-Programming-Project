@@ -20,7 +20,6 @@ syntax_state *create_syntax_state(void) {
     state->index = -1;
     state->am_filename = NULL;
     state->as_filename = NULL;
-    state->generic_filename = NULL;
     state->continue_reading = false;
     state->extern_or_entry = NEITHER_EXTERN_NOR_ENTRY;
     state->buffer = buffer;
@@ -35,8 +34,6 @@ syntax_state *create_syntax_state(void) {
     state->minus_sign = false;
     state->plus_sign = false;
     state->end_of_argument_by_space = false;
-    state->end_of_argument = false;
-    state->end_of_string = false;
     state->first_quatiotion_mark = false;
     state->last_quatiotion_mark = false;
     state->digit = false;
@@ -80,8 +77,6 @@ void reset_syntax_state(syntax_state *state) {
     state->minus_sign = false;
     state->plus_sign = false;
     state->end_of_argument_by_space = false;
-    state->end_of_argument = false;
-    state->end_of_string = false;
     state->first_quatiotion_mark = false;
     state->last_quatiotion_mark = false;
     state->digit = false;
@@ -90,10 +85,6 @@ void reset_syntax_state(syntax_state *state) {
     state->tmp_arg = NULL;
 }
 
-void initialize_command(syntax_state *data) {
-    data->is_data = false;
-    data->is_string = false;
-}
 
 void destroy_syntax_state(syntax_state **state) {
     syntax_state *st = NULL;
@@ -146,7 +137,7 @@ void update_command(syntax_state *state, keyword *keyword_table, int command_key
     }
 }
 
-int continue_reading(char *instruction_buffer, syntax_state *state) {
+bool continue_reading(char *instruction_buffer, syntax_state *state) {
     size_t index = state->index;
     size_t instruction_length = strlen(instruction_buffer);
     if (index >= instruction_length) {
@@ -195,24 +186,6 @@ char *trim_whitespace(char *str) {
 
 }
 
-void str_cpy_until_char(char *destination, const char *source, char x) {
-    int i;
-
-    for (i = 0; !(source[i] == '\0' || source[i] == x); i++) {
-        destination[i] = source[i];
-    }
-    destination[i] = '\0';
-}
-
-void initialize_char_array(char *char_array) {
-    int i;
-    int array_len = strlen(char_array);
-
-    for (i = 0; i < array_len; i++) {
-        char_array[i] = '\0';
-    }
-}
-
 char *skip_ent_or_ext(char *_buffer) {
     size_t i;
     char *ptr = _buffer;
@@ -258,88 +231,22 @@ void skip_label_name(syntax_state *state, label_table *_label_table) {
         }
     }
 
+    /* In a case where a label name is present but is invalid:
+     * We'd like to notify the user about any syntax errors in the instruction defined by the label.
+     * We check if the buffer contains a ':' character, then we skip the label name, even if it's invalid.
+    */
+    if (state->label_name_detected == false) {
+
+        if (strstr(state->buffer_without_offset, ":") != NULL) {
+            offset = 1 + strcspn(state->buffer_without_offset, ":");
+        }
+    }
+
     /** Point to the new "array" */
     state->buffer = &state->buffer[offset];
 }
 
-int binary_array_to_int(int *array) {
-    int sign_bit, value, i;
-    sign_bit = array[0];
-    value = 0;
-
-    /** Iterate over the array to construct the integer value */
-    for (i = 0; i < OUTPUT_COMMAND_LEN; i++) {
-        value = (value << 1) | array[i];
-    }
-
-    /** If the sign bit is 1, the number is negative in two's complement */
-    if (sign_bit == 1) {
-        /** Subtract 2^15 to convert to negative number */
-        value -= (1 << OUTPUT_COMMAND_LEN);
-    }
-
-    return value;
-}
-
-int *convert_twodim_array_to_onedim(int **two_dim_array) {
-    int elements = 0;
-    int row = 0;
-    int column = 0;
-    int index = 0;
-    int *one_dim_array = NULL;
-
-
-    if (two_dim_array == NULL) {
-        return NULL;
-    }
-    /* Calculate the total number of elements (excluding FLAG terminators) */
-    for (row = 0; two_dim_array[row] != NULL; row++) {
-        for (column = 0; two_dim_array[row][column] != FLAG; column++) {
-            elements++;
-        }
-    }
-
-    /* Allocate memory for the 1D array plus one additional space for the FLAG */
-    one_dim_array = (int *)malloc((elements + 1) * sizeof(int));
-    if (one_dim_array == NULL) {
-        printf("Memory allocation failed\n");
-        return NULL;
-    }
-
-    /* Copy elements from the 2D array to the 1D array */
-    for (row = 0; two_dim_array[row] != NULL; row++) {
-        for (column = 0; two_dim_array[row][column] != FLAG; column++) {
-            one_dim_array[index++] = two_dim_array[row][column];
-        }
-    }
-
-    /* Add the FLAG as the terminator of the 1D array */
-    one_dim_array[index] = FLAG;
-
-    return one_dim_array;
-}
-
-void initialize_int_array(int *arr, int size) {
-    int i;
-    for (i = 0; i < size; i++) {
-        arr[i] = 0;
-    }
-}
-
-void print_array_in_binary(int *arr) {
-    int i;
-    if (arr == NULL) {
-        return;
-    }
-
-    for (i = 0; arr[i] != FLAG; i++) {
-        print_binary_2(arr[i]);
-    }
-
-    printf("\n");
-}
-
-int is_empty_line(char *str) {
+bool is_empty_line(char *str) {
     /* Remove the newline character at the end of the line, if there is one */
     str[strcspn(str, "\n")] = '\0';
 
@@ -351,75 +258,7 @@ int is_empty_line(char *str) {
     return false; /* Line is not empty */
 }
 
-int char_to_int(char c) {
-    if (isdigit(c)) {
-        return c - '0';
-    }
-    if (c == '+') {
-        return PLUS;
-    }
-    if (c == '-') {
-        return MINUS;
-    }
-    else if (c == ',') {
-        return  COMMA;
-    }
-    else {
-        printf("The character is not a digit.\n");
-        return -1; /* Return an error code if the character is not a digit */
-    }
-}
 
-int *convert_to_int_array(char *str) {
-    /* Temporary variables */
-    int *result = NULL;
-    char *token = NULL;
-    int index = 0;
-
-    /* Tokenize the string and convert each token to an integer */
-    token = strtok(str, ",");
-    while (token != NULL) {
-        /* Reallocate memory for the integer array */
-        result = (int *)realloc(result, (index + 1) * sizeof(int));
-        if (result == NULL) {
-            printf("Memory allocation failed\n");
-            exit(1);
-        }
-
-        /* Convert token to integer and store in the array */
-        result[index++] = atoi(token);
-
-        /* Get next token */
-        token = strtok(NULL, ",");
-    }
-
-    /* Reallocate memory to add the FLAG at the end */
-    result = (int *)realloc(result, (index + 1) * sizeof(int));
-    if (result == NULL) {
-        printf("Memory allocation failed\n");
-        exit(1);
-    }
-
-    /* Set the FLAG at the end of the array */
-    result[index] = FLAG;
-
-    return result;
-}
-
-/*Print utils*/
-void print_2D_array(int **arr) {
-    int i, j, counter;
-    counter = 99;
-
-    printf("THE 2D ARRAY:\n");
-    for (i = 0; arr[i] != NULL; i++) {
-        for (j = 0; arr[i][j] != FLAG; j++) {
-            counter++;
-            printf("line: %d, number: %d\n", counter, arr[i][j]);
-        }
-    }
-    printf("END 2D ARRAY\n");
-}
 
 void print_bits(unsigned value, int num_bits) {
     int i;
@@ -438,33 +277,6 @@ void print_binary_to_file(uint16_t word, FILE *file_ptr) {
     fprintf(file_ptr, "\n");
 }
 
-void print_binary_2(int num) {
-    int i;
-    unsigned int mask;
-    unsigned int u_num;
-    char binary[16];
-    binary[15] = '\0';  /* Null terminator */
-
-    mask = 1 << 14;  /* Mask for the 15th bit */
-
-    /** If the number is negative, convert it to 2's complement representation */
-    if (num < 0) {
-        u_num = (unsigned int)(num + (1 << 15));  /* 2's complement for negative number */
-    }
-    else {
-        u_num = (unsigned int)num;
-    }
-    /** Check if the number is greater than or equal to FIRST_KEY and print it if so */
-
-    /** Create the binary string */
-    for (i = 0; i < 15; i++) {
-        binary[i] = (u_num & mask) ? '1' : '0';
-        mask >>= 1;
-    }
-
-    /** Print the resulting binary string */
-    printf("%s\n", binary);
-}
 
 char *my_strdup(char *s) {
     char *d = NULL;

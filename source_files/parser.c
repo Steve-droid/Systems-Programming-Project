@@ -424,7 +424,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
 
 
     /*Print to the .ob output file*/
-    fprintf(object_file_ptr, "\t%lu\t%lu\n", _inst_table->IC - 101 - _inst_table->DC, _inst_table->DC);
+    fprintf(object_file_ptr, "\t%lu\t%lu\n", _inst_table->IC - 100 - _inst_table->DC, _inst_table->DC);
     for (inst_index = 0; inst_index < _inst_table->num_instructions; inst_index++) {
         fprintf(bin_file_ptr, "\n------------------------------------------------------------\n\n\t\t\t");
         tmp_inst = _inst_table->inst_vec[inst_index];

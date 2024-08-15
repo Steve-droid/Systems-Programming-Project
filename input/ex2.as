@@ -9,3 +9,5 @@ LOOP: prn #48
 END: stop
 LIST: .data 6,-9
 K: .data 31
+LABE&: add r1
+jmp LABE&

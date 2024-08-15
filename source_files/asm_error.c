@@ -195,6 +195,7 @@ void print_system_error(system_state *sys_state, syntax_state *syn_state, error_
 void print_syntax_error(syntax_state *state, error_code e_code) {
    char *ptr = NULL;
    char *tmp = NULL;
+   int len = 0;
    if (e_code < 0) return;
 
    switch (e_code) {
@@ -218,8 +219,7 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       break;
    }
 
-
-   printf("(%s on line %d)~ '%s': ", state->as_filename, state->line_number, state->buffer_without_offset);
+   printf("syntax error in file '%s': on line: '%d': \"%s\": ", state->as_filename, state->line_number,state->buffer_without_offset);
    switch (e_code) {
 
       /* General errors */
@@ -512,7 +512,7 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       break;
 
    case e51_unknown_label:
-      printf("A label with the name '%s' is not declared as external and is not defined in the current file\n", state->tmp_arg);
+      printf("Unrecognized argument '%s'\nNote: '%s' does not match any valid label or register name, and is not an immediate value\n", state->tmp_arg, state->tmp_arg);
       break;
 
    case e52_inval_ext:
@@ -552,7 +552,11 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       break;
 
    case e61_label_name_is_keyword:
-      printf("Label name cannot be the same as the keyword '%s'\n", state->buffer);
+      tmp = my_strdup(state->buffer);
+      ptr = strchr(tmp, ':');
+      if (ptr) *ptr = '\0';
+      printf("Label name cannot be the same as the keyword '%s'\n", tmp);
+      free(tmp);
       break;
 
    case e62_label_name_is_macro:
@@ -563,7 +567,15 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       tmp = my_strdup(state->buffer);
       ptr = strchr(tmp, ':');
       if (ptr) *ptr = '\0';
-      printf("Label name '%s' contains non-alphanumeric characters\n", tmp);
+      ptr = tmp;
+      while (ptr != NULL && (*ptr) != '\0' && (isdigit(*ptr) || isalpha(*ptr))) {
+         ptr++;
+      }
+
+      len = ptr - tmp + 1;
+      printf("\n'%s' contains non alphanumeric characters and cannot be used as a label name\n", tmp);
+      while (len--) putchar(' ');
+      printf("^\n");
       free(tmp);
       break;
 
@@ -571,7 +583,10 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       tmp = my_strdup(state->buffer);
       ptr = strchr(tmp, ':');
       if (ptr) *ptr = '\0';
-      printf("Label name '%s' contains whitespace between the name and the colon\n", tmp);
+      len = ptr - tmp;
+      printf("\n'%s:' Label definition contains whitespace between the name and the colon\n", tmp);
+      while (len--) putchar(' ');
+      printf("^\n");
       free(tmp);
       break;
 

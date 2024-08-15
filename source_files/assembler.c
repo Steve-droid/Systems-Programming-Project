@@ -46,9 +46,9 @@ int main(int argc, char **argv) {
             continue;
         }
         /* Initialize the label table */
-        _label_table = fill_label_table(fnames->am[i], fnames->as[i], m_table, keyword_table);
+        _label_table = fill_label_table(fnames->am[i], fnames->as[i], m_table, keyword_table, &syntax_error_count);
         if (_label_table == NULL) {
-            printf("\nAssembly of the file '%s.as' has failed\n", fnames->generic[i]);
+            printf("\nAssembly of the file '%s.as' has failed due to an internal system error.\n", fnames->generic[i]);
             reset_main(argc - 1, NULL, &m_table, NULL, NULL, NULL);
             printf("\n---------------------------------------------------------\n");
             continue;
