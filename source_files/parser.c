@@ -326,8 +326,7 @@ status generate_binary_words(inst_table *_inst_table, size_t index) {
     return STATUS_OK;
 }
 
-void print_octal(uint16_t number, FILE *file_ptr) {
-    static int address = 100;
+void print_octal(int address, uint16_t number, FILE *file_ptr) {
     char octal[6];
     int index = 5;
     octal[index--] = '\0';
@@ -341,7 +340,6 @@ void print_octal(uint16_t number, FILE *file_ptr) {
         octal[index--] = '0';
     }
     fprintf(file_ptr, "0%d\t%s\n", address, octal);
-    address++;
 }
 
 status parse(inst_table *_inst_table, label_table *_label_table, keyword *keyword_table, char *am_filename) {
@@ -363,6 +361,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     label *tmp_label = NULL;
     int create_ext = false;
     int create_ent = false;
+    int address = 100;
     data_image *_data_image = NULL;
 
     strcat(binary_output_filename, am_filename);
@@ -445,10 +444,10 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
 
 
         for (bin_word_index = 0; bin_word_index < _inst_table->inst_vec[inst_index]->num_words_to_generate;
-            bin_word_index++) {
+            bin_word_index++, address++) {
             tmp_inst = _inst_table->inst_vec[inst_index];
             if (tmp_inst->is_dot_data || tmp_inst->is_dot_string || tmp_inst->is_entry || tmp_inst->is_extern) continue;
-            print_octal((_inst_table->inst_vec[inst_index]->binary_word_vec[bin_word_index]), object_file_ptr);
+            print_octal(address, _inst_table->inst_vec[inst_index]->binary_word_vec[bin_word_index], object_file_ptr);
 
             print_binary_to_file((_inst_table->inst_vec[inst_index]->binary_word_vec[bin_word_index]), bin_file_ptr);
         }
@@ -462,8 +461,8 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     }
 
     fprintf(bin_file_ptr, "\n\t\t\t      ^\n\t\t\t      |\n\n");
-    for (bin_word_index = 0; bin_word_index < _data_image->num_words; bin_word_index++) {
-        print_octal(_data_image->binary_word_vec[bin_word_index], object_file_ptr);
+    for (bin_word_index = 0; bin_word_index < _data_image->num_words; bin_word_index++, address++) {
+        print_octal(address, _data_image->binary_word_vec[bin_word_index], object_file_ptr);
         print_binary_to_file(_data_image->binary_word_vec[bin_word_index], bin_file_ptr);
     }
     close_files(object_file_ptr, bin_file_ptr, NULL);
@@ -513,7 +512,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
         /*Print to the .ent output file*/
         for (label_index = 0; label_index < _label_table->size; label_index++) {
             tmp_label = _label_table->labels[label_index];
-            if (tmp_label->is_entry) {
+            if (tmp_label->declared_as_entry) {
                 fprintf(entry_file_ptr, "%s\t0%lu\n", tmp_label->name, tmp_label->address);
             }
         }
@@ -560,16 +559,16 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
 
             if (tmp_inst->num_words_to_generate == FIRST_OP_GROUP + 1) {
                 if (tmp_inst->is_src_extern)
-                    fprintf(extern_file_ptr, "%s\t0%d\n", tmp_inst->direct_label_name_src, tmp_inst->address + 1);
+                    fprintf(extern_file_ptr, "%s\t\t0%d\n", tmp_inst->direct_label_name_src, tmp_inst->address + 1);
 
 
                 if (tmp_inst->is_dest_extern)
-                    fprintf(extern_file_ptr, "%s\t0%d\n", tmp_inst->direct_label_name_dest, tmp_inst->address + 2);
+                    fprintf(extern_file_ptr, "%s\t\t0%d\n", tmp_inst->direct_label_name_dest, tmp_inst->address + 2);
             }
 
             if (tmp_inst->num_words_to_generate == SECOND_OP_GROUP + 1)
                 if (tmp_inst->is_dest_extern)
-                    fprintf(extern_file_ptr, "%s\t0%d\n", tmp_inst->direct_label_name_dest, tmp_inst->address + 1);
+                    fprintf(extern_file_ptr, "%s\t\t0%d\n", tmp_inst->direct_label_name_dest, tmp_inst->address + 1);
         }
     }
 

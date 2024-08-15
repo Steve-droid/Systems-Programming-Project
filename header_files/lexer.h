@@ -18,7 +18,7 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include "common.h"
+#include "ds.h"
 #include "text_util.h"
 #include "symbols.h"
 #include "instruction.h"

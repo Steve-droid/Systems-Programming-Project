@@ -2,7 +2,7 @@
 #define MACRO_H_
 #define _POSIX_C_SOURCE 200809L
 
-#include "common.h"
+#include "ds.h"
 
 
 #define MAX_MACRO_AMOUNT 100
@@ -14,18 +14,6 @@
 
 
 
-typedef struct macro {
-   char **lines;      /* Vector of strings- the lines that the macro expands to */
-   char *name;         /* The name of the macro */
-   int line_count;     /* Number of lines in the macro */
-   int line_capacity;
-}macro;
-
-typedef struct macro_table {
-   macro **macros;            /* Vector of macro pointers */
-   int macro_count;           /* Number of macros in the table */
-   int capacity;
-}macro_table;
 
 
 

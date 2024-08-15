@@ -2,10 +2,9 @@
 #define ASM_ERROR_H
 
 #include <stdarg.h>
-#include "common.h"
-#include "file_util.h"
-#include "macro.h"
+#include "ds.h"
 #include "symbols.h"
+#include "file_util.h"
 #include "instruction.h"
 
 typedef enum {
@@ -23,6 +22,7 @@ typedef enum {
    m11_create_keyword_table,
    m12_create_label_table,
    m13_create_label,
+   m14_copy_label_name,
 
 
 
@@ -81,7 +81,7 @@ typedef enum {
    ex30_ext_arg_inc,
    ex30_ext_arg_dec,
    ex30_ext_arg_red,
-   
+
    e31_mult_assign_clr_not_inc_dec_red,
    ex31_mult_assign_clr,
    ex31_mult_assign_not,
@@ -140,6 +140,7 @@ typedef enum {
    e62_label_name_is_macro,
    e63_label_name_not_alphanumeric,
    e64_whitespace_between_label_and_colon,
+   e66_redef_directive,
 
 
 
@@ -152,7 +153,7 @@ void reset_main(int file_amount, filenames **fnames, macro_table **_macro_table,
 void quit_filename_creation(filenames **fnames);
 void quit_lex(syntax_state **state, inst_table **_inst_table, FILE *am_file_ptr);
 void quit_pre_assembler(syntax_state **state, macro_table **_macro_table, FILE *am_file_ptr, FILE *as_file_ptr);
-void quit_label_parsing(label_table **_label_table, syntax_state **state, FILE *am_file_ptr, char *label_name);
+void quit_label_parsing(label_table **_label_table, syntax_state **state, FILE *am_file_ptr);
 
 
 

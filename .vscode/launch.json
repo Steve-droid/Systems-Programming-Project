@@ -2,16 +2,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(lldb) Launch",
+            "name": "Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/Test",  // Path to the executable
-            "args": ["test.as"],
+            "program": "${workspaceFolder}/assembler",  // Path to the executable
+            "args": [ "gen1", "gen2"],  // Arguments to pass to the executable
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",  // Set the working directory to the project folder
             "environment": [],
             "externalConsole": false,  // Use internal console
-            "MIMode": "lldb",
+            "MIMode": "gdb",
             "preLaunchTask": "build",
             "setupCommands": [
                 {

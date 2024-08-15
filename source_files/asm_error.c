@@ -61,10 +61,9 @@ void quit_pre_assembler(syntax_state **state, macro_table **_macro_table, FILE *
    if (as_file_ptr) fclose(as_file_ptr);
 }
 
-void quit_label_parsing(label_table **_label_table, syntax_state **state, FILE *am_file_ptr, char *label_name) {
+void quit_label_parsing(label_table **_label_table, syntax_state **state, FILE *am_file_ptr) {
    destroy_label_table(_label_table);
    destroy_syntax_state(state);
-   free(label_name);
    if (am_file_ptr) fclose(am_file_ptr);
 }
 
@@ -122,6 +121,11 @@ void print_system_error(system_state *sys_state, syntax_state *syn_state, error_
    case m13_create_label:
       printf("In 'symbols.c' -> 'create_label': ");
       printf("Failed to allocate memory for label\n");
+      break;
+
+   case m14_copy_label_name:
+      printf("In 'symbols.c' -> 'extract_label_name_from_instruction': ");
+      printf("Failed to allocate memory for label name\n");
       break;
 
 
@@ -569,6 +573,10 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       if (ptr) *ptr = '\0';
       printf("Label name '%s' contains whitespace between the name and the colon\n", tmp);
       free(tmp);
+      break;
+
+   case e66_redef_directive:
+      printf("Trying to redefine a directive '%s'\n", state->buffer);
       break;
 
    default:

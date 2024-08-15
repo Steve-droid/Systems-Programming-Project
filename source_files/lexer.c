@@ -25,10 +25,8 @@ static status assign_data(syntax_state *state, label_table *_label_table, keywor
 static status assign_args(syntax_state *state, label_table *_label_table, keyword *keyword_table);
 static validation_state process_data_command(syntax_state *state, label_table *_label_table);
 static validation_state process_string_command(syntax_state *state, label_table *_label_table);
-static validation_state process_entry_extern_command(syntax_state *state);
 static validation_state assign_addressing_method(syntax_state *state, char *argument, label_table *_label_table, keyword *keyword_table);
 static validation_state validate_data_members(syntax_state *state);
-static validation_state validate_label_name(syntax_state *state, label_table *_label_table, keyword *keyword_table);
 static status assign_addresses(inst_table *_inst_table, label_table *_label_table, keyword *_keyword_table);
 
 
@@ -84,6 +82,8 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 
 	state->am_filename = am_filename;
 	state->as_filename = as_filename;
+	state->k_table = keyword_table;
+	state->l_table = _label_table;
 
 	/* Create an instance of an instruction table */
 	if (create_instruction_table(&_inst_table) != STATUS_OK) {
@@ -111,6 +111,15 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 		/* Remove leading spaces */
 		state->buffer = trim_whitespace(state->buffer);
 
+		/* If the line is not a comment, count it as an assembly line */
+		state->line_number++;
+
+		if (strncmp(state->buffer, ".entry", 6) == 0 || strncmp(state->buffer, ".extern", 7) == 0) {
+			state->buffer = state->buffer_without_offset;
+			destroy_instruction(&state->_inst);
+			reset_syntax_state(state);
+			continue;
+		}
 		/* Skip comment lines */
 		if (state->buffer[0] == ';') {
 			destroy_instruction(&state->_inst);
@@ -118,8 +127,7 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 			continue;
 		}
 
-		/* If the line is not a comment, count it as an assembly line */
-		state->line_number++;
+
 
 		/* Insert the line number to the instruction */
 		state->_inst->line_number = state->line_number;
@@ -147,7 +155,7 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 		/* If the command key is valid, assign the command key to the instruction */
 		state->_inst->cmd_key = state->cmd_key;
 
-		if (state->label_name)
+		if (state->label_name_detected)
 			state->_inst->label_key = state->label_key;
 
 		if (generate_tokens(state, keyword_table, _label_table) != STATUS_OK) {
@@ -184,6 +192,8 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 	_inst_table->IC = IC(GET, 0);
 	_inst_table->DC = DC(GET, 0);
 
+	print_instruction_table(_inst_table, _label_table);
+	print_label_table(_label_table);
 	return _inst_table;
 }
 
@@ -277,7 +287,6 @@ static status generate_tokens(syntax_state *state, keyword *_keyword_table, labe
 static status assign_data(syntax_state *state, label_table *_label_table, keyword *keyword_table) {
 	int command_key = state->cmd_key;
 	char *line = state->buffer;
-	validation_state valid_ent_ext = invalid;
 	char *temp = NULL;
 	char *token = NULL;
 	int char_indx = 0;
@@ -287,7 +296,7 @@ static status assign_data(syntax_state *state, label_table *_label_table, keywor
 	update_command(state, keyword_table, command_key);
 
 	/* If the command is neither .data, .string, .entry, nor .extern, return an error */
-	if (!state->is_data && !state->is_string && !state->is_entry && !state->is_extern) {
+	if (!state->is_data && !state->is_string) {
 		print_syntax_error(state, e1_undef_cmd);
 		return STATUS_ERROR;
 	}
@@ -310,14 +319,6 @@ static status assign_data(syntax_state *state, label_table *_label_table, keywor
 				return STATUS_ERROR;
 		}
 
-		/* Process .entry and .extern commands */
-		else if (state->is_entry || state->is_extern) {
-			if (state->is_entry) state->_inst->is_entry = true;
-			else state->_inst->is_extern = true;
-			if (process_entry_extern_command(state) == invalid) {
-				return STATUS_ERROR;
-			}
-		}
 		/* Move the index to the next character */
 		state->index++;
 	} while (continue_reading(line, state));
@@ -362,14 +363,6 @@ static status assign_data(syntax_state *state, label_table *_label_table, keywor
 		free(temp);
 		temp = NULL;
 	}
-
-	if (state->is_entry || state->is_extern) {
-		valid_ent_ext = validate_label_name(state, _label_table, keyword_table);
-		if (valid_ent_ext == invalid) {
-			return STATUS_ERROR;
-		}
-	}
-
 
 	return STATUS_OK;
 }
@@ -614,34 +607,7 @@ static validation_state process_string_command(syntax_state *state, label_table 
 	return valid;
 }
 
-static validation_state process_entry_extern_command(syntax_state *state) {
-	int i = state->index;
-	char *line = state->buffer;
-	int next = 0;
-	static int created_token = false;
 
-	if (!created_token && create_empty_token(state->_inst) != STATUS_OK) {
-		return invalid;
-	}
-
-	created_token = true;
-	next = state->_inst->num_tokens - 1;
-
-	if (!(isalpha(line[i]) || isdigit(line[i]))) {
-		return invalid;
-	}
-	if (state->end_of_argument && (!isspace(line[i]))) {
-		return invalid;
-	}
-	if (isspace(line[i]) || line[i + 1] == '\0' || line[i + 1] == '\n') {
-		state->end_of_argument = true;
-	}
-	if (!isspace(line[i])) {
-		state->_inst->tokens[next][i] = line[i];
-		state->_inst->tokens[next][i + 1] = '\0';
-	}
-	return valid;
-}
 
 static validation_state assign_addressing_method(syntax_state *state, char *argument, label_table *_label_table, keyword *keyword_table) {
 	size_t i;
@@ -996,11 +962,6 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	}
 
 	if (_addressing_method == DIRECT) {
-		if (validate_label_name(state, _label_table, keyword_table) != valid) {
-			print_syntax_error(state, e41_lbl_arg);
-			return invalid;
-		}
-
 		for (i = 0;i < _label_table->size;i++) {
 			tmp_label = get_label_by_name(_label_table, argument);
 			if (tmp_label != NULL) {
@@ -1016,16 +977,16 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 				if (state->_inst->direct_label_key_src == -1) {
 					state->_inst->direct_label_key_src = tmp_label->key;
 					strcpy(state->_inst->direct_label_name_src, tmp_label->name);
-					if (tmp_label->is_entry) state->_inst->is_src_entry = true;
-					else if (tmp_label->is_extern) state->_inst->is_src_extern = true;
+					if (tmp_label->declared_as_entry) state->_inst->is_src_entry = true;
+					else if (tmp_label->declared_as_extern) state->_inst->is_src_extern = true;
 				}
 			}
 			if (state->_inst->dest_addressing_method == DIRECT) {
 				if (state->_inst->direct_label_key_dest == -1) {
 					state->_inst->direct_label_key_dest = tmp_label->key;
 					strcpy(state->_inst->direct_label_name_dest, tmp_label->name);
-					if (tmp_label->is_entry) state->_inst->is_dest_entry = true;
-					else if (tmp_label->is_extern) state->_inst->is_dest_extern = true;
+					if (tmp_label->declared_as_entry) state->_inst->is_dest_entry = true;
+					else if (tmp_label->declared_as_extern) state->_inst->is_dest_extern = true;
 				}
 			}
 
@@ -1150,43 +1111,6 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 	return valid;
 }
 
-static validation_state validate_label_name(syntax_state *state, label_table *_label_table, keyword *keyword_table) {
-	int i;
-	int label_found = false;
-	label *_label = NULL;
-	int cmd_key = state->_inst->cmd_key;
-	if (!strcmp(keyword_table[cmd_key].name, ".entry") || !strcmp(keyword_table[cmd_key].name, ".extern")) {
-		for (i = 0; i < _label_table->size; i++) {
-			_label = _label_table->labels[i];
-
-			/* For every entry point, check if the label name exists in the label table */
-			if (_label->is_entry && state->is_entry) {
-				label_found = !strcmp(_label->name, state->buffer);
-				if (label_found) break;
-			}
-
-			/* For every external point, check if the label name exists in the label table */
-			if (_label->is_extern && state->is_extern) {
-				label_found = !strcmp(_label->name, state->buffer);
-				if (label_found) break;
-			}
-
-
-		}
-
-		_label = get_label_by_name(_label_table, state->buffer);
-		if (_label != NULL)
-			if (_label->is_entry || _label->is_extern) {
-				label_found = true;
-			}
-		if (label_found == false) {
-			printf("The name '%s' is an invalid label name.\n", state->buffer);
-			return invalid;
-		}
-	}
-	return valid;
-}
-
 static validation_state validate_data_members(syntax_state *state) {
 	size_t i;
 	int minus_or_plus = false;
@@ -1239,7 +1163,7 @@ static status assign_addresses(inst_table *_inst_table, label_table *_label_tabl
 		if (_inst_table->inst_vec) {
 			tmp_inst = _inst_table->inst_vec[inst_index];
 			tmp_inst->address = initial_address + words_generated;
-			if (tmp_inst->label_key != 0) {
+			if (tmp_inst->label_key != 0 && tmp_inst->label_key != UNSET) {
 
 				label_key = tmp_inst->label_key;
 				tmp_label = get_label_by_key(_label_table, label_key);

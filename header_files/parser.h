@@ -21,7 +21,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "common.h"
+#include "ds.h"
 #include "instruction.h"
 
 

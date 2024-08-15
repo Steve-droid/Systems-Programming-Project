@@ -1,6 +1,7 @@
 #include "symbols.h"
 #define PADDING 2
 #define INITIAL_CAPACITY 15
+#define UNSET -1
 
 /**
  *@brief Creates a table of keywords and their corresponding keys
@@ -82,16 +83,13 @@ keyword *fill_keyword_table() {
     return keywords_table;
 }
 
+
+
 label_table *fill_label_table(char *am_filename, char *as_filename, macro_table *m_table, keyword *keywords_table) {
-    char *label_name = NULL;
     FILE *am_file_ptr = NULL;
     label_table *_label_table = NULL;
-    label *new_label = NULL;
-    label *tmp_label = NULL;
-    validation_state _validation = invalid;
-    status entry_or_external_definition = NEITHER_EXTERN_NOR_ENTRY;
     syntax_state *state = NULL;
-    int i;
+    int next_key = 1;
 
     state = create_syntax_state();
     if (state == NULL) {
@@ -104,27 +102,40 @@ label_table *fill_label_table(char *am_filename, char *as_filename, macro_table 
     /* Open the .am file for reading lines */
     am_file_ptr = my_fopen(am_filename, "r");
     if (am_file_ptr == NULL) {
+        quit_label_parsing(NULL, &state, NULL);
         return NULL;
     }
 
     /* Initialize the label table */
-    _label_table = new_empty_label_table(&_label_table);
+    _label_table = create_label_table(&_label_table);
     if (_label_table == NULL) {
+        quit_label_parsing(NULL, &state, am_file_ptr);
         return NULL;
     }
 
     state->line_number = -1; /* lines start from 0*/
+    state->k_table = keywords_table;
+    state->m_table = m_table;
+    state->l_table = _label_table;
 
     while (fgets(state->buffer, MAX_LINE_LENGTH, am_file_ptr)) { /* Read every line from the .am file */
-        entry_or_external_definition = NEITHER_EXTERN_NOR_ENTRY;
-        new_label = NULL;
+        /* Create a new label object */
+        state->_label = create_label();
+        if (state->_label == NULL) {
+            quit_label_parsing(&_label_table, &state, am_file_ptr);
+            return NULL;
+        }
 
+        state->_label->key = next_key++;
+
+        /* Save the buffer without the offset, so we don't lose the original buffer */
         state->buffer_without_offset = state->buffer;
 
         state->buffer = trim_whitespace(state->buffer);
 
         /* Skip empty/comment lines */
         if (is_empty_line(state->buffer) || state->buffer[0] == ';') {
+            destroy_label(&state->_label);
             state->buffer = state->buffer_without_offset;
             reset_syntax_state(state);
             continue;
@@ -132,72 +143,49 @@ label_table *fill_label_table(char *am_filename, char *as_filename, macro_table 
 
         state->line_number++;
 
-        /* Check if the line contains a label definition. if it does, save the label name */
-        label_name = extract_label_name_from_instruction(&state->buffer, &entry_or_external_definition);
+        /* Check if the line contains a label definition. If so, update the label name in the label object */
+        extract_label_name_from_instruction(state);
 
-        if (state->buffer == NULL) {
-            quit_label_parsing(&_label_table, &state, am_file_ptr, label_name);
-            return NULL;
-        }
-
-        /* If the line does not contain a label definition, continue to the next line */
-        if (label_name == NULL) {
+        if (state->extern_or_entry == ERR || state->_label->ignore || state->label_name_detected == false) {
+            destroy_label(&state->_label);
+            state->buffer = state->buffer_without_offset;
+            reset_syntax_state(state);
             continue;
         }
 
 
-        _validation = label_name_is_valid(_label_table, state, keywords_table, m_table, &entry_or_external_definition);
-
-        if (_validation != valid) {
-            quit_label_parsing(&_label_table, &state, am_file_ptr, label_name);
-            return NULL;
+        state->tmp_arg = state->_label->name;
+        if (validate_label_name(state) != valid) {
+            destroy_label(&state->_label);
+            state->buffer = state->buffer_without_offset;
+            reset_syntax_state(state);
+            continue;
         }
 
-        for (i = 0;i < _label_table->size;i++) {
-            tmp_label = get_label_by_name(_label_table, label_name);
-            if (tmp_label != NULL) {
-
-                /* If the label is already in the label table, check if it is an entry or external definition */
-                if (tmp_label->is_entry == false && tmp_label->is_extern == false && entry_or_external_definition == NEITHER_EXTERN_NOR_ENTRY) {
-
-                    /* If the label is not an entry or external definition, print an error and quit the label parsing */
-                    state->tmp_arg = label_name;
-                    print_syntax_error(state, e59_label_redef);
-                    quit_label_parsing(&_label_table, &state, am_file_ptr, label_name);
-                    return NULL;
-                }
-
-                new_label = tmp_label;
-                tmp_label = NULL;
-            }
-        }
-
-        /* If the line contains a label definition, check if the label name is valid */
-        if (new_label == NULL) {
-            if (new_empty_label(&new_label) == NULL) {
-                print_system_error(NULL, state, m13_create_label);
-                quit_label_parsing(&_label_table, &state, am_file_ptr, label_name);
-                return NULL;
-            }
-        }
 
         /* Fill the label data and keep the address as UNDEFINED until the 2nd pass */
-        label_update_fields(&new_label, label_name, state->line_number, entry_or_external_definition, 0);
+        state->_label->instruction_line = state->line_number;
 
-        free(label_name);
-        label_name = NULL;
 
-        insert_label(_label_table, &new_label);
+
+        insert_label(_label_table, &state->_label);
 
         if (_label_table == NULL) {
-            quit_label_parsing(&_label_table, &state, am_file_ptr, label_name);
+            destroy_label(&state->_label);
+            state->buffer = state->buffer_without_offset;
+            quit_label_parsing(&_label_table, &state, am_file_ptr);
             return NULL;
         }
-        new_label = NULL;
-        tmp_label = NULL;
+
+
+        state->buffer = state->buffer_without_offset;
+        reset_syntax_state(state);
+
     }
 
-    quit_label_parsing(NULL, &state, am_file_ptr, NULL);
+    reset_syntax_state(state);
+
+    quit_label_parsing(NULL, &state, am_file_ptr);
     return _label_table;
 }
 
@@ -213,6 +201,10 @@ keyword *get_keyword_by_name(keyword *keyword_table, char *name) {
 
 label *get_label_by_name(label_table *_label_table, char *label_name) {
     size_t i;
+
+    if (_label_table == NULL || _label_table->labels == NULL) {
+        return NULL;
+    }
 
     for (i = 0; (i < _label_table->size) && (_label_table->labels[i] != NULL); i++) {
         if (!strcmp(_label_table->labels[i]->name, label_name)) {
@@ -472,32 +464,6 @@ opcode get_command_opcode(keyword *keyword_table, int key) {
     return val;
 }
 
-void label_update_fields(label **new_label, char *label_name, int line_counter, status _entry_or_external, int address) {
-    static int label_key = FIRST_KEY;
-    /* Fill label name */
-    strcpy((*new_label)->name, label_name);
-    if (_entry_or_external == NEITHER_EXTERN_NOR_ENTRY) {
-        (*new_label)->key = label_key;
-        label_key++;
-        (*new_label)->instruction_line = line_counter;
-        (*new_label)->address = address;
-        (*new_label)->size = 0;
-    }
-
-    if (_entry_or_external == CONTAINS_ENTRY) {
-        (*new_label)->is_entry = true;
-    }
-    else if (_entry_or_external == CONTAINS_EXTERN) {
-        (*new_label)->is_extern = true;
-    }
-
-
-    else if ((*new_label)->is_entry == false && (*new_label)->is_extern == false) {
-        (*new_label)->is_entry = false;
-        (*new_label)->is_extern = false;
-    }
-
-}
 
 int command_number_by_key(keyword *keyword_table, int key) {
     int i, flag;
@@ -512,121 +478,176 @@ int command_number_by_key(keyword *keyword_table, int key) {
     return flag;
 }
 
-char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_external) {
+
+int compare_labels(const void *a, const void *b) {
+    label *label_a = *(label **)a;
+    label *label_b = *(label **)b;
+
+    if (label_a->key < label_b->key) {
+        return -1;
+    }
+    if (label_a->key > label_b->key) {
+        return 1;
+    }
+    return 0;
+}
+
+void sort_label_table(label_table *_label_table, label *_label) {
+    size_t i;
+
+
+    if (_label_table == NULL || _label == NULL) {
+        return;
+    }
+
+    for (i = 0; i < _label_table->size; i++) {
+        if (_label_table->labels[i] == _label) {
+            break;
+        }
+    }
+
+    if (_label_table->size == 0) {
+        return;
+    }
+
+    qsort(_label_table->labels, _label_table->size, sizeof(label *), compare_labels);
+
+}
+
+
+void extract_label_name_from_instruction(syntax_state *state) {
     size_t chars_copied = 0;
-    char *label_name = NULL;
-    char *copy_of_label_name = NULL;
-    char *instruction_copy = NULL;
-    char *instruction_copy_ptr = NULL;
-    char *instruction_copy_ptr2 = NULL;
-    int contains_entry = false;
-    int contains_extern = false;
+    char *ptr_trailing = NULL;
+    char *ptr_leading = NULL;
+    int entry_decleration = false;
+    int extern_decleration = false;
     int label_name_len = 0;
-    *_entry_or_external = NEITHER_EXTERN_NOR_ENTRY;
+    label *tmp_label = NULL;
 
 
     /*Check if the line contains the .entry or .extern directive */
-    if (strstr(*(_buffer), ".entry") != NULL) {
-        contains_entry = true;
-        *_entry_or_external = CONTAINS_ENTRY;
+    if (strstr(state->buffer, ".entry") != NULL) {
+        entry_decleration = true;
     }
-    if (strstr(*(_buffer), ".extern") != NULL) {
-        contains_extern = true;
-        *_entry_or_external = CONTAINS_EXTERN;
+    if (strstr(state->buffer, ".extern") != NULL) {
+        extern_decleration = true;
     }
 
-    if (contains_entry && contains_extern) {
-        printf("\nLine cannot contain both '.entry' and '.extern' directives.\n");
-        *_entry_or_external = NEITHER_EXTERN_NOR_ENTRY;
-        return NULL;
+    if (entry_decleration && extern_decleration) {
+        print_syntax_error(state, e66_redef_directive);
+        state->extern_or_entry = ERR;
+        return;
     }
+
 
 
     /* If the instruction contains the '.entry' or '.extern' directive, it does not have the ':' character */
-   /* Simply allocate a new name buffer, copy the label name to it and return it */
-    if (contains_entry || contains_extern) {
-        label_name = skip_ent_or_ext(*_buffer);
-        label_name = trim_whitespace(label_name);
-        instruction_copy_ptr = label_name;
-        instruction_copy_ptr2 = label_name;
+    /* Simply allocate a new name buffer, copy the label name to it and return it */
+    if (entry_decleration || extern_decleration) {
+        state->buffer = skip_ent_or_ext(state->buffer);
+        state->buffer = trim_whitespace(state->buffer);
+        ptr_leading = state->buffer;
+        ptr_trailing = ptr_leading;
 
-        while (instruction_copy_ptr2 && *(instruction_copy_ptr2) != '\0') {
-            if (!isspace(*instruction_copy_ptr2))
-                instruction_copy_ptr2++;
-        }
-        label_name_len = instruction_copy_ptr2 - instruction_copy_ptr + 1;
-        copy_of_label_name = (char *)calloc(label_name_len, sizeof(char));
+        /*
+        *Check if the declaration of the label precedes the directive
+        * If so, we simply update the label in the label table and return
+        */
+        tmp_label = get_label_by_name(state->l_table, state->buffer);
+        if (tmp_label != NULL) {
+            if (entry_decleration) {
+                tmp_label->declared_as_entry = true;
 
-        if (copy_of_label_name == NULL) {
-            label_name = NULL;
-            printf("\nFailed to allocate memory for copy of label name.\n");
-            return NULL;
+                /* We don't need to create a new label for this entry or extern directive if the label already exists */
+                state->_label->ignore = true;
+                return;
+            }
         }
+
+        /*
+        * If the directive precedes the label definition, we need to create a new label with empty fields and update the label name
+        * When we reach the label definition, we will update the label fields
+        */
+
+        /* Find the end of the label name by searching for the first whitespace character */
+        while (ptr_leading != NULL && *(ptr_leading) != '\0') {
+            if (!isspace(*ptr_leading)) {
+                ptr_leading++;
+            }
+        }
+
+        /* Calculate the length of the label name */
+        label_name_len = ptr_leading - ptr_trailing + 1;
+
+        /* Copy the label name to the new label */
         chars_copied = 0;
-        while (chars_copied < label_name_len && instruction_copy_ptr && instruction_copy_ptr <= instruction_copy_ptr2) {
-            copy_of_label_name[chars_copied] = instruction_copy_ptr[chars_copied];
+        while (chars_copied < label_name_len && ptr_trailing && ptr_trailing <= ptr_leading) {
+            state->_label->name[chars_copied] = ptr_trailing[chars_copied];
             chars_copied++;
         }
 
-        return copy_of_label_name;
+        /* Turn on the flag that indicates that the label needs to be updated */
+        state->_label->missing_definition = true;
+        state->_label->declared_as_entry = entry_decleration;
+        state->_label->declared_as_extern = extern_decleration;
+        state->label_name_detected = true;
+
+        return;
     }
 
-    label_name = *(_buffer);
-    instruction_copy = NULL;
 
-    /* Allocate memory for a copy of the instruction */
-    instruction_copy = (char *)calloc(strlen(*(_buffer)) * PADDING, sizeof(char));
-    if (instruction_copy == NULL) {
-        free(copy_of_label_name);
-        printf("\nFailed to allocate memory for instruction copy.\n");
-        return NULL;
+
+
+    /*Check if the instruction contains a label definition */
+    ptr_trailing = state->buffer;
+    ptr_leading = strchr(state->buffer, ':');
+
+    if (ptr_leading == NULL) {
+        return;
     }
-    trim_whitespace(label_name);
 
-    /* Copy the instruction to a new buffer */
-    strcpy(instruction_copy, label_name);
+    state->label_name_detected = true;
 
-    /* Find the ':' character in the instruction */
-    instruction_copy_ptr = instruction_copy;
-    instruction_copy_ptr2 = instruction_copy;
+    /* Calculate the length of the label name */
+    label_name_len = ptr_leading - ptr_trailing;
 
-    while (*(instruction_copy_ptr2) != '\0') {
+    /* Copy the label name to the new label */
+    chars_copied = 0;
+    while (chars_copied < label_name_len && ptr_trailing && ptr_trailing < ptr_leading) {
+        state->_label->name[chars_copied] = ptr_trailing[chars_copied];
+        chars_copied++;
+    }
 
-        /* If the ':' character is found, return the string up to the ':' character */
-        if (*(instruction_copy_ptr2) == ':') {
-            /* Null terminate the label name */
-            *(instruction_copy_ptr2) = '\0';
-            label_name_len = strlen(instruction_copy_ptr) + 1;
-            label_name = (char *)calloc(label_name_len, sizeof(char));
-            if (label_name == NULL) {
-                free(instruction_copy);
-                return NULL;
+    /* Null-terminate the label name */
+    state->_label->name[chars_copied] = '\0';
+
+    /* Check if a label with the same name already exists in the label table */
+    if (state->_label != NULL && !entry_decleration && !extern_decleration) {
+        tmp_label = get_label_by_name(state->l_table, state->_label->name);
+
+        /* If the label name is found as a directive, update the label in the label table and don't create a new label */
+        if (tmp_label != NULL && tmp_label->missing_definition) {
+            if (tmp_label->declared_as_entry) {
+                tmp_label->instruction_line = state->line_number;
+                tmp_label->missing_definition = false;
+                tmp_label->key = state->_label->key;
+                state->_label->ignore = true;
+
+                /* Bubble the label to the top of the label table */
+                sort_label_table(state->l_table, tmp_label);
+
+
+                return;
+
             }
-
-            /* Copy the label name to a new buffer */
-            strncpy(label_name, instruction_copy_ptr, label_name_len);
-
-            /* Free the instruction copy buffer */
-            free(instruction_copy);
-
-            /* Return the label name */
-            return label_name;
         }
-
-        /* If the ':' character is not found, continue to the next character */
-        instruction_copy_ptr2++;
     }
 
-    /* Free the instruction copy buffer */
-    free(instruction_copy);
 
-    instruction_copy = NULL;
-    instruction_copy_ptr = NULL;
-    instruction_copy_ptr2 = NULL;
-
-    /* If we reached this point, the instruction does not contain a label definition */
-    return NULL;
 }
+
+
+
 
 register_name get_register_number(char *register_as_string) {
     size_t i;
@@ -649,19 +670,19 @@ register_name get_register_number(char *register_as_string) {
     return reg;
 }
 
-validation_state label_name_is_valid(label_table *_label_table, syntax_state *state, keyword *keywords_table, macro_table *_macro_table, status *entry_or_ext) {
+validation_state validate_label_name(syntax_state *state) {
     int i;
     macro *result_macro = NULL;
     keyword *result_keyword = NULL;
     char *label_name = NULL;
-    label *tmp_label = NULL;
+    label *result_label = NULL;
 
     /* Check if the label name is NULL or too long */
     if (state == NULL) {
         return invalid;
     }
 
-    label_name = state->buffer;
+    label_name = state->tmp_arg;
 
     if (strlen(label_name) > MAX_LABEL_LENGTH) {
         print_syntax_error(state, e60_label_name_is_too_long);
@@ -683,24 +704,23 @@ validation_state label_name_is_valid(label_table *_label_table, syntax_state *st
     }
 
     /* Check if the label name is a keyword */
-    result_keyword = get_keyword_by_name(keywords_table, label_name);
+    result_keyword = get_keyword_by_name(state->k_table, label_name);
     if (result_keyword != NULL) {
         print_syntax_error(state, e61_label_name_is_keyword);
         return invalid;
     }
 
     /* Check if the label name is a macro name */
-    result_macro = get_macro(_macro_table, label_name);
+    result_macro = get_macro(state->m_table, label_name);
     if (result_macro != NULL) {
         print_syntax_error(state, e62_label_name_is_macro);
         return invalid;
     }
 
     /* Check if the label name is already in the label table */
-    tmp_label = get_label_by_name(_label_table, label_name);
-    if (tmp_label != NULL && (*entry_or_ext) == NEITHER_EXTERN_NOR_ENTRY) {
-        if (tmp_label->is_entry)
-            return valid;
+    result_label = get_label_by_name(state->l_table, label_name);
+    if (result_label != NULL) {
+
         print_syntax_error(state, e59_label_redef);
         return invalid;
     }
@@ -708,34 +728,39 @@ validation_state label_name_is_valid(label_table *_label_table, syntax_state *st
     return valid;
 }
 
-label *new_empty_label(label **new_label) {
-    if (new_label == NULL) return NULL;
+label *create_label() {
+    label *new_label = NULL;
 
-    (*new_label) = (label *)malloc(sizeof(label));
-
-    if ((*new_label) == NULL) {
-        printf("\ncould not allocate memory for a new label\n");
+    new_label = (label *)calloc(1, sizeof(label));
+    if (new_label == NULL) {
+        print_system_error(NULL, NULL, m13_create_label);
         return NULL;
     }
 
-    /* Initialize the label fields */
-    (*new_label)->key = 0;
-    (*new_label)->instruction_line = 0;
-    (*new_label)->address = 0;
-    (*new_label)->size = 0;
-    (*new_label)->is_entry = false;
-    (*new_label)->is_extern = false;
+    new_label->address = 0;
+    new_label->key = UNSET;
+    new_label->instruction_line = UNSET;
+    new_label->declared_as_entry = false;
+    new_label->declared_as_extern = false;
+    new_label->ignore = false;
+    new_label->missing_definition = false;
 
-    return *(new_label);
+
+    return new_label;
+
+
 }
 
-label_table *new_empty_label_table(label_table **new_label_table) {
+label_table *create_label_table(label_table **new_label_table) {
+
+
+
     if (!(*new_label_table = (label_table *)malloc(sizeof(label_table)))) {
         return NULL;
     }
     (*new_label_table)->size = 0;
-    (*new_label_table)->capacity = INITIAL_CAPACITY;
-    (*new_label_table)->labels = (label **)calloc(INITIAL_CAPACITY, sizeof(label *));
+    (*new_label_table)->capacity = 1;
+    (*new_label_table)->labels = (label **)calloc(1, sizeof(label *));
     if ((*new_label_table)->labels == NULL) {
         free(*new_label_table);
         return NULL;
@@ -754,7 +779,7 @@ status insert_label(label_table *_label_table, label **_label) {
     }
 
     if (_label_table->size == _label_table->capacity) {
-        _label_table->capacity *= 2;
+        _label_table->capacity += 1;
         _label_table->labels = (label **)realloc(_label_table->labels, _label_table->capacity * sizeof(label *));
         if (_label_table->labels == NULL) {
             free(_label_table);
@@ -810,10 +835,10 @@ void print_label_table(label_table *_label_table) {
         if (_label_table->labels[i]->key != 0 && _label_table->labels[i]->key != -1)
             printf("Key: %d \n", _label_table->labels[i]->key);
 
-        if (_label_table->labels[i]->is_entry) {
+        if (_label_table->labels[i]->declared_as_entry) {
             printf("Directives: %s \n", entry);
         }
-        else if (_label_table->labels[i]->is_extern) {
+        else if (_label_table->labels[i]->declared_as_extern) {
             printf("Directives: %s \n", external);
         }
         else {

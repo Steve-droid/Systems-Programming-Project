@@ -1,5 +1,7 @@
 #include "file_util.h"
 #include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #define MAX_PATH_LENGTH 30
 
 
@@ -294,6 +296,14 @@ FILE *my_fopen(const char *filename, const char *mode) {
 
     if (strcmp(mode, "w") == 0) {
         fp = fopen(output_path, mode);
+
+        /*If the fp is null, make an 'output' directory */
+        if (fp == NULL) {
+            mkdir("output", 0755);
+            fp = fopen(output_path, mode);
+
+        }
+
         if (fp == NULL) {
             printf("Error: Trying to open the file '%s' with mode 'w' with no success\n", filename);
             return NULL;

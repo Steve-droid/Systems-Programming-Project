@@ -1,12 +1,5 @@
-/**
- *@file common.h
- * @brief Contains the common data structures and constants used throughout the assembler.
- * @date 2024-07-21
- *
- *
- */
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef DS_H
+#define DS_H
 
 
 #include <stdio.h>
@@ -17,6 +10,7 @@
 #include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
+
 
 #define MAX_LINE_LENGTH 80
 #define UNKNOWN_NUMBER_OF_ARGUMENTS -2
@@ -47,7 +41,7 @@
 #define GET -1
 #define RESET -2
 
- /*---Enums---*/
+/*---Enums---*/
 typedef enum {
     invalid, valid
 } validation_state;
@@ -131,6 +125,36 @@ typedef struct {
     int length;
 }keyword;
 
+typedef struct macro {
+    char **lines;      /* Vector of strings- the lines that the macro expands to */
+    char *name;         /* The name of the macro */
+    int line_count;     /* Number of lines in the macro */
+    int line_capacity;
+}macro;
+
+typedef struct macro_table {
+    macro **macros;            /* Vector of macro pointers */
+    int macro_count;           /* Number of macros in the table */
+    int capacity;
+}macro_table;
+
+typedef struct label {
+    char name[MAX_LABEL_LENGTH];
+    int key;
+    size_t instruction_line;
+    size_t address;
+    bool declared_as_entry;
+    bool declared_as_extern;
+    bool ignore;
+    bool missing_definition;
+}label;
+
+typedef struct label_table {
+    label **labels;
+    size_t size;
+    size_t capacity;
+}label_table;
+
 
 typedef struct instruction {
 
@@ -144,18 +168,20 @@ typedef struct instruction {
     int label_key;
     int address;
     size_t line_number;
-    int is_src_entry;
-    int is_src_extern;
-    int is_dest_entry;
-    int is_dest_extern;
+
+
+    bool is_src_entry;
+    bool is_src_extern;
+    bool is_dest_entry;
+    bool is_dest_extern;
 
     /* Directive parameters */
     size_t num_dot_data_members;
     size_t num_dot_string_members;
-    int is_dot_data;
-    int is_dot_string;
-    int is_entry;
-    int is_extern;
+    bool is_dot_data;
+    bool is_dot_string;
+    bool is_entry;
+    bool is_extern;
 
     /* Operations parameters */
     addressing_method src_addressing_method;
@@ -203,21 +229,6 @@ typedef struct instruction_table {
 } inst_table;
 
 
-typedef struct label {
-    char name[MAX_LABEL_LENGTH];
-    int key;
-    size_t instruction_line;
-    size_t address;
-    size_t size;
-    int is_entry;
-    int is_extern;
-}label;
-
-typedef struct label_table {
-    label **labels;
-    size_t size;
-    size_t capacity;
-}label_table;
 
 
 size_t DC(int prompt, size_t amount);
@@ -232,46 +243,60 @@ typedef struct data_image {
 } data_image;
 
 typedef struct syntax_state {
-    validation_state _validation_state;
+
+    /* Pointers to data structures */
+    inst *_inst;
+    keyword *k_table;
+    label *_label;
+    macro_table *m_table;
+    label_table *l_table;
+
+    /* Buffers to hold instruction when scanning for labels and arguments */
+    char *buffer;
+    char *buffer_without_offset;
+
+    /* Pointers to filenames */
+    char *am_filename;
+    char *as_filename;
+    char *generic_filename;
+
+
+    /* Temporary variables used when scanning for labels and arguments */
+    char *tmp_arg;
     status extern_or_entry;
     int index;
     int cmd_key;
     int line_number;
-    inst *_inst;
-    char *buffer;
-    int label_key;
-    char *buffer_without_offset;
-    char *am_filename;
-    char *as_filename;
-    char *generic_filename;
-    char *tmp_arg;
-    keyword *k_table;
-
     int tmp_len;
+    int label_key;
     int arg_count;
-    int continue_reading;
-    int label_name;
-    int comma;
-    int whitespace;
-    int null_terminator;
-    int new_line;
-    int minus_sign;
-    int plus_sign;
-    int end_of_argument_by_space;
-    int end_of_argument;
-    int end_of_string;
-    int first_quatiotion_mark;
-    int last_quatiotion_mark;
-    int digit;
-    int is_data;
-    int is_string;
-    int is_src_entry;
-    int is_src_extern;
-    int is_dest_entry;
-    int is_dest_extern;
-    int is_entry;
-    int is_extern;
+    int tmp_address;
+
+    /* Flags used when scanning each character of label and arguments */
+    bool continue_reading;
+    bool label_name_detected;
+    bool comma;
+    bool whitespace;
+    bool null_terminator;
+    bool new_line;
+    bool minus_sign;
+    bool plus_sign;
+    bool end_of_argument_by_space;
+    bool end_of_argument;
+    bool end_of_string;
+    bool first_quatiotion_mark;
+    bool last_quatiotion_mark;
+    bool digit;
+    bool is_data;
+    bool is_string;
+
+    /* Flags used when assigning addressing methods */
+    bool is_src_entry;
+    bool is_src_extern;
+    bool is_dest_entry;
+    bool is_dest_extern;
 } syntax_state;
+
 
 typedef struct {
     char *am_filename;

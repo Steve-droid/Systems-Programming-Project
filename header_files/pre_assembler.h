@@ -2,7 +2,7 @@
 #define PRE_ASSEMBLER_H_
 #define _POSIX_C_SOURCE 200809L
 
-#include "common.h"
+#include "ds.h"
 #include "file_util.h"
 
 #define MAX_MACRO_NAME_LENGTH 73

@@ -2,7 +2,7 @@
 
 #ifndef SYMBOLS_H
 #define SYMBOLS_H
-#include "common.h"
+#include "ds.h"
 #include "text_util.h"
 #include "macro.h"
 
@@ -24,7 +24,7 @@ keyword *fill_keyword_table();
  * @param keywords_table The table of keywords and their corresponding keys
  * @return label_table* The table of labels created from the assembly file
  */
-label_table *fill_label_table(char *am_filename,char* as_filename, macro_table *m_table, keyword *keywords_table);
+label_table *fill_label_table(char *am_filename, char *as_filename, macro_table *m_table, keyword *keywords_table);
 
 /**
  *@brief Get a keyword by its name
@@ -106,17 +106,6 @@ keyword_name identify_command(syntax_state *state, label_table *_label_table, ke
  */
 opcode get_command_opcode(keyword *keyword_table, int key);
 
-/**
- *@brief Update the fields of a label
- * This function updates the fields of a label with the given values.
- * @param new_label A pointer to the label to update
- * @param label_name A string containing the name of the label
- * @param line_counter An integer representing the line number of the label in the assembly file
- * @param _entry_or_external An enum representing the status of the label (entry or external)
- * @param address The memory address of the label
- */
-void label_update_fields(label **new_label, char *label_name, int line_counter, status _entry_or_external, int address);
-
 
 /**
  *@brief Get the number of a command by its keyword
@@ -134,7 +123,7 @@ int command_number_by_key(keyword *keyword_table, int key);
  * @param _entry_or_external A pointer to the status of the label (entry or external) to update
  * @return char* A string containing the label name
  */
-char *extract_label_name_from_instruction(char **_buffer, status *_entry_or_external);
+void extract_label_name_from_instruction(syntax_state *state);
 
 /**
  *@brief Get the register number by its name
@@ -148,23 +137,18 @@ register_name get_register_number(char *register_as_string);
 /**
  *@brief Check if a label name is valid
  * This function checks if a label name is valid according to the rules of the assembly language.
- * @param _label_table A table of labels to check if the label name is unique
- * @param _buffer A pointer to the buffer containing the label name
- * @param keywords_table A table of keywords to check if the label name is a keyword
- * @param _macro_table A table of macros to check if the label name is a macro
- * @param entry_or_ext A pointer to the status of the label (entry or external) to update
+ * @param state The syntax state of the current instruction as defined in common.h
  * @return status The status of the validation operation
  */
-validation_state label_name_is_valid(label_table *_label_table, syntax_state* state, keyword *keywords_table, macro_table *_macro_table, status *entry_or_ext);
+validation_state validate_label_name(syntax_state *state);
 
 
 /**
  *@brief Create a new label object
  *
- * @param new_label A pointer to the label to create
  * @return label* A pointer to the new label object
  */
-label *new_empty_label(label **new_label);
+label *create_label();
 
 /**
  *@brief Create a new label table
@@ -172,7 +156,7 @@ label *new_empty_label(label **new_label);
  * @param new_label_table A pointer to the label table to create
  * @return label_table* A pointer to the new label table object
  */
-label_table *new_empty_label_table(label_table **new_label_table);
+label_table *create_label_table(label_table **new_label_table);
 
 /**
  *@brief Insert a label into a label table

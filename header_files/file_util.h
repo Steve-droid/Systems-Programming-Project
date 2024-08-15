@@ -13,7 +13,7 @@
 #define FILE_UTIL_H
 #define _POSIX_C_SOURCE 200809L
 
-#include "common.h"
+#include "ds.h"
 #include "symbols.h"
 #include <unistd.h>
 #include <fcntl.h>
