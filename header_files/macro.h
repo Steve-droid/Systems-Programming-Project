@@ -2,21 +2,17 @@
 #define MACRO_H_
 #define _POSIX_C_SOURCE 200809L
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include "file_util.h"
-#include "help_table.h"
+#include "common.h"
 
 
-#define as_extension ".as"
-#define am_extension ".am"
 #define MAX_MACRO_AMOUNT 100
+#define MAX_LINE_LENGTH 80
 #define INITIAL_MACRO_CAPACITY 3
 #define INITIAL_MACRO_TABLE_CAPACITY 3
 #define MIN_MACRO_AMOUNT 3
 #define MIN_LINE_AMOUNT 3
+
+
 
 typedef struct macro {
     char **lines;      /* Vector of strings- the lines that the macro expands to */
@@ -44,19 +40,13 @@ status create_macro(char *macro_name, macro **new_macro);
 
 status insert_line_to_macro(macro *mac, char *line);
 
-/**
- * @brief Destroy a macro object
- *
- * @param macro The macro to destroy
- */
-void macro_destructor(macro *macro);
 
 /**
  * @brief Create a new macro table object
  *
  * @return macro_table*
  */
-macro_table *create_macro_table();
+macro_table *create_macro_table(void);
 
 /**
  * @brief Insert a macro into the macro table
@@ -73,7 +63,7 @@ status insert_macro_to_table(macro_table *table, macro *mac);
  * @param name The name of the macro to get
  * @return macro*
  */
-macro *find_macro_in_table(macro_table *table, char *name);
+macro *get_macro(macro_table *table, char *name);
 
 
 /**
@@ -81,7 +71,7 @@ macro *find_macro_in_table(macro_table *table, char *name);
  *
  * @return macro_table*
  */
-macro_table *get_macro_table();
+macro_table *get_macro_table(void);
 
 
 /**
@@ -89,11 +79,16 @@ macro_table *get_macro_table();
  *
  * @param table The macro table to destroy
  */
-void macro_table_destructor(macro_table *table);
+void destroy_macro_table(macro_table **table);
 
-status print_macro_lines(macro *mac);
+/**
+ * @brief Destroy a macro object
+ *
+ * @param macro The macro to destroy
+ */
+void destroy_macro(macro **macro);
 
-status print_macro_table(macro_table *table);
+
 
 
 #endif
