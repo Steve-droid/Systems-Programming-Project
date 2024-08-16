@@ -94,7 +94,4 @@ bool is_empty_line(char *str);
  */
 char *my_strdup(char *s);
 
-/* For debugging */
-void print_bits(unsigned value, int num_bits);
-void print_binary_to_file(uint16_t num, FILE *file_ptr);
 #endif

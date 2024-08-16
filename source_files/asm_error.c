@@ -233,7 +233,7 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
    }
 
    error_count++;
-   printf("\n(Error #%d)~ In file '%s': on line: '%d' -> \"%s\": ", error_count, state->as_filename, state->line_number, state->buffer_without_offset);
+   printf("\n(Error #%d)~ file '%s' on line: '%d': %s -> ", error_count, state->as_filename, state->line_number, state->buffer_without_offset);
    switch (e_code) {
 
       /* General errors */
@@ -535,7 +535,8 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       break;
 
    case e51_unknown_label:
-      printf("Unrecognized argument '%s'\nNote:'%s' could be a label name that has an invalid definition. Check the label definition and try again.\n", state->tmp_arg, state->tmp_arg);
+      printf("Unrecognized argument '%s'\nNote:'%s' could be a label name that has an invalid definition. Make sure label definitions in your code are valid\n",
+         state->tmp_arg, state->tmp_arg);
       break;
 
    case e52_inval_ext:

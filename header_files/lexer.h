@@ -24,14 +24,16 @@
 #include "instruction.h"
 #include "asm_error.h"
 
-#define FIRST_FIELD 0
-#define SECOND_FIELD 1
-#define THIRD_FIELD 2
-#define FOURTH_FIELD 3
-#define FIRST_ARG 0
-#define SECOND_ARG 1
-
 
 inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table, keyword *keyword_table, int *syntax_error_count);
+status init_lexer(char *am_filename, char *as_filename, label_table *_label_table, keyword *keyword_table);
+status generate_tokens(syntax_state *state, keyword *keyword_table, label_table *_label_table);
+status assign_data(syntax_state *state, label_table *_label_table, keyword *keyword_table);
+status assign_args(syntax_state *state, label_table *_label_table, keyword *keyword_table);
+status process_data_command(syntax_state *state, label_table *_label_table);
+status process_string_command(syntax_state *state, label_table *_label_table);
+status assign_addressing_method(syntax_state *state, char *argument, label_table *_label_table, keyword *keyword_table);
+status validate_data_members(syntax_state *state);
+status assign_addresses(inst_table *_inst_table, label_table *_label_table, keyword *_keyword_table);
 
 #endif 

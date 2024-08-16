@@ -28,7 +28,6 @@ data_image *create_data_image(inst_table *_inst_table) {
 
     data_image *_data_image = (data_image *)calloc(1, sizeof(data_image));
     if (_data_image == NULL) {
-        printf("*** ERROR ***\nFailed to allocate memory for data image\n");
         return NULL;
     }
 
@@ -80,7 +79,6 @@ data_image *create_data_image(inst_table *_inst_table) {
     }
 
     if (_data_image->num_words != _inst_table->DC) {
-        printf("*** ERROR ***\nData image did not create properly\n");
         return NULL;
     }
 
@@ -320,26 +318,10 @@ status generate_binary_words(inst_table *_inst_table, size_t index) {
 
     current_inst->binary_word_vec = (uint16_t *)calloc(current_inst->num_words_to_generate, sizeof(uint16_t));
     if (current_inst->binary_word_vec == NULL) {
-        return STATUS_ERROR_MEMORY_ALLOCATION;
+        return failure;
     }
 
-    return STATUS_OK;
-}
-
-void print_octal(int address, uint16_t number, FILE *file_ptr) {
-    char octal[6];
-    int index = 5;
-    octal[index--] = '\0';
-
-    while (number > 0) {
-        octal[index--] = (number & 0x7) + '0';
-        number >>= 3;
-    }
-
-    while (index >= 0) {
-        octal[index--] = '0';
-    }
-    fprintf(file_ptr, "0%d\t%s\n", address, octal);
+    return success;
 }
 
 status parse(inst_table *_inst_table, label_table *_label_table, keyword *keyword_table, char *am_filename) {
@@ -350,11 +332,9 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     size_t am_filename_len = strlen(am_filename);
     inst *tmp_inst = NULL;
     char *object_output_filename = NULL;
-    char binary_output_filename[MAX_LINE_LENGTH] = "binary_";
     char *extern_output_filename = NULL;
     char *entry_output_filename = NULL;
     FILE *object_file_ptr = NULL;
-    FILE *bin_file_ptr = NULL;
     FILE *entry_file_ptr = NULL;
     FILE *extern_file_ptr = NULL;
     char *tmp_ptr = NULL;
@@ -364,19 +344,10 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     int address = 100;
     data_image *_data_image = NULL;
 
-    strcat(binary_output_filename, am_filename);
-
-    bin_file_ptr = my_fopen(binary_output_filename, "w");
-    if (bin_file_ptr == NULL) {
-        return STATUS_ERROR;
-    }
-
 
     object_output_filename = my_strdup(am_filename);
     if (object_output_filename == NULL) {
-        close_files(bin_file_ptr, NULL);
-        bin_file_ptr = NULL;
-        return STATUS_ERROR;
+        return failure;
     }
 
     tmp_ptr = strstr(object_output_filename, ".am");
@@ -389,31 +360,30 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     object_file_ptr = my_fopen(object_output_filename, "w");
     if (object_file_ptr == NULL) {
         free_filenames(object_output_filename, NULL);
-        close_files(bin_file_ptr, NULL);
         object_output_filename = NULL;
         object_file_ptr = NULL;
-        return STATUS_ERROR;
+        return failure;
     }
 
 
     _data_image = create_data_image(_inst_table);
     if (_data_image == NULL) {
         free_filenames(object_output_filename, NULL);
-        close_files(bin_file_ptr, object_file_ptr, NULL);
+        close_files(object_file_ptr, NULL);
         object_output_filename = NULL;
         object_file_ptr = NULL;
-        return STATUS_ERROR;
+        return failure;
     }
 
 
 
     for (i = 0; i < _inst_table->num_instructions; i++) {
-        if (generate_binary_words(_inst_table, i) != STATUS_OK) {
+        if (generate_binary_words(_inst_table, i) != success) {
             free_filenames(object_output_filename, NULL);
-            close_files(object_file_ptr, bin_file_ptr, NULL);
+            close_files(object_file_ptr, NULL);
             object_output_filename = NULL;
             object_file_ptr = NULL;
-            return STATUS_ERROR;
+            return failure;
         }
 
         tmp_inst = _inst_table->inst_vec[i];
@@ -426,22 +396,11 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     /*Print to the .ob output file*/
     fprintf(object_file_ptr, "\t%lu\t%lu\n", _inst_table->IC - 100 - _inst_table->DC, _inst_table->DC);
     for (inst_index = 0; inst_index < _inst_table->num_instructions; inst_index++) {
-        fprintf(bin_file_ptr, "\n------------------------------------------------------------\n\n\t\t\t");
         tmp_inst = _inst_table->inst_vec[inst_index];
-        fprintf(bin_file_ptr, "Address %d--> ", tmp_inst->address);
-
-        for (i = 0;i < _inst_table->inst_vec[inst_index]->num_tokens;i++) {
-            fprintf(bin_file_ptr, "%s ", tmp_inst->tokens[i]);
-
-        }
 
         if (tmp_inst->is_dot_data || tmp_inst->is_dot_string || tmp_inst->is_entry || tmp_inst->is_extern) {
             continue;
         }
-        fprintf(bin_file_ptr, "\n\n");
-
-
-
 
         for (bin_word_index = 0; bin_word_index < _inst_table->inst_vec[inst_index]->num_words_to_generate;
             bin_word_index++, address++) {
@@ -449,26 +408,15 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
             if (tmp_inst->is_dot_data || tmp_inst->is_dot_string || tmp_inst->is_entry || tmp_inst->is_extern) continue;
             print_octal(address, _inst_table->inst_vec[inst_index]->binary_word_vec[bin_word_index], object_file_ptr);
 
-            print_binary_to_file((_inst_table->inst_vec[inst_index]->binary_word_vec[bin_word_index]), bin_file_ptr);
         }
     }
 
-    fprintf(bin_file_ptr, "\n------------------------------------------------------------\n\n\t\t\t");
-    fprintf(bin_file_ptr, "Data Image:\n\n");
-
-    for (i = 0;i < _data_image->num_names;i++) {
-        fprintf(bin_file_ptr, "\t\t\t%s\n\n", _data_image->names[i]);
-    }
-
-    fprintf(bin_file_ptr, "\n\t\t\t      ^\n\t\t\t      |\n\n");
     for (bin_word_index = 0; bin_word_index < _data_image->num_words; bin_word_index++, address++) {
         print_octal(address, _data_image->binary_word_vec[bin_word_index], object_file_ptr);
-        print_binary_to_file(_data_image->binary_word_vec[bin_word_index], bin_file_ptr);
     }
-    close_files(object_file_ptr, bin_file_ptr, NULL);
+    close_files(object_file_ptr, NULL);
     free_filenames(object_output_filename, NULL);
     object_file_ptr = NULL;
-    bin_file_ptr = NULL;
     object_output_filename = NULL;
 
 
@@ -488,7 +436,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     if (create_ent) {
         entry_output_filename = (char *)calloc(am_filename_len + 2, sizeof(char));
         if (entry_output_filename == NULL) {
-            return STATUS_ERROR_MEMORY_ALLOCATION;
+            return failure;
         }
 
         strncpy(entry_output_filename, am_filename, am_filename_len);
@@ -504,7 +452,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
         if (entry_file_ptr == NULL) {
             free_filenames(entry_output_filename, NULL);
             entry_output_filename = NULL;
-            return STATUS_ERROR;
+            return failure;
         }
 
 
@@ -527,7 +475,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     if (create_ext) {
         extern_output_filename = (char *)calloc(am_filename_len + 2, sizeof(char));
         if (extern_output_filename == NULL) {
-            return STATUS_ERROR;
+            return failure;
         }
 
 
@@ -545,7 +493,7 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
         if (extern_file_ptr == NULL) {
             free_filenames(extern_output_filename, NULL);
             object_file_ptr = NULL;
-            return STATUS_ERROR;
+            return failure;
         }
 
 
@@ -578,6 +526,6 @@ status parse(inst_table *_inst_table, label_table *_label_table, keyword *keywor
     extern_output_filename = NULL;
 
     destroy_data_image(&_data_image);
-    return STATUS_OK;
+    return success;
 
 }

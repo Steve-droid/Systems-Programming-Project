@@ -16,6 +16,15 @@
 keyword *fill_keyword_table();
 
 /**
+ *@brief Notify the user when a label is declared as .entry but not defined
+ * This function checks if a label is declared as an entry but not defined in the assembly file.
+ * If the label is not defined, the function prints an error message to the console.
+ * @param state The syntax state of the current instruction as defined in text_util.h
+ */
+void notify_missing_definition(syntax_state *state);
+
+
+/**
  *@brief Creates a table of labels
  * This function parses the assembly file and creates a table of labels.
  *
@@ -107,6 +116,7 @@ keyword_name identify_command(syntax_state *state, label_table *_label_table, ke
 opcode get_command_opcode(keyword *keyword_table, int key);
 
 
+
 /**
  *@brief Get the number of a command by its keyword
  * This function searches for a command in the keyword table by its key and returns the number of the command.
@@ -115,6 +125,24 @@ opcode get_command_opcode(keyword *keyword_table, int key);
  * @return int The number of the command if found, or -1(UNDIFINED) if not found
  */
 int command_number_by_key(keyword *keyword_table, int key);
+
+/**
+ *@brief Compare two labels by their keys
+ * Used to sort the labels in the label table by their keys.
+ * @param a The first label to compare
+ * @param b The second label to compare
+ * @return int The result of the comparison(1 if a>b, -1 if a<b, 0 if a=b)
+ */
+int compare_labels(const void *a, const void *b);
+
+/**
+ *@brief Sort the labels in the label table by their keys
+ * Used when a label is declared as .entry before its definition in the assembly file.
+ * @param _label_table 
+ * @param _label 
+ */
+void sort_label_table(label_table *_label_table, label *_label);
+
 
 /**
  *@brief Extract the label name from an instruction
@@ -140,7 +168,7 @@ register_name get_register_number(char *register_as_string);
  * @param state The syntax state of the current instruction as defined in common.h
  * @return status The status of the validation operation
  */
-validation_state validate_label_name(syntax_state *state);
+status validate_label_name(syntax_state *state);
 
 
 /**
@@ -194,5 +222,4 @@ void destroy_keyword_table(keyword **_keyword_table);
  * This function prints the contents of a label table to the console.
  * @param _label_table The label table to print
  */
-void print_label_table(label_table *_label_table);
 #endif 

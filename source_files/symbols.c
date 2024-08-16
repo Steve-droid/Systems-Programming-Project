@@ -1,13 +1,8 @@
 #include "symbols.h"
 #define PADDING 2
-#define INITIAL_CAPACITY 15
+#define INITIAL_CAPACITY 10
 #define UNSET -1
 
-/**
- *@brief Creates a table of keywords and their corresponding keys
- *
- * @return keyword* A table of keywords and their corresponding keys
- */
 keyword *fill_keyword_table() {
     int i;
     char reg_name[3] = { 0 };
@@ -83,7 +78,7 @@ keyword *fill_keyword_table() {
     return keywords_table;
 }
 
-static void notify_missing_definition(syntax_state *state) {
+void notify_missing_definition(syntax_state *state) {
     size_t i;
     label *tmp_label = NULL;
 
@@ -166,7 +161,7 @@ label_table *fill_label_table(char *am_filename, char *as_filename, macro_table 
 
 
         state->tmp_arg = state->_label->name;
-        if (validate_label_name(state) != valid) {
+        if (validate_label_name(state) != success) {
             (*syntax_errors)++;
             destroy_label(&state->_label);
             state->buffer = state->buffer_without_offset;
@@ -368,8 +363,6 @@ addressing_method get_addressing_method(syntax_state *state, char *sub_inst, lab
     }
 
 
-    /* else - not direct */
-
     print_syntax_error(state, e51_unknown_label);
     return UNDEFINED_METHOD;
 }
@@ -485,7 +478,6 @@ opcode get_command_opcode(keyword *keyword_table, int key) {
     return val;
 }
 
-
 int command_number_by_key(keyword *keyword_table, int key) {
     int i, flag;
 
@@ -498,7 +490,6 @@ int command_number_by_key(keyword *keyword_table, int key) {
     }
     return flag;
 }
-
 
 int compare_labels(const void *a, const void *b) {
     label *label_a = *(label **)a;
@@ -532,9 +523,7 @@ void sort_label_table(label_table *_label_table, label *_label) {
     }
 
     qsort(_label_table->labels, _label_table->size, sizeof(label *), compare_labels);
-
 }
-
 
 void extract_label_name_from_instruction(syntax_state *state) {
     size_t chars_copied = 0;
@@ -656,19 +645,12 @@ void extract_label_name_from_instruction(syntax_state *state) {
 
                 /* Bubble the label to the top of the label table */
                 sort_label_table(state->l_table, tmp_label);
-
-
                 return;
 
             }
         }
     }
-
-
 }
-
-
-
 
 register_name get_register_number(char *register_as_string) {
     size_t i;
@@ -691,7 +673,7 @@ register_name get_register_number(char *register_as_string) {
     return reg;
 }
 
-validation_state validate_label_name(syntax_state *state) {
+status validate_label_name(syntax_state *state) {
     int i;
     macro *result_macro = NULL;
     keyword *result_keyword = NULL;
@@ -700,14 +682,14 @@ validation_state validate_label_name(syntax_state *state) {
 
     /* Check if the label name is NULL or too long */
     if (state == NULL) {
-        return invalid;
+        return failure;
     }
 
     label_name = state->tmp_arg;
 
     if (strlen(label_name) > MAX_LABEL_LENGTH) {
         print_syntax_error(state, e60_label_name_is_too_long);
-        return invalid;
+        return failure;
     }
 
 
@@ -717,10 +699,10 @@ validation_state validate_label_name(syntax_state *state) {
         if (!(isalpha(label_name[i]) || isdigit(label_name[i]))) {
             if (isspace(label_name[i])) {
                 print_syntax_error(state, e64_whitespace_between_label_and_colon);
-                return invalid;
+                return failure;
             }
             print_syntax_error(state, e63_label_name_not_alphanumeric);
-            return invalid;
+            return failure;
         }
     }
 
@@ -728,14 +710,14 @@ validation_state validate_label_name(syntax_state *state) {
     result_keyword = get_keyword_by_name(state->k_table, label_name);
     if (result_keyword != NULL) {
         print_syntax_error(state, e61_label_name_is_keyword);
-        return invalid;
+        return failure;
     }
 
     /* Check if the label name is a macro name */
     result_macro = get_macro(state->m_table, label_name);
     if (result_macro != NULL) {
         print_syntax_error(state, e62_label_name_is_macro);
-        return invalid;
+        return failure;
     }
 
     /* Check if the label name is already in the label table */
@@ -743,10 +725,10 @@ validation_state validate_label_name(syntax_state *state) {
     if (result_label != NULL) {
 
         print_syntax_error(state, e59_label_redef);
-        return invalid;
+        return failure;
     }
 
-    return valid;
+    return success;
 }
 
 label *create_label() {
@@ -766,10 +748,7 @@ label *create_label() {
     new_label->ignore = false;
     new_label->missing_definition = false;
 
-
     return new_label;
-
-
 }
 
 label_table *create_label_table(label_table **new_label_table) {
@@ -790,27 +769,21 @@ label_table *create_label_table(label_table **new_label_table) {
 }
 
 status insert_label(label_table *_label_table, label **_label) {
-    label *tmp_label = NULL;
 
-
-
-    tmp_label = get_label_by_name(_label_table, (*_label)->name);
-    if (tmp_label != NULL) {
-        return DUPLICATED;
-    }
-
+    /* Expand the label table if it is full */
     if (_label_table->size == _label_table->capacity) {
         _label_table->capacity += 1;
         _label_table->labels = (label **)realloc(_label_table->labels, _label_table->capacity * sizeof(label *));
         if (_label_table->labels == NULL) {
             free(_label_table);
-            return STATUS_ERROR;
+            return failure;
         }
     }
 
+    /* Insert the label into the label table and update the size */
     _label_table->labels[_label_table->size] = (*_label);
     _label_table->size++;
-    return STATUS_OK;
+    return failure;
 }
 
 void destroy_keyword_table(keyword **_keyword_table) {
@@ -838,44 +811,4 @@ void destroy_label_table(label_table **_label_table) {
     *_label_table = NULL;
 }
 
-void print_label_table(label_table *_label_table) {
-    int i;
-    char entry[] = " .entry";
-    char external[] = " .extern";
-    char none[] = "None";
-    if (_label_table == NULL) {
-        printf("\nTrying to print a NULL label table.\n");
-        return;
-    }
-    printf("\n######################################################\n");
-    printf("Printing Label Table:");
-    printf("\n######################################################\n\n");
 
-    for (i = 0; i < _label_table->size; i++) {
-        printf("Name: %s \n", _label_table->labels[i]->name);
-        if (_label_table->labels[i]->key != 0 && _label_table->labels[i]->key != -1)
-            printf("Key: %d \n", _label_table->labels[i]->key);
-
-        if (_label_table->labels[i]->declared_as_entry) {
-            printf("Directives: %s \n", entry);
-        }
-        else if (_label_table->labels[i]->declared_as_extern) {
-            printf("Directives: %s \n", external);
-        }
-        else {
-            printf("Directives: %s \n", none);
-        }
-        if (_label_table->labels[i]->instruction_line != 0)
-            printf("Instruction line: %lu \n", _label_table->labels[i]->instruction_line);
-        if (_label_table->labels[i]->address != 0 && _label_table->labels[i]->address != -1) {
-            printf("Address: %lu \n", _label_table->labels[i]->address);
-        }
-        printf("\n-----------------------------------\n");
-
-    }
-    printf("\n######################################################\n");
-    printf("End Of Label Table");
-    printf("\n######################################################\n\n\n");
-
-
-}

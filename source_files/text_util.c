@@ -1,6 +1,11 @@
 #include "text_util.h"
 #define PADDING 4
 
+/**
+ *@brief Create a syntax state object
+ * Dynamically allocate memory for a new syntax state object and initialize its fields.
+ * @return syntax_state* The newly created syntax state object
+ */
 syntax_state *create_syntax_state(void) {
     char *buffer = NULL;
     syntax_state *state = (syntax_state *)calloc(1, sizeof(syntax_state));
@@ -42,6 +47,13 @@ syntax_state *create_syntax_state(void) {
     return state;
 }
 
+/**
+ *@brief Reset the syntax state object
+ * Use this function to reset the syntax state object by clearing the buffer and setting the index to -1.
+ * It also resets the flags that indicate the presence of certain characters in the buffer.
+ * We reset the state each time we start processing a new instruction.
+ * @param state
+ */
 void reset_syntax_state(syntax_state *state) {
     size_t i = 0;
 
@@ -85,7 +97,11 @@ void reset_syntax_state(syntax_state *state) {
     state->tmp_arg = NULL;
 }
 
-
+/**
+ *@brief Destroy the syntax state object
+ * This function frees the memory allocated for the syntax state object.
+ * @param state The syntax state object to destroy
+ */
 void destroy_syntax_state(syntax_state **state) {
     syntax_state *st = NULL;
 
@@ -128,6 +144,13 @@ void destroy_syntax_state(syntax_state **state) {
     (*state) = NULL;
 }
 
+/**
+ *@brief Updates the syntax state according to the command key
+ * Used in the lexer to update the syntax state according to the command key.
+ * @param state The syntax state of the current instruction as defined in ds.h
+ * @param keyword_table
+ * @param command_key The key of the command to update the syntax state according to
+ */
 void update_command(syntax_state *state, keyword *keyword_table, int command_key) {
     if (!strcmp(keyword_table[command_key].name, ".data")) {
         state->is_data = true;
@@ -137,6 +160,14 @@ void update_command(syntax_state *state, keyword *keyword_table, int command_key
     }
 }
 
+/**
+ *@brief Continue reading the instruction buffer
+ * This function checks if there are more characters to read in the instruction buffer.
+ * Used in the lexer to determine if we should continue reading the instruction buffer.
+ * @param instruction_buffer The buffer containing the instruction
+ * @param state The syntax state of the current instruction as defined in ds.h
+ * @return status The status of the operation
+ */
 bool continue_reading(char *instruction_buffer, syntax_state *state) {
     size_t index = state->index;
     size_t instruction_length = strlen(instruction_buffer);
@@ -153,6 +184,12 @@ bool continue_reading(char *instruction_buffer, syntax_state *state) {
     return true;
 }
 
+/**
+ *@brief Trim whitespace from a string
+ * This function removes leading and trailing whitespace characters from a string.
+ * @param str The string to trim
+ * @return char* A pointer to the trimmed string
+ */
 char *trim_whitespace(char *str) {
 
     char *ptr_leading;
@@ -186,6 +223,12 @@ char *trim_whitespace(char *str) {
 
 }
 
+/**
+ *@brief Skip the .entry or .extern directive in an instruction
+ * This function skips the .entry or .extern directive in an instruction by offsetting the buffer pointer.
+ * @param _buffer A pointer to the buffer containing the instruction
+ * @return char* A pointer to the buffer after skipping the directive
+ */
 char *skip_ent_or_ext(char *_buffer) {
     size_t i;
     char *ptr = _buffer;
@@ -213,6 +256,12 @@ char *skip_ent_or_ext(char *_buffer) {
     return ptr;
 }
 
+/**
+ *@brief Skip the label name in an instruction
+ * This function skips the label name in an instruction by offsetting the buffer pointer.
+ * @param state The syntax state of the current instruction as defined in ds.h
+ * @param _label_table A pointer to the label table
+ */
 void skip_label_name(syntax_state *state, label_table *_label_table) {
 
     int i;
@@ -246,6 +295,12 @@ void skip_label_name(syntax_state *state, label_table *_label_table) {
     state->buffer = &state->buffer[offset];
 }
 
+/**
+ *@brief Check if a line is empty
+ * This function checks if a line is empty by checking if it contains only whitespace characters.
+ * @param str The line to check
+ * @return bool The status of the check
+ */
 bool is_empty_line(char *str) {
     /* Remove the newline character at the end of the line, if there is one */
     str[strcspn(str, "\n")] = '\0';
@@ -258,24 +313,6 @@ bool is_empty_line(char *str) {
     return false; /* Line is not empty */
 }
 
-
-
-void print_bits(unsigned value, int num_bits) {
-    int i;
-    for (i = num_bits - 1; i >= 0; i--) {
-        printf("%u", (value >> i) & 1);
-    }
-}
-
-void print_binary_to_file(uint16_t word, FILE *file_ptr) {
-    int i;
-    fprintf(file_ptr, "\t\t\t");
-    for (i = 14; i >= 0; i--) {
-        fprintf(file_ptr, "%u", (word >> i) & 1);
-
-    }
-    fprintf(file_ptr, "\n");
-}
 
 
 /**

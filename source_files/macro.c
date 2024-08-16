@@ -9,13 +9,13 @@
 status create_macro(char *macro_name, macro **new_macro) {
     *new_macro = (macro *)malloc(sizeof(macro));
     if (*new_macro == NULL)
-        return STATUS_ERROR_MEMORY_ALLOCATION;
+        return failure;
     (*new_macro)->name = my_strdup(macro_name);
     (*new_macro)->lines = NULL;
     (*new_macro)->line_capacity = 0;
     (*new_macro)->line_count = 0;
 
-    return STATUS_OK;
+    return success;
 }
 
 status insert_line_to_macro(macro *mac, char *line) {
@@ -23,7 +23,7 @@ status insert_line_to_macro(macro *mac, char *line) {
     if (mac->lines == NULL) {
         mac->lines = (char **)malloc(sizeof(char *) * INITIAL_MACRO_CAPACITY);
         if (mac->lines == NULL)
-            return STATUS_ERROR_MEMORY_ALLOCATION;
+            return failure;
         mac->line_capacity = INITIAL_MACRO_CAPACITY;
     }
 
@@ -31,16 +31,16 @@ status insert_line_to_macro(macro *mac, char *line) {
         mac->line_capacity = mac->line_count + 1;
         mac->lines = (char **)realloc(mac->lines, mac->line_capacity * sizeof(char *));
         if (mac->lines == NULL) {
-            return STATUS_ERROR_MEMORY_ALLOCATION;
+            return failure;
         }
     }
 
     mac->lines[mac->line_count] = my_strdup(line);
     if (mac->lines[mac->line_count] == NULL) {
-        return STATUS_ERROR_MEMORY_ALLOCATION;
+        return failure;
     }
     mac->line_count++;
-    return STATUS_OK;
+    return success;
 }
 
 /**
@@ -70,13 +70,12 @@ macro_table *create_macro_table() {
  */
 status insert_macro_to_table(macro_table *table, macro *macr) {
     if (table == NULL) {
-        printf("*** ERROR ***\nTrying to insert macro to a NULL table. Exiting...");
-        return STATUS_ERROR;
+        return failure;
     }
 
     if (table->macros == NULL) {
         table->macros = (macro **)calloc(INITIAL_MACRO_TABLE_CAPACITY, sizeof(macro *));
-        if (table->macros == NULL) return STATUS_ERROR_MEMORY_ALLOCATION;
+        if (table->macros == NULL) return failure;
         table->capacity = INITIAL_MACRO_TABLE_CAPACITY;
     }
 
@@ -86,13 +85,13 @@ status insert_macro_to_table(macro_table *table, macro *macr) {
         table->macros = (macro **)realloc(table->macros, table->capacity * sizeof(macro *));
         if (table->macros == NULL) {
             destroy_macro_table(&table);
-            return STATUS_ERROR_MEMORY_ALLOCATION;
+            return failure;
         }
     }
 
     table->macros[table->macro_count] = macr;
     table->macro_count++;
-    return STATUS_OK;
+    return success;
 }
 
 /**

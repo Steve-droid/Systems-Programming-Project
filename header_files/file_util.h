@@ -27,6 +27,7 @@
 
 
  /* File Utilities */
+void print_octal(int address, uint16_t number, FILE *file_ptr);
 void free_filenames(char *p1, ...);
 void close_files(FILE *p1, ...);
 char *add_extension(char *initial_name, char *extension);

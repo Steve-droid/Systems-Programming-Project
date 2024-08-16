@@ -25,6 +25,21 @@ char *add_extension(char *initial_filename, char *extension) {
     return new_filename;
 }
 
+void print_octal(int address, uint16_t number, FILE *file_ptr) {
+    char octal[6];
+    int index = 5;
+    octal[index--] = '\0';
+
+    while (number > 0) {
+        octal[index--] = (number & 0x7) + '0';
+        number >>= 3;
+    }
+
+    while (index >= 0) {
+        octal[index--] = '0';
+    }
+    fprintf(file_ptr, "0%d\t%s\n", address, octal);
+}
 
 
 status create_fname_vec(int file_amount, char ***p1, ...) {
@@ -37,14 +52,14 @@ status create_fname_vec(int file_amount, char ***p1, ...) {
     while (ptr != NULL) {
         (*ptr) = (char **)calloc(file_amount, sizeof(char *));
         if ((*ptr) == NULL) {
-            return STATUS_ERROR_MEMORY_ALLOCATION;
+            return failure;
         }
         ptr = va_arg(args, char ***);
     }
 
     va_end(args); /* Clean up the argument list */
 
-    return STATUS_OK;
+    return success;
 
 }
 
@@ -52,7 +67,7 @@ status create_fname_vec(int file_amount, char ***p1, ...) {
 filenames *generate_filenames(int file_amount, char **argv, filenames *fnames) {
     int i;
     char **as = NULL, **am = NULL, **generic = NULL;
-    status _status = STATUS_ERROR;
+    status _status = failure;
     system_state state;
     system_state *sys_state = &state;
 
@@ -68,7 +83,7 @@ filenames *generate_filenames(int file_amount, char **argv, filenames *fnames) {
     fnames->amount = file_amount;
 
     _status = create_fname_vec(file_amount, &as, &am, &generic, NULL);
-    if (_status != STATUS_OK) {
+    if (_status != success) {
         free(fnames);
         fnames = NULL;
         return NULL;
