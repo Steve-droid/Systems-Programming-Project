@@ -83,7 +83,18 @@ keyword *fill_keyword_table() {
     return keywords_table;
 }
 
+static void notify_missing_definition(syntax_state *state) {
+    size_t i;
+    label *tmp_label = NULL;
 
+    for (i = 0; i < state->l_table->size; i++) {
+        tmp_label = state->l_table->labels[i];
+        if (tmp_label->missing_definition && tmp_label->declared_as_entry) {
+            state->tmp_arg = tmp_label->name;
+            print_syntax_error(state, w1_label_declared_not_defined);
+        }
+    }
+}
 
 label_table *fill_label_table(char *am_filename, char *as_filename, macro_table *m_table, keyword *keywords_table, int *syntax_errors) {
     FILE *am_file_ptr = NULL;
@@ -113,7 +124,7 @@ label_table *fill_label_table(char *am_filename, char *as_filename, macro_table 
         return NULL;
     }
 
-    state->line_number = -1; /* lines start from 0*/
+    state->line_number = 0; /* lines start from 0*/
     state->k_table = keywords_table;
     state->m_table = m_table;
     state->l_table = _label_table;
@@ -185,6 +196,9 @@ label_table *fill_label_table(char *am_filename, char *as_filename, macro_table 
     }
 
     reset_syntax_state(state);
+
+    /* Nottify the user about ant labels declared as .entry but not defined */
+    notify_missing_definition(state);
 
     quit_label_parsing(NULL, &state, am_file_ptr);
     return _label_table;
@@ -336,7 +350,13 @@ addressing_method get_addressing_method(syntax_state *state, char *sub_inst, lab
     /* case 3 */
 
     if (sub_inst[0] == 'r') {
-        if (sub_inst[1] == '\0' || sub_inst[1] < '0' || sub_inst[1] > '7') {
+
+        if (sub_inst[1] == '\0') {
+            print_syntax_error(state, e48_no_num_after_dir_reg);
+            return UNDEFINED_METHOD;
+        }
+
+        if (sub_inst[1] < '0' || sub_inst[1] > '7') {
             print_syntax_error(state, e50_direct_reg_num_not_in_range);
             return UNDEFINED_METHOD;
         }

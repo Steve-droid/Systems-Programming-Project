@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/assembler",  // Path to the executable
-            "args": [ "gen1", "gen2"],  // Arguments to pass to the executable
+            "args": [ "ps"],  // Arguments to pass to the executable
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",  // Set the working directory to the project folder
             "environment": [],

@@ -1,4 +1,5 @@
 .entry LIST
+.entry HELLO
 .extern fn1
 .extern L3
 MAIN: add r3, LIST
@@ -11,3 +12,5 @@ LIST: .data 6,-9
 K: .data 31
 LABE&: add r1
 jmp LABE&
+jmp HELLO
+add r5, HELLO

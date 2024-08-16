@@ -84,6 +84,7 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 	state->as_filename = as_filename;
 	state->k_table = keyword_table;
 	state->l_table = _label_table;
+	state->line_number = 0;
 
 	/* Create an instance of an instruction table */
 	if (create_instruction_table(&_inst_table) != STATUS_OK) {
@@ -963,6 +964,14 @@ static validation_state assign_addressing_method(syntax_state *state, char *argu
 		for (i = 0;i < _label_table->size;i++) {
 			tmp_label = get_label_by_name(_label_table, argument);
 			if (tmp_label != NULL) {
+				/* Check if the label is declared as .entry but not defined */
+
+				if (tmp_label->declared_as_entry && tmp_label->missing_definition) {
+					state->tmp_arg = argument;
+					print_syntax_error(state, e67_using_undefined_label);
+					return invalid;
+				}
+
 				found_label_with_matching_name = true;
 				break;
 			}

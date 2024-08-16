@@ -14,11 +14,15 @@ add
 add #9
 ;add with immediate dest operand
 add #9, #8
+;.entry label that is not defined in this file
+.entry MISSING
 lea f1,r5
 MAIN:   addition r3, LIST
 LOOP:   prn    #48
 add: mov *r6, k
 cmp    r3, #-6
+bne MISSING
+lea MISSING, r1
 macr mac_miller
 bne    END
 lea    STR, r6

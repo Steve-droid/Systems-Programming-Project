@@ -2,16 +2,16 @@
 .entry LIST
 .extern fn1
 MAIN: add   r3, LIST
-jsr   fn1
+jsr   fn1,
 LOOP: prn   #48
-lea STR, r6
+lea STR r6
 ;additional addi add
 ; Wow what a great comment!
 ; It's just me, a comment
 ;I'm a comment 2
-inc r6
+add: inc r6
 mov *r6, L3
-sub r1, r4
+sub r1, r
 cmp r3, #-6
 bne END
 add r7, *r6
@@ -20,8 +20,8 @@ sub L3, L3
 .entry MAIN
 jmp LOOP
 END:  stop
-STR:  .string "abcd"
-LIST: .data 6,-9
+STR :  .string "abcd"
+LIST : .data 6,-9
 .data -100
 K:    .data 31
 .extern L3

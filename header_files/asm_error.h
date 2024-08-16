@@ -141,6 +141,10 @@ typedef enum {
    e63_label_name_not_alphanumeric,
    e64_whitespace_between_label_and_colon,
    e66_redef_directive,
+   e67_using_undefined_label,
+
+
+   w1_label_declared_not_defined,
 
 
 

@@ -1,6 +1,6 @@
 #include "text_util.h"
+#define PADDING 4
 
-/* Syntax State Utility */
 syntax_state *create_syntax_state(void) {
     char *buffer = NULL;
     syntax_state *state = (syntax_state *)calloc(1, sizeof(syntax_state));
@@ -278,10 +278,17 @@ void print_binary_to_file(uint16_t word, FILE *file_ptr) {
 }
 
 
+/**
+ *@brief This function duplicates a string by allocating memory for a new string and copying the contents of the original string.
+ * We use this function to create a copy of a string that we can modify without affecting the original string.
+ *
+ * @param s The string to duplicate
+ * @return char* The duplicated string
+ */
 char *my_strdup(char *s) {
     char *d = NULL;
     if (s == NULL) return NULL;
-    d = calloc(strlen(s) + 4, sizeof(char));
+    d = (char *)calloc(strlen(s) + PADDING, sizeof(char));
     if (d == NULL) return NULL;
     strcpy(d, s);
     d[strlen(s)] = '\0';

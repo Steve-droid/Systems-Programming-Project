@@ -196,6 +196,8 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
    char *ptr = NULL;
    char *tmp = NULL;
    int len = 0;
+   static int error_count = 0;
+   static int warning_count = 0;
    if (e_code < 0) return;
 
    switch (e_code) {
@@ -215,11 +217,18 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
          state->k_table[state->index].name, state->k_table[state->index].name);
 
       return;
+
+
+   case w1_label_declared_not_defined:
+      warning_count++;
+      printf("\n(Warning #%d)~ In file %s:\nA label with the name '%s' is declared as an entry but is not defined in the file '%s'.\nUsing this label as an argument will result in a syntax error.\n\n", warning_count, state->as_filename, state->tmp_arg, state->as_filename);
+      return;
    default:
       break;
    }
 
-   printf("syntax error in file '%s': on line: '%d': \"%s\": ", state->as_filename, state->line_number,state->buffer_without_offset);
+   error_count++;
+   printf("\n(Error #%d)~ In file '%s': on line: '%d' -> \"%s\":\n", error_count, state->as_filename, state->line_number, state->buffer_without_offset);
    switch (e_code) {
 
       /* General errors */
@@ -500,7 +509,16 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       break;
 
    case e48_no_num_after_dir_reg:
-      printf("Expected a register number after the 'r' character\n");
+      tmp = my_strdup(state->buffer);
+      ptr = strchr(tmp, 'r');
+      ptr++;
+      if (ptr) (*ptr) = '\0';
+
+      printf("%s  missing a digit between 0 and 7 after 'r'\n", tmp);
+
+      putchar(' ');
+      printf("^\n");
+      free(tmp);
       break;
 
    case e49_ext_chars_after_direct_reg:
@@ -512,7 +530,7 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       break;
 
    case e51_unknown_label:
-      printf("Unrecognized argument '%s'\nNote: '%s' does not match any valid label or register name, and is not an immediate value\n", state->tmp_arg, state->tmp_arg);
+      printf("Unrecognized argument '%s'\nNote:'%s' could be a label name that has an invalid definition. Check the label definition and try again.\n", state->tmp_arg, state->tmp_arg);
       break;
 
    case e52_inval_ext:
@@ -573,7 +591,7 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       }
 
       len = ptr - tmp + 1;
-      printf("\n'%s' contains non alphanumeric characters and cannot be used as a label name\n", tmp);
+      printf("'%s' contains non alphanumeric characters and cannot be used as a label name\n", tmp);
       while (len--) putchar(' ');
       printf("^\n");
       free(tmp);
@@ -584,7 +602,7 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       ptr = strchr(tmp, ':');
       if (ptr) *ptr = '\0';
       len = ptr - tmp;
-      printf("\n'%s:' Label definition contains whitespace between the name and the colon\n", tmp);
+      printf("'%s:' Label definition contains whitespace between the name and the colon\n", tmp);
       while (len--) putchar(' ');
       printf("^\n");
       free(tmp);
@@ -593,6 +611,14 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
    case e66_redef_directive:
       printf("Trying to redefine a directive '%s'\n", state->buffer);
       break;
+
+   case e67_using_undefined_label:
+      printf("Trying to reference an undefined label with the name '%s'\n", state->tmp_arg);
+      break;
+
+
+
+
 
    default:
       break;
