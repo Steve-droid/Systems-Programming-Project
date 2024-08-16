@@ -1,7 +1,7 @@
 #ifndef ASSEMBLER_H
 #define ASSEMBLER_H
 
-#include "ds.h"
+#include "data_structs.h"
 
 #include "text_util.h"
 #include "symbols.h"

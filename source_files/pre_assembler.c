@@ -96,10 +96,7 @@ macro_table *pre_assemble(char *as_filename, char *am_filename, keyword *keyword
     state->as_filename = as_filename;
     state->am_filename = am_filename;
 
-    if (remove_whitespace_from_file(as_filename) != STATUS_OK) {
-        quit_pre_assembler(&state, &m_table, NULL, NULL);
-        return NULL;
-    }
+   
 
     as_file = my_fopen(as_filename, "r");
     if (as_file == NULL) {

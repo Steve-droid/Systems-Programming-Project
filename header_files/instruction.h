@@ -1,7 +1,7 @@
 #ifndef INSTRUCTION_H
 #define INSTRUCTION_H
 
-#include "ds.h"
+#include "data_structs.h"
 #include "symbols.h"
 #include "text_util.h"
 #include "asm_error.h"

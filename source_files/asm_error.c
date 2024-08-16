@@ -42,6 +42,11 @@ void quit_filename_creation(filenames **fnames) {
       names->generic = NULL;
    }
 
+   if (names->errors) {
+      free(names->errors);
+      names->errors = NULL;
+   }
+
 
    free(names);
    (*fnames) = NULL;
@@ -228,7 +233,7 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
    }
 
    error_count++;
-   printf("\n(Error #%d)~ In file '%s': on line: '%d' -> \"%s\":\n", error_count, state->as_filename, state->line_number, state->buffer_without_offset);
+   printf("\n(Error #%d)~ In file '%s': on line: '%d' -> \"%s\": ", error_count, state->as_filename, state->line_number, state->buffer_without_offset);
    switch (e_code) {
 
       /* General errors */
@@ -514,7 +519,7 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       ptr++;
       if (ptr) (*ptr) = '\0';
 
-      printf("%s  missing a digit between 0 and 7 after 'r'\n", tmp);
+      printf("\n%s  missing a digit between 0 and 7 after 'r'\n", tmp);
 
       putchar(' ');
       printf("^\n");
@@ -591,7 +596,7 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       }
 
       len = ptr - tmp + 1;
-      printf("'%s' contains non alphanumeric characters and cannot be used as a label name\n", tmp);
+      printf("\n'%s' contains non alphanumeric characters and cannot be used as a label name\n", tmp);
       while (len--) putchar(' ');
       printf("^\n");
       free(tmp);
@@ -602,7 +607,7 @@ void print_syntax_error(syntax_state *state, error_code e_code) {
       ptr = strchr(tmp, ':');
       if (ptr) *ptr = '\0';
       len = ptr - tmp;
-      printf("'%s:' Label definition contains whitespace between the name and the colon\n", tmp);
+      printf("\n'%s:' Label definition contains whitespace between the name and the colon\n", tmp);
       while (len--) putchar(' ');
       printf("^\n");
       free(tmp);

@@ -40,3 +40,5 @@ LIST:   .data  6, -9
 K:      .data  31
 add r1, r2
 .extern f1
+jeez
+luiz!

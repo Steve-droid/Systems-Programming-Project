@@ -1,5 +1,5 @@
-#ifndef DS_H
-#define DS_H
+#ifndef DATA_STRUCTURES_H
+#define DATA_STRUCTURES_H
 
 
 #include <stdio.h>
@@ -21,7 +21,6 @@
 #define SOURCE 2
 #define DEST 1
 #define FIRST_ADDRESS 100
-#define MAX_LABEL_LENGTH 33 /* max label len is 31 , + 1 for ':' , + 1 for '\0' */
 #define FIRST_KEY 1 /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
 #define KEYWORD_TABLE_LENGTH 30 /* Amount of keywords (8 registers + 16 commands + 4 directives + 2 macro definition*/
 #define MAX_KEYWORD_LENGTH 8 /* .string + '\0' */
@@ -29,7 +28,7 @@
 #define REGISTER_KEYWORDS 8
 #define DIRECTIVE_KEYWORDS 4
 #define MACRO_KEYWORDS 2
-#define MAX_LABEL_LENGTH 33 /* max label len is 31 , + 1 for ':' , + 1 for '\0' */ /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
+#define MAX_LABEL_LENGTH 31 /* max label len is 31 , + 1 for ':' , + 1 for '\0' */ /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
 #define UNDEFINED -1
 #define INCREMENT 1
 #define GET -1
@@ -372,6 +371,7 @@ typedef struct {
     char **generic;
     char **as;
     char **am;
+    int *errors;
     size_t amount;
 }filenames;
 

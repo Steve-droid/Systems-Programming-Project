@@ -1,7 +1,7 @@
 #ifndef TEXT_TOOLS_H
 #define TEXT_TOOLS_H
 
-#include "ds.h"
+#include "data_structs.h"
 #include "text_util.h"
 #include "symbols.h"
 #include "lexer.h"

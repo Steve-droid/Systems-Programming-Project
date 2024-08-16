@@ -2,7 +2,7 @@
 #define ASM_ERROR_H
 
 #include <stdarg.h>
-#include "ds.h"
+#include "data_structs.h"
 #include "symbols.h"
 #include "file_util.h"
 #include "instruction.h"

@@ -2,7 +2,7 @@
 
 #ifndef SYMBOLS_H
 #define SYMBOLS_H
-#include "ds.h"
+#include "data_structs.h"
 #include "text_util.h"
 #include "macro.h"
 

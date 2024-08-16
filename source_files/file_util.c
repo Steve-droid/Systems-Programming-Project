@@ -25,131 +25,7 @@ char *add_extension(char *initial_filename, char *extension) {
     return new_filename;
 }
 
-status remove_whitespace_from_file(char *filename) {
-    FILE *file;
-    FILE *tmp_file;
-    char *start;
-    char *end;
-    char *tmp;
-    size_t i;
-    char tmp_filename[] = "tmpfileXXXXXX";
-    char test_path[MAX_LINE_LENGTH] = "input/";
-    int temp_file_descriptor;
-    char line[BUFSIZ];
-    int original_line_count = 0;
-    int cleaned_line_count = 0;
-    int line_contains_only_whitespace = false;
-    system_state s;
-    system_state *state = &s;
 
-    file = my_fopen(filename, "r");
-    if (file == NULL) return STATUS_ERROR;
-
-
-    state->as_filename = filename;
-
-    /* Create a temporary file to write the cleaned lines */
-    temp_file_descriptor = mkstemp(tmp_filename);
-    if (temp_file_descriptor == -1) {
-        print_system_error(state, NULL, f5_tmp_file);
-        fclose(file);
-        return STATUS_ERROR_OPEN_DEST;
-    }
-
-    tmp_file = fdopen(temp_file_descriptor, "w");
-
-    if (tmp_file == NULL) {
-        print_system_error(state, NULL, f6_open_tmpfile);
-        close(temp_file_descriptor);
-        fclose(file);
-        return STATUS_ERROR_OPEN_DEST;
-    }
-
-    /* Count lines in the original file and write cleaned lines to the temporary file */
-    while (fgets(line, sizeof(line), file)) {
-
-        start = line;
-        end = start + strlen(start) - 1;
-        line_contains_only_whitespace = true;
-
-        /*Check if the line contains only whitespace. If so, skip the line*/
-        for (i = 0, tmp = start;line_contains_only_whitespace == true && i < strlen(start) && tmp != NULL;i++, tmp++) {
-            if (!isspace(*tmp)) {
-                line_contains_only_whitespace = false;
-                break;
-            }
-        }
-
-        if (line_contains_only_whitespace == true) continue;
-
-        original_line_count++;
-
-        /* Remove leading whitespace */
-        while (isspace((unsigned char)*start)) {
-            start++;
-        }
-
-        /* Remove trailing whitespace */
-        while (end > start && isspace((unsigned char)*end)) {
-            end--;
-        }
-        *(end + 1) = '\0';  /* Null-terminate the string*/
-
-        /* Only write non-empty lines to the temporary file */
-        if (*start != '\0') {
-            if (fprintf(tmp_file, "%s\n", start) < 0) {
-                print_system_error(state, NULL, f7_write_to_tmp_file);
-                fclose(file);
-                fclose(tmp_file);
-                remove(tmp_filename);
-                return STATUS_ERROR_WRITE;
-            }
-            cleaned_line_count++;
-        }
-    }
-
-    fclose(file);
-    fclose(tmp_file);
-
-    /* Verify that the number of lines matches */
-    if (original_line_count != cleaned_line_count) {
-        state->original_line_count = original_line_count;
-        state->cleaned_line_count = cleaned_line_count;
-        print_system_error(state, NULL, f8_line_mismatch);
-        remove(tmp_filename);
-        return STATUS_ERROR_WRITE;
-    }
-
-    /* Replace the original file with the cleaned temporary file */
-    if (remove(filename) != 0) {
-
-        /*This means that the input file is located at the 'tests' directory, So update the filename */
-        strcat(test_path, filename);
-
-        if (remove(test_path) != 0) {
-            print_system_error(state, NULL, f9_rmv_original);
-            remove(tmp_filename);
-            return STATUS_ERROR_WRITE;
-        }
-
-        if (rename(tmp_filename, test_path) != 0) {
-            print_system_error(state, NULL, f10_rename_tmp);
-            remove(tmp_filename);
-            return STATUS_ERROR_WRITE;
-        }
-
-        return STATUS_OK;
-
-
-    }
-    if (rename(tmp_filename, filename) != 0) {
-        print_system_error(state, NULL, f10_rename_tmp);
-        remove(tmp_filename);
-        return STATUS_ERROR_WRITE;
-    }
-
-    return STATUS_OK;
-}
 
 status create_fname_vec(int file_amount, char ***p1, ...) {
     va_list args;
@@ -185,6 +61,9 @@ filenames *generate_filenames(int file_amount, char **argv, filenames *fnames) {
     if (fnames == NULL) {
         return NULL;
     }
+
+    /* Create an array that holds the amount of errors for each file */
+    fnames->errors = calloc(file_amount, sizeof(int));
 
     fnames->amount = file_amount;
 

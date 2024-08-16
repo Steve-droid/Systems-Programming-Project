@@ -1,8 +1,7 @@
 #ifndef MACRO_H_
 #define MACRO_H_
-#define _POSIX_C_SOURCE 200809L
 
-#include "ds.h"
+#include "data_structs.h"
 
 
 #define MAX_MACRO_AMOUNT 100
