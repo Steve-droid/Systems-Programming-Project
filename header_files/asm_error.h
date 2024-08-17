@@ -5,7 +5,7 @@
 #include "data_structs.h"
 #include "symbols.h"
 #include "file_util.h"
-#include "instruction.h"
+
 
 typedef enum {
 
@@ -23,6 +23,16 @@ typedef enum {
    m12_create_label_table,
    m13_create_label,
    m14_copy_label_name,
+   m15_insert_label,
+   m16_create_macro,
+   m17_create_macro_table,
+   m18_create_instruction,
+   m19_create_inst_table,
+   m20_create_token,
+   m21_insert_macro_to_table,
+   m22_insert_line_to_macro,
+
+
 
 
 
@@ -153,18 +163,73 @@ typedef enum {
 
 } error_code;
 
+/**
+ *@brief This function calls the appropriate memory handling function to reset the data structures before moving to the next file.
+ *
+ * @param file_amount The number of files to process
+ * @param fnames A data structure containing the names of the files to process
+ * @param _macro_table A pointer to the macro table
+ * @param keyword_table A pointer to the keyword table
+ * @param _label_table A pointer to the label table
+ * @param _instruction_table A pointer to the instruction table
+ */
 void reset_main(int file_amount, filenames **fnames, macro_table **_macro_table, keyword **keyword_table, label_table **_label_table, inst_table **_instruction_table);
+
+/**
+ *@brief This function calls the appropriate memory handling function to quit the process of file processing in case of a memory error.
+ *
+ *
+ * @param fnames A pointer to the filenames data structure
+ * @param _inst_table A pointer to the instruction table
+ * @param am_file_ptr A pointer to the assembly file
+ */
 void quit_filename_creation(filenames **fnames);
+
+/**
+ *@brief This function calls the appropriate memory handling function to quit the process of lexical analysis in case of a memory error.
+ *
+ * @param state The syntax state object to destroy
+ * @param _inst_table The instruction table to destroy
+ * @param am_file_ptr The assembly file pointer to close
+ */
 void quit_lex(syntax_state **state, inst_table **_inst_table, FILE *am_file_ptr);
+
+/**
+ *@brief This function calls the appropriate memory handling function to quit the process of pre-assembling in case of a memory error.
+ *
+ * @param state The syntax state object to destroy
+ * @param _macro_table The macro table to destroy
+ * @param am_file_ptr The assembly file pointer to close
+ * @param as_file_ptr The assembler file pointer to close
+ */
 void quit_pre_assembler(syntax_state **state, macro_table **_macro_table, FILE *am_file_ptr, FILE *as_file_ptr);
+
+/**
+ *@brief This function calls the appropriate memory handling function to quit the process of label parsing in case of a memory error.
+ *
+ * @param _label_table The label table to destroy
+ * @param state The syntax state object to destroy
+ * @param am_file_ptr The assembly file pointer to close
+ */
 void quit_label_parsing(label_table **_label_table, syntax_state **state, FILE *am_file_ptr);
 
 
-
-
-
-void print_syntax_error(syntax_state *state, error_code e_code);
+/**
+ *@brief This function prints an error message to the console in case of a file handling or memory error.
+ *
+ * @param sys_state The system state object containing necessary information about the error
+ * @param syn_state The syntax state object containing necessary information about the error(used in case of a mix of system and syntax errors)
+ * @param e_code The error code used to determine the error message to print
+ */
 void print_system_error(system_state *sys_state, syntax_state *syn_state, error_code e_code);
+
+/**
+ *@brief This function prints an error message to the console in case of a syntax error.
+ *
+ * @param state The syntax state object containing necessary information about the error
+ * @param e_code The error code used to determine the error message to print
+ */
+void print_syntax_error(syntax_state *state, error_code e_code);
 
 
 

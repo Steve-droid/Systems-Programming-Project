@@ -1,11 +1,10 @@
-#ifndef TEXT_TOOLS_H
-#define TEXT_TOOLS_H
+#ifndef TEXT_UTIL_H
+#define TEXT_UTIL_H
 
 #include "data_structs.h"
 #include "text_util.h"
 #include "symbols.h"
 #include "lexer.h"
-#include "instruction.h"
 
 
 /**

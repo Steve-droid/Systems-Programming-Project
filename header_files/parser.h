@@ -22,7 +22,6 @@
 #define PARSER_H
 
 #include "data_structs.h"
-#include "instruction.h"
 
  /**
   *@brief Converts a number to two's complement

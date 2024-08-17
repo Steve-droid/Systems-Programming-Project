@@ -1,5 +1,7 @@
-#include "assembler.h"
-#include "asm_error.h"
+#include "pre_assembler.h"
+#include "lexer.h"
+#include "parser.h"
+
 
 
 int main(int argc, char **argv) {
@@ -93,12 +95,12 @@ int main(int argc, char **argv) {
     for (i = 0;i < argc - 1;i++) {
         if (fnames->errors[i] != 0) {
             if (fnames->errors[i] == 1)
-                printf("'%s.as' --> failed assembly due to 1 syntax error.\n", fnames->generic[i]);
+                printf("'%s.as' --> failure due to 1 syntax error.\n", fnames->generic[i]);
             else
-                printf("'%s.as' --> failed assembly due to %d syntax errors.\n", fnames->generic[i], fnames->errors[i]);
+                printf("'%s.as' --> failure due to %d syntax errors.\n", fnames->generic[i], fnames->errors[i]);
         }
         else {
-            printf("'%s.as' --> completed assembly\n", fnames->generic[i]);
+            printf("'%s.as' --> success\n", fnames->generic[i]);
         }
     }
     reset_main(argc - 1, &fnames, &m_table, &keyword_table, &_label_table, &_inst_table);

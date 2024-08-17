@@ -80,108 +80,149 @@ void print_system_error(system_state *sys_state, syntax_state *syn_state, error_
       /* Memory handling errors */
    case m1_general_memerr:
       printf("Failed to allocate memory in assembly process.\n");
-      break;
+      return;
    case m2_syntax_state:
       printf("Failed to allocate memory for syntax state structre.\n");
-      break;
+      return;
    case m3_inst_tab_creation:
       printf("Failed to allocate memory for the instruction table structre.\n");
-      break;
+      return;
    case m5_inst_insert:
       if (syn_state)
          printf("Error in file %s: line %d: '%s' - ", syn_state->as_filename, syn_state->line_number, syn_state->buffer_without_offset);
       printf("Failed to insert instruction to instruction table.\n");
-      break;
+      return;
    case m6_tok_gen_mem:
       printf("Failed to allocate memory for tokens while lexing instruction.\n");
-      break;
+      return;
 
    case m7_generic_creation:
 
       printf("Failed to duplicte original filename recieved as command line argument: '%s'\n", sys_state->generic_filename);
-      break;
+      return;
 
 
    case m9_create_sys_state:
       printf("In 'file_util.c' -> 'create_system_state': ");
       printf("Failed to allocate memory for syntax state");
-      break;
+      return;
 
 
    case m10_create_backup_filename:
       printf("In 'file_util.c' -> 'dup;icate_filenames': ");
       printf("Memory allocation error while creating a backup '%s' filename for '%s'\n", sys_state->tmp, sys_state->generic_filename);
-      break;
+      return;
 
    case m11_create_keyword_table:
-      printf("In 'symbols.c' -> 'create_keyword_table': ");
+      printf("In 'data_structs.c' -> 'create_keyword_table': ");
       printf("Failed to allocate memory for keyword table\n");
-      break;
+      return;
 
    case m12_create_label_table:
-      printf("In 'symbols.c' -> 'create_label_table': ");
+      printf("In 'data_structs.c' -> 'create_label_table': ");
       printf("Failed to allocate memory for label table\n");
-      break;
+      return;
 
    case m13_create_label:
-      printf("In 'symbols.c' -> 'create_label': ");
+      printf("In 'data_structs.c' -> 'create_label': ");
       printf("Failed to allocate memory for label\n");
-      break;
+      return;
 
    case m14_copy_label_name:
-      printf("In 'symbols.c' -> 'extract_label_name_from_instruction': ");
+      printf("In 'data_structs.c' -> 'extract_label_name_from_instruction': ");
       printf("Failed to allocate memory for label name\n");
-      break;
+      return;
+
+   case m15_insert_label:
+      printf("In 'data_structs.c' -> 'insert_label': ");
+      printf("Failed to insert label to label table\n");
+      return;
+
+   case m16_create_macro:
+      printf("In 'data_structs.c' -> 'create_macro': ");
+      printf("Failed to allocate memory for macro\n");
+      return;
+
+   case m17_create_macro_table:
+      printf("In 'data_structs.c' -> 'create_macro_table': ");
+      printf("Failed to allocate memory for macro table\n");
+      return;
+
+   case m18_create_instruction:
+      printf("In 'data_structs.c' -> 'create_instruction': ");
+      printf("Failed to allocate memory for instruction\n");
+      return;
+
+   case m19_create_inst_table:
+      printf("In 'data_structs.c' -> 'create_instruction_table': ");
+      printf("Failed to allocate memory for instruction table\n");
+      return;
+
+   case m20_create_token:
+      printf("In 'data_structs.c' -> 'create_empty_token': ");
+      printf("Failed to allocate memory for token\n");
+      return;
+
+   case m21_insert_macro_to_table:
+      printf("In 'data_structs.c' -> 'insert_macro_to_table': ");
+      printf("Failed to insert macro to macro table\n");
+      return;
+
+   case m22_insert_line_to_macro:
+      printf("In 'data_structs.c' -> 'insert_line_to_macro': ");
+      printf("Failed to insert line to macro\n");
+      return;
 
 
 
       /* File handling errors */
    case f1_file_open:
-      break;
+      printf("Failed to open file\n");
+      return;
 
    case f2_as_creation:
       printf("In 'file_util.c' -> 'generate_filenames': ");
       printf("Failed to add a '.as' extention for the file '%s'\n", sys_state->generic_filename);
-      break;
+      return;
    case f3_backup:
       printf("In 'file_util.c' -> 'generate_filenames': ");
       printf("File backup has failed\n");
-      break;
+      return;
    case f4_am_creation:
       printf("In 'file_util.c' -> 'generate_filenames': ");
       printf("Failed to add a '.am' extention for the file '%s'\n", sys_state->generic_filename);
-      break;
+      return;
 
    case f5_tmp_file:
       printf("In 'file_util.c' -> 'remove_whitespace_from_file': ");
       printf("Failed tp create a temporary file for '%s'\n", sys_state->full_filename);
-      break;
+      return;
    case f6_open_tmpfile:
       printf("In 'file_util.c' -> 'remove_whitespace_from_file': ");
       printf("Failed to open tmpfile while removing whitespace from '%s'\n", sys_state->as_filename);
 
-      break;
+      return;
 
    case f7_write_to_tmp_file:
       printf("In 'file_util.c' -> 'remove_whitespace_from_file': ");
       printf("Failed to write to temporary file while removing whitespace from '%s'\n", sys_state->as_filename);
-      break;
+      return;
 
    case f8_line_mismatch:
       printf("In 'file_util.c' -> 'remove_whitespace_from_file': ");
       printf("Line count mismatch: original=%d, cleaned=%d\n", sys_state->original_line_count, sys_state->cleaned_line_count);
 
-      break;
+      return;
 
    case f9_rmv_original:
       printf("In 'file_util.c' -> 'remove_whitespace_from_file': ");
       printf("Failed to remove original file '%s'\n", sys_state->as_filename);
-      break;
+      return;
 
    case f10_rename_tmp:
       printf("In 'file_util.c' -> 'remove_whitespace_from_file': ");
       printf("Failed to rename temporary filename to '%s'\n", sys_state->as_filename);
-      break;
+      return;
    case f11_bckup_null:
       printf("In 'file_util.c' -> 'duplicate_files': ");
       printf("Filenames array contains a null filename.\n");

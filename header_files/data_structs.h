@@ -12,7 +12,12 @@
 #include <stdint.h>
 
 
+#define MAX_MACRO_AMOUNT 100
 #define MAX_LINE_LENGTH 80
+#define INITIAL_MACRO_CAPACITY 3
+#define INITIAL_MACRO_TABLE_CAPACITY 3
+#define INITIAL_NUM_TOKENS 3
+#define MIN_MACRO_AMOUNT 3
 #define UNKNOWN_NUMBER_OF_ARGUMENTS -2
 #define NONE -10
 #define OUTPUT_COMMAND_LEN 15
@@ -34,6 +39,7 @@
 #define GET -1
 #define RESET -2
 #define NEITHER_EXTERN_NOR_ENTRY -4
+#define UNSET -1
 
 /*---Enums---*/
 
@@ -86,7 +92,6 @@ typedef enum register_name {
     UNDEFINED_REGISTER = -1, r0, r1, r2, r3, r4, r5, r6, r7
 } register_name;
 
-/*---Data Structres---*/
 typedef struct {
     char name[MAX_KEYWORD_LENGTH];
     int key;
@@ -231,8 +236,7 @@ typedef struct instruction_table {
 
 
 
-size_t DC(int prompt, size_t amount);
-size_t IC(int prompt, size_t amount);
+
 
 
 /**
@@ -351,6 +355,35 @@ typedef struct {
 }filenames;
 
 
+
+/* Create functions */
+status create_macro(char *macro_name, macro **new_macro);
+label *create_label();
+status create_instruction(inst **_new_inst);
+status create_empty_token(inst *_inst);
+macro_table *create_macro_table(void);
+label_table *create_label_table(label_table **new_label_table);
+status create_instruction_table(inst_table **new_inst_table);
+
+/* Insert functions */
+status insert_line_to_macro(macro *mac, char *line);
+status insert_macro_to_table(macro_table *table, macro *mac);
+status insert_label(label_table *table, label **_label);
+status insert_token_to_inst(inst *_inst, char *token);
+status insert_inst_to_table(inst_table *_inst_table, inst *_inst);
+
+/* Destroy functions */
+void destroy_macro(macro **macro);
+void destroy_label(label **_label);
+void destroy_instruction(inst **_inst);
+void destroy_keyword_table(keyword **_keyword_table);
+void destroy_macro_table(macro_table **table);
+void destroy_label_table(label_table **_label_table);
+void destroy_instruction_table(inst_table **_inst_table);
+
+
+/* Get functions */
+macro *get_macro(macro_table *table, char *name);
 
 
 #endif

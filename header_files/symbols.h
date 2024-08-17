@@ -4,7 +4,6 @@
 #define SYMBOLS_H
 #include "data_structs.h"
 #include "text_util.h"
-#include "macro.h"
 
 
 /**
@@ -171,55 +170,6 @@ register_name get_register_number(char *register_as_string);
 status validate_label_name(syntax_state *state);
 
 
-/**
- *@brief Create a new label object
- *
- * @return label* A pointer to the new label object
- */
-label *create_label();
-
-/**
- *@brief Create a new label table
- *
- * @param new_label_table A pointer to the label table to create
- * @return label_table* A pointer to the new label table object
- */
-label_table *create_label_table(label_table **new_label_table);
-
-/**
- *@brief Insert a label into a label table
- * This function inserts a label into a label table.
- * @param table A pointer to the label table to insert the label into
- * @param _label A pointer to the label to insert
- * @return status The status of the insertion operation
- */
-status insert_label(label_table *table, label **_label);
 
 
-/**
- *@brief Destroy a label table
- *
- * @param _label_table The label table to destroy
- */
-void destroy_label_table(label_table **_label_table);
-
-/**
- *@brief Destroy a label
- *
- * @param _label The label to destroy
- */
-void destroy_label(label **_label);
-
-/**
- *@brief Destroy a keyword table
- *
- * @param _keyword_table The keyword table to destroy
- */
-void destroy_keyword_table(keyword **_keyword_table);
-
-/**
- *@brief Print a label table
- * This function prints the contents of a label table to the console.
- * @param _label_table The label table to print
- */
 #endif 

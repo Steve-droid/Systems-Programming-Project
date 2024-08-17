@@ -2,54 +2,44 @@
 #include "lexer.h"
 #include <string.h>
 #define MIN_ARGS 2
-#define FIRST_WORD 0
-#define SECOND_WORD 1
-#define THIRD_WORD 2
-#define FIRST 0
-#define SECOND 1
-#define THIRD 2
-#define LAST_OPCODE_BIT 11
-#define LAST_SRC_METHOD_BIT 7
-#define LAST_DEST_METHOD_BIT 3
-#define ARE_A_BIT 2
-#define ARE_R_BIT 1
-#define ARE_E_BIT 0
-#define LAST_BIT 14
-#define FIRST_BIT 0
 #define CMD_NAME 0
 #define MAX_CMD_ARG_AMOUNT 3
 #define UNSET -1
 
 
-
-
- status init_lexer(char *am_filename, char *as_filename, label_table *_label_table, keyword *keyword_table) {
-	status  k_table = success;
-	status  l_table = success;
-	status  as_fname = success;
-	status am_fname = success;
-
-	if (am_filename == NULL) {
-		printf("Trying to run lexer with a null '.am' filename.\n");
-		am_filename = (char *)failure;
+size_t DC(int prompt, size_t amount)
+{
+	static int _DC = 0;
+	if (prompt == RESET) {
+		_DC = 0;
+		return _DC;
 	}
 
-	if (as_filename == NULL) {
-		printf("Trying to run lexer with a null '.as' filename.\n");
-		as_filename = (char *)failure;
+	if (prompt == GET)
+		return _DC;
+
+	if (prompt == INCREMENT) {
+		_DC += amount;
 	}
 
-	if (_label_table == NULL) {
-		printf("Trying to run lexer with a null label table pointer.\n");
-		l_table = failure;
+	return _DC;
+}
+
+size_t IC(int prompt, size_t amount)
+{
+	static int _IC = 100;
+
+	if (prompt == RESET) {
+		_IC = 100;
+		return _IC;
+	}
+	if (prompt == GET)
+		return _IC;
+	if (prompt == INCREMENT) {
+		_IC += amount;
 	}
 
-	if (keyword_table == NULL) {
-		printf("Trying to run lexer with a null keyword table pointer.\n");
-		k_table = failure;
-	}
-
-	return k_table && l_table && as_fname && am_fname;
+	return _IC;
 }
 
 inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table, keyword *keyword_table, int *syntax_error_count) {
@@ -57,10 +47,6 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 	inst_table *_inst_table = NULL;
 	FILE *file = NULL;
 
-
-	if (init_lexer(am_filename, as_filename, _label_table, keyword_table) != success) {
-		return NULL;
-	}
 
 	file = my_fopen(am_filename, "r");
 	if (file == NULL) {
@@ -189,7 +175,7 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 	return _inst_table;
 }
 
- status generate_tokens(syntax_state *state, keyword *_keyword_table, label_table *_label_table) {
+status generate_tokens(syntax_state *state, keyword *_keyword_table, label_table *_label_table) {
 	int cmd_index = 0;
 	int command_length = 0;
 	size_t i = 0;
@@ -276,7 +262,7 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 
 }
 
- status assign_data(syntax_state *state, label_table *_label_table, keyword *keyword_table) {
+status assign_data(syntax_state *state, label_table *_label_table, keyword *keyword_table) {
 	int command_key = state->cmd_key;
 	char *line = state->buffer;
 	char *temp = NULL;
@@ -359,7 +345,7 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 	return success;
 }
 
- status assign_args(syntax_state *state, label_table *_label_table, keyword *keyword_table) {
+status assign_args(syntax_state *state, label_table *_label_table, keyword *keyword_table) {
 
 	int arg_section_len = 0;
 	int arg_len = 0;
@@ -504,7 +490,7 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 	return success;
 }
 
- status process_data_command(syntax_state *state, label_table *_label_table) {
+status process_data_command(syntax_state *state, label_table *_label_table) {
 	int i = state->index;
 	char *line = state->buffer;
 	size_t next = state->_inst->num_tokens - 1;
@@ -555,7 +541,7 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 	return success;
 }
 
- status process_string_command(syntax_state *state, label_table *_label_table) {
+status process_string_command(syntax_state *state, label_table *_label_table) {
 	int i = state->index;
 	int token_index = 1;
 	char *line = state->buffer;
@@ -599,9 +585,7 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 	return success;
 }
 
-
-
- status assign_addressing_method(syntax_state *state, char *argument, label_table *_label_table, keyword *keyword_table) {
+status assign_addressing_method(syntax_state *state, char *argument, label_table *_label_table, keyword *keyword_table) {
 	size_t i;
 	addressing_method _addressing_method = UNDEFINED_METHOD;
 	keyword_name command = UNDEFINED_KEYWORD;
@@ -1111,7 +1095,7 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 	return success;
 }
 
- status validate_data_members(syntax_state *state) {
+status validate_data_members(syntax_state *state) {
 	size_t i;
 	int minus_or_plus = false;
 	int number = false;
@@ -1145,7 +1129,7 @@ inst_table *lex(char *am_filename, char *as_filename, label_table *_label_table,
 	return success;
 }
 
- status assign_addresses(inst_table *_inst_table, label_table *_label_table, keyword *_keyword_table) {
+status assign_addresses(inst_table *_inst_table, label_table *_label_table, keyword *_keyword_table) {
 	int initial_address = 100;
 	int inst_index = 0;
 	int words_generated = 0;

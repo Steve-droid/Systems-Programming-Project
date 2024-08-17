@@ -1,16 +1,11 @@
-.entry LIST
-.entry HELLO
-.extern fn1
-.extern L3
-MAIN: add r3, LIST
-add r3, fn1
-jmp L3
-LOOP: prn #48
-.entry MAIN
-END: stop
-LIST: .data 6,-9
-K: .data 31
-LABE&: add r1
-jmp LABE&
-jmp HELLO
-add r5, HELLO
+VALIDLABEL: stop
+
+;Label syntax errors
+
+MAIN : add r3, LIST
+LOOP`: add r3, LIST
+`END: stop
+LI%ST: .data 6,-9
+K1234&56: .data 31
+add: add r1
+jmp: VALIDLABEL 

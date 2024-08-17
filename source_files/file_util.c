@@ -1,5 +1,4 @@
 #include "file_util.h"
-#include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #define MAX_PATH_LENGTH 30
