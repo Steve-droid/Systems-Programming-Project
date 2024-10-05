@@ -43,7 +43,8 @@ int main(int argc, char **argv) {
         /*Initialize the macro table*/
         m_table = pre_assemble(fnames->as[i], fnames->am[i], keyword_table);
         if (m_table == NULL) {
-            printf("\n-> Pre assembly of the file '%s.as' has failed.\n", fnames->generic[i]);
+            fnames->errors[i]++;
+            printf("\n-> Pre assembly of the file '%s.as' has failed due to an invalid macro definition\n", fnames->generic[i]);
             printf("\n------------------------------------------------------------------------------------------------------------------\n");
             continue;
         }
@@ -78,7 +79,7 @@ int main(int argc, char **argv) {
         }
 
         if (parse(_inst_table, _label_table, keyword_table, fnames->am[i]) != success) {
-            reset_main(argc - 1, NULL, &m_table, NULL, &_label_table, &_inst_table);
+            printf("\n-> Assembly of the file '%s.as' has failed as a result of an internal system error.\n", fnames->generic[i]);
             reset_main(argc - 1, &fnames, &m_table, &keyword_table, &_label_table, &_inst_table);
             return EXIT_FAILURE;
         }

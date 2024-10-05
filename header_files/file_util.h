@@ -20,7 +20,7 @@
 #include <dirent.h>
 
 
-#define MAX_LABEL_LENGTH 31 /* max label len is 31 , + 1 for ':' , + 1 for '\0' */ /* Identify each label separately without fear of a word whose maximum size is -1+2^15 */
+#define MAX_LABEL_LENGTH 31 
 #define MAX_MACRO_NAME 20
 #define UNDEFINED -1
 #define ERR -1

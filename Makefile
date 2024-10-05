@@ -2,7 +2,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS =   -g -Wall -ansi -pedantic 
+CFLAGS =   -Wall -ansi -pedantic 
 
 # Include directories
 INCLUDES = -I./header_files
@@ -43,6 +43,10 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
 # Create the object directory if it doesn't exist
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
+
+# Create the output directory if it doesn't exist
+$(OUTDIR):
+	mkdir -p $(OUTDIR)	
 
 
 # Clean up
