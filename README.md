@@ -55,6 +55,3 @@ The assembler provides detailed error messages for various issues including synt
 
 This project was developed as part of a university course. While it's not actively maintained, suggestions and improvements are welcome. Please open an issue to discuss potential changes.
 
-## License
-
-This project is open-source and available under the [MIT License](LICENSE).
